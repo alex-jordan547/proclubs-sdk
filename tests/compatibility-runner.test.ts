@@ -132,6 +132,32 @@ describe('Compatibility runner', () => {
     expect(result.stopReason).toContain('drifted')
   })
 
+  it('never marks a Zod rejection as passed, even if the structural contract matches', async () => {
+    const executedCalls: string[] = []
+    const transport = async (url: string | URL) => {
+      const parsed = new URL(url)
+      executedCalls.push(parsed.pathname)
+      if (parsed.pathname === '/api/fc/allTimeLeaderboard/search') {
+        return new Response(loadFixture('clubs-search'), { status: 200 })
+      }
+      return new Response(JSON.stringify({ '42': { name: 123 } }), {
+        status: 200,
+      })
+    }
+
+    const result = await runCompatibilityCheck({ transport })
+
+    expect(executedCalls).toEqual([
+      '/api/fc/allTimeLeaderboard/search',
+      '/api/fc/clubs/info',
+    ])
+    expect(result.stoppedEarly).toBe(true)
+    expect(result.report.endpoints.clubsGet.status).toBe('drifted')
+    expect(result.report.endpoints.clubsGet.status).not.toBe('passed')
+    expect(result.stopReason).toBe('Response drifted from the known contract')
+    expect(result.stopReason).not.toContain('non-JSON')
+  })
+
   it('stops gracefully when search returns an empty array', async () => {
     const executedCalls: string[] = []
 

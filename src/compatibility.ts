@@ -64,6 +64,32 @@ function createInitialResults(): Record<Endpoint, EndpointDriftResult> {
   }
 }
 
+function markSchemaRejected(
+  endpoint: Endpoint,
+  existing: EndpointDriftResult,
+): EndpointDriftResult {
+  if (existing.status === 'drifted') {
+    return existing
+  }
+  return {
+    endpoint,
+    status: 'drifted',
+    issues: [
+      ...existing.issues,
+      {
+        kind: 'envelope_changed',
+        path: '$',
+        message:
+          'SDK rejected a JSON payload that matched the structural contract',
+        actual: 'schema_rejected',
+      },
+    ],
+    ...(existing.itemCount === undefined
+      ? {}
+      : { itemCount: existing.itemCount }),
+  }
+}
+
 export async function runCompatibilityCheck(
   options: CompatibilityRunnerOptions = {},
 ): Promise<CompatibilityCheckResult> {
@@ -135,10 +161,8 @@ export async function runCompatibilityCheck(
       if (error instanceof ProClubsResponseError) {
         if (lastCapturedJson !== undefined) {
           recordCapturedDrift(endpoint)
-          stopReason =
-            results[endpoint].status === 'drifted'
-              ? 'Response drifted from the known contract'
-              : 'Invalid response or non-JSON body received'
+          results[endpoint] = markSchemaRejected(endpoint, results[endpoint])
+          stopReason = 'Response drifted from the known contract'
         } else {
           stopReason = 'Invalid response or non-JSON body received'
           results[endpoint] = {
