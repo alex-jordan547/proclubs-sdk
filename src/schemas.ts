@@ -62,8 +62,8 @@ export const clubMemberSchema = z.looseObject({
 })
 
 export const clubMemberStatsSchema = z.looseObject({
-  members: z.array(clubMemberSchema).default([]),
-  positionCount: z.record(z.string(), z.number()).default({}),
+  members: z.array(clubMemberSchema),
+  positionCount: z.record(z.string(), z.number()),
 })
 
 export const clubMatchSchema = z.looseObject({

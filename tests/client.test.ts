@@ -121,6 +121,21 @@ describe('ProClubsClient', () => {
     ).resolves.toEqual([{ clubId: '42', clubName: 'Paris Eleven' }])
   })
 
+  it('rejects a forbidden member-stats body instead of treating it as an empty roster', async () => {
+    const client = new ProClubsClient({
+      maxAttempts: 1,
+      transport: async () =>
+        new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 }),
+    })
+
+    await expect(client.members.stats({ clubId: '42' })).rejects.toMatchObject({
+      name: 'ProClubsHttpError',
+      code: 'HTTP',
+      status: 403,
+      endpoint: 'membersStats',
+    } satisfies Partial<ProClubsHttpError>)
+  })
+
   it('supports per-call platform overrides and cancellation signals', async () => {
     const controller = new AbortController()
     let requestedUrl = ''
