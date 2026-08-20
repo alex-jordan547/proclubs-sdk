@@ -31,8 +31,13 @@ const matches = await proclubs.matches.list({
 </ParamField>
 
 <ResponseField name="result" type="Promise<ClubMatch[]>">
-  Recent matches. Known fields include `matchId`, `timestamp`, `clubs`,
-  `players`, and `aggregate`.
+  Recent matches. Known fields include:
+  - `matchId`: Match identifier
+  - `timestamp`: Unix timestamp
+  - `timeAgo`: Object with `number` and `unit`
+  - `clubs`: Map of club ID to `MatchClubDetails` (`date`, `goals`, `score`, `result`, `TEAM`, `winnerByDnf`, and `details` containing full `ClubInfo`)
+  - `players`: Map of club ID to map of player ID to `MatchPlayerStats` (`playername`, `pos`, `rating`, `goals`, `assists`, `shots`, `saves`, `passesmade`, `tacklesmade`, `mom`, `vproattr`, `match_event_aggregate_0..3`, etc.)
+  - `aggregate`: Map of club ID to `MatchAggregateStats`
 </ResponseField>
 
 ```ts
@@ -42,7 +47,6 @@ for (const match of matches) {
 ```
 
 <Note>
-  Match internals are deliberately open records. EA may change nested club,
-  player, and aggregate fields without notice, so inspect and narrow those
-  values in your application before relying on them.
+  Match internals are loose records. All observed FC26 fields are explicitly typed
+  and any future fields added by EA are preserved at runtime.
 </Note>

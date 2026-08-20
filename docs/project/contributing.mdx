@@ -18,6 +18,16 @@ npm run check
 The default test suite must remain offline and deterministic. Test through the
 public SDK interface and inject a transport at the network boundary.
 
+## Compatibility checks
+
+To verify structural compatibility and contract drift against live EA FC endpoints (opt-in and low frequency):
+
+```bash
+npm run check:compatibility
+```
+
+Probes run sequentially, stop at the first access control error, and produce a sanitized drift report without logging sensitive identifiers or raw response bodies.
+
 ## Documentation preview
 
 From the repository root, run:

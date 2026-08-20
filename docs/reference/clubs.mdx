@@ -24,7 +24,9 @@ const clubs = await proclubs.clubs.search({
 
 <ResponseField name="result" type="Promise<ClubSummary[]>">
   Matching clubs. Known fields include `clubId`, `clubName`, `platform`, `wins`,
-  `losses`, `ties`, `gamesPlayed`, and `clubInfo`.
+  `losses`, `ties`, `gamesPlayed`, `gamesPlayedPlayoff`, `goals`, `goalsAgainst`,
+  `cleanSheets`, `points`, `reputationtier`, `promotions`, `relegations`,
+  `bestDivision`, `currentDivision`, and `clubInfo` (with `customKit`).
 </ResponseField>
 
 ## `clubs.get`
@@ -44,8 +46,9 @@ const club = await proclubs.clubs.get({ clubId: '12345' })
 </ParamField>
 
 <ResponseField name="result" type="Promise<ClubInfo | null>">
-  The selected club or `null`. Known fields include `clubId`, `name`, `regionId`,
-  `teamId`, and `customKit`.
+  The selected club or `null`. The SDK unwraps the upstream index map (`{ [clubId]: ClubInfo }`)
+  to return the `ClubInfo` resource directly. Known fields include `clubId`, `name`, `regionId`,
+  `teamId`, and `customKit` (with stadium name, kit IDs, kit colors, crest asset ID).
 </ResponseField>
 
 ## `clubs.overallStats`
@@ -65,8 +68,11 @@ const stats = await proclubs.clubs.overallStats({ clubId: 12345 })
 </ParamField>
 
 <ResponseField name="result" type="Promise<ClubOverallStats | null>">
-  The selected aggregate record or `null`. Known fields include `clubId`,
-  `wins`, `losses`, `ties`, and `gamesPlayed`.
+  The selected aggregate record or `null`. The SDK finds the matching record by club ID.
+  Known fields include `clubId`, `wins`, `losses`, `ties`, `gamesPlayed`,
+  `gamesPlayedPlayoff`, `goals`, `goalsAgainst`, `promotions`, `relegations`,
+  `bestDivision`, `bestFinishGroup`, `skillRating`, `reputationtier`,
+  `leagueAppearances`, streak stats (`wstreak`, `unbeatenstreak`), and recent match history (`lastMatch0..9`, `lastOpponent0..9`).
 </ResponseField>
 
 <Note>

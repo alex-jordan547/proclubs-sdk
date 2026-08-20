@@ -43,12 +43,15 @@ Both methods return `Promise<ClubMemberStats>`. `members.careerStats` aliases
 that shape as `ClubMemberCareerStats`.
 
 <ResponseField name="members" type="ClubMember[]" required>
-  Member records. Known fields include `name`, `gamesPlayed`, `goals`, `assists`,
-  and `ratingAve`.
+  Member records. Known fields include `name`, `gamesPlayed`, `winRate`, `goals`,
+  `assists`, `cleanSheetsDef`, `cleanSheetsGK`, `shotSuccessRate`, `passesMade`,
+  `passSuccessRate`, `ratingAve`, `tacklesMade`, `tackleSuccessRate`,
+  `proName`, `proPos`, `proStyle`, `proHeight`, `proNationality`, `proOverall`,
+  `proOverallStr`, `manOfTheMatch`, `redCards`, `prevGoals`, `prevGoals1..10`, and `favoritePosition`.
 </ResponseField>
 
 <ResponseField name="positionCount" type="Record<string, number>" required>
-  Number of members grouped by EA position key.
+  Number of members grouped by EA position key (e.g. `midfielder`, `forward`, `defender`, `goalkeeper`).
 </ResponseField>
 
 <Warning>

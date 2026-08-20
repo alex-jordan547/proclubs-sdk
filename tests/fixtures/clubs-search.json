@@ -1,0 +1,53 @@
+[
+  {
+    "clubId": "42",
+    "wins": "19",
+    "losses": "2",
+    "ties": "0",
+    "gamesPlayed": "21",
+    "gamesPlayedPlayoff": "2",
+    "goals": "124",
+    "goalsAgainst": "53",
+    "cleanSheets": "2",
+    "points": "37",
+    "reputationtier": "6",
+    "promotions": "3",
+    "relegations": "0",
+    "bestDivision": "3",
+    "currentDivision": "6",
+    "clubInfo": {
+      "name": "ALL STAR 237",
+      "clubId": 42,
+      "regionId": 5457237,
+      "teamId": 112809,
+      "customKit": {
+        "stadName": "Stade de Wembley",
+        "kitId": "924131328",
+        "seasonalTeamId": "132693",
+        "seasonalKitId": "1087021056",
+        "selectedKitType": "1",
+        "customKitId": "7616",
+        "customAwayKitId": "7631",
+        "customThirdKitId": "7852",
+        "customKeeperKitId": "5028",
+        "kitColor1": "1909296",
+        "kitColor2": "592397",
+        "kitColor3": "592397",
+        "kitColor4": "15921906",
+        "kitAColor1": "14935011",
+        "kitAColor2": "15921906",
+        "kitAColor3": "15921906",
+        "kitAColor4": "592397",
+        "kitThrdColor1": "7192366",
+        "kitThrdColor2": "1336871",
+        "kitThrdColor3": "15921906",
+        "kitThrdColor4": "11786",
+        "dCustomKit": "0",
+        "crestColor": "0",
+        "crestAssetId": "99140109"
+      }
+    },
+    "platform": "common-gen5",
+    "clubName": "ALL STAR 237"
+  }
+]
