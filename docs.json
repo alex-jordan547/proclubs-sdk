@@ -19,7 +19,8 @@
         "pages": [
           "docs/guides/configuration",
           "docs/guides/errors-and-retries",
-          "docs/guides/cancellation"
+          "docs/guides/cancellation",
+          "docs/guides/cache-and-observability"
         ]
       },
       {
@@ -34,7 +35,11 @@
       },
       {
         "group": "Project",
-        "pages": ["docs/project/limitations", "docs/project/contributing"]
+        "pages": [
+          "docs/project/roadmap",
+          "docs/project/limitations",
+          "docs/project/contributing"
+        ]
       }
     ]
   }

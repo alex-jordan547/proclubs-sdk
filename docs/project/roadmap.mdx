@@ -1,0 +1,63 @@
+---
+title: "Roadmap"
+description: "Track what is released, in progress, and planned for proclubs-sdk."
+---
+
+The roadmap describes product direction, not guaranteed delivery dates. Statuses
+are maintained manually when a milestone changes.
+
+## Status legend
+
+| Status | Meaning |
+| --- | --- |
+| Released | Available in the current public release |
+| In progress | Being implemented or prepared for release |
+| Planned | Accepted direction, not currently being implemented |
+
+## Version progress
+
+### 0.1 — Released
+
+- Six typed Pro Clubs methods
+- Zod input and response validation
+- Bounded retries and `Retry-After`
+- Typed errors and cancellation
+- Public npm package and Mintlify documentation
+
+### 0.2 — In progress
+
+- [x] Beginner-friendly opt-in memory cache with 60-second defaults
+- [x] Configurable TTL and bounded LRU capacity
+- [x] Concurrent request deduplication
+- [x] Typed local observability hook
+- [x] Cache, deduplication, and event regression tests
+- [ ] Documentation and `0.2.0` release
+
+### 0.3 — Planned
+
+- Optional relay CLI
+- Healthcheck endpoint
+- Route allowlist and shared-secret authentication
+- Optional Docker packaging
+
+The relay remains optional. The SDK itself will continue to work without a
+hosted service.
+
+### 0.4 — Planned
+
+- Circuit breaker
+- Client-side rate limiting
+- Optional stable-IP proxy support
+- Optional framework adapters
+
+### 1.0 — Planned
+
+- Stabilized public API contract
+- EA compatibility matrix and live compatibility checks
+- Consolidated release and compatibility workflow
+
+## How progress is updated
+
+The status and checklist are updated with each milestone release. No percentage
+is shown because feature completion and upstream EA compatibility are not
+meaningfully measured by one number.

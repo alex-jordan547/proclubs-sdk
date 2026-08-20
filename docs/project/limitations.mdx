@@ -11,12 +11,12 @@ description: "Understand the SDK's runtime contract, upstream risks, and non-goa
 - direct, low-volume server-side requests
 - injectable transport for tests and custom Node.js runtimes
 
-## Not supported in 0.1.x
+## Not supported in 0.2.x
 
 - browser or CommonJS applications;
 - React Native, Deno, or edge runtimes;
 - EA account authentication or private endpoints;
-- a shared proxy, relay, cache, or database;
+- a shared proxy, relay, or database;
 - bulk scraping, club enumeration, or data warehousing;
 - a guarantee of upstream availability or long-term schema stability.
 
@@ -36,7 +36,7 @@ upstream service stable.
 ## Responsible operation
 
 - Keep request volumes modest.
-- Cache results in your own application when appropriate.
+- Use the optional local cache when appropriate, and keep request volumes modest.
 - Do not bypass authorization, access controls, or rate limits.
 - Follow applicable EA terms and local laws.
 - Keep live compatibility probes explicit, sequential, and low volume.
