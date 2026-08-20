@@ -40,6 +40,7 @@ export class MemoryCache<T> {
   }
 
   set(key: string, value: T): void {
+    this.purgeExpired()
     this.#entries.delete(key)
     this.#entries.set(key, {
       value: cloneValue(value),
@@ -52,6 +53,15 @@ export class MemoryCache<T> {
         return
       }
       this.#entries.delete(oldestKey)
+    }
+  }
+
+  private purgeExpired(): void {
+    const now = Date.now()
+    for (const [key, entry] of this.#entries) {
+      if (entry.expiresAt <= now) {
+        this.#entries.delete(key)
+      }
     }
   }
 }

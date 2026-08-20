@@ -510,7 +510,24 @@ export class ProClubsClient {
           errorCode,
           delayMs,
         })
-        await this.delay(delayMs, options?.signal)
+        try {
+          await this.delay(delayMs, options?.signal)
+        } catch (delayError) {
+          if (
+            !(delayError instanceof ProClubsAbortError) &&
+            !options?.signal?.aborted
+          ) {
+            throw delayError
+          }
+          const abortError =
+            delayError instanceof ProClubsAbortError
+              ? delayError
+              : new ProClubsAbortError(undefined, {
+                  cause: delayError,
+                })
+          this.emitRequestError(endpoint, attempt, startedAt, abortError.code)
+          throw abortError
+        }
       }
     }
 

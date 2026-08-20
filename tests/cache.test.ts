@@ -63,6 +63,29 @@ describe('ProClubsClient cache and observability', () => {
     expect(calls).toBe(4)
   })
 
+  it('purges expired entries before evicting live LRU entries', async () => {
+    vi.useFakeTimers()
+    let calls = 0
+    const client = new ProClubsClient({
+      cache: { ttlMs: 10_000, maxEntries: 2 },
+      transport: async () => {
+        calls += 1
+        return clubResponse(`version-${calls}`)
+      },
+    })
+
+    await client.clubs.search({ name: 'ALL STAR 237' })
+    vi.advanceTimersByTime(5_000)
+    await client.clubs.search({ name: 'HEMLE FC' })
+    vi.advanceTimersByTime(4_000)
+    await client.clubs.search({ name: 'ALL STAR 237' })
+    vi.advanceTimersByTime(2_000)
+    await client.clubs.search({ name: 'THIRD CLUB' })
+
+    await client.clubs.search({ name: 'HEMLE FC' })
+    expect(calls).toBe(3)
+  })
+
   it('rejects invalid cache settings', () => {
     expect(() => new ProClubsClient({ cache: { ttlMs: 0 } })).toThrow(
       ProClubsValidationError,
@@ -260,5 +283,43 @@ describe('ProClubsClient cache and observability', () => {
       ]),
     )
     expect(JSON.stringify(events)).not.toContain('Forbidden')
+  })
+
+  it('emits a terminal error when aborting a network retry delay', async () => {
+    const events: ProClubsEvent[] = []
+    const controller = new AbortController()
+    const client = new ProClubsClient({
+      cache: true,
+      maxAttempts: 2,
+      baseDelayMs: 100,
+      onEvent: (event) => {
+        events.push(event)
+      },
+      transport: async () => {
+        throw new TypeError('network failure')
+      },
+    })
+
+    const pending = client.clubs.search(
+      { name: 'ALL STAR 237' },
+      { signal: controller.signal },
+    )
+    await Promise.resolve()
+    expect(events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'request:retry' }),
+      ]),
+    )
+    controller.abort()
+
+    await expect(pending).rejects.toMatchObject({ code: 'ABORTED' })
+    expect(events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'request:error',
+          errorCode: 'ABORTED',
+        }),
+      ]),
+    )
   })
 })
