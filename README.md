@@ -133,3 +133,6 @@ npm run check
 ```
 
 See [docs/sdk-v1-spec.md](./docs/sdk-v1-spec.md) for the SDK v1 specification.
+
+The first npm release is prepared in
+[docs/npm-publish.md](./docs/npm-publish.md).
