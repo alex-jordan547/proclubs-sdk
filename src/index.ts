@@ -1,12 +1,51 @@
-export const GAME_PROFILES = ['fc26'] as const
-export type GameProfile = (typeof GAME_PROFILES)[number]
-
-export const PLATFORMS = ['common-gen5', 'common-gen4', 'nx'] as const
-export type Platform = (typeof PLATFORMS)[number]
-
-export const MATCH_TYPES = [
-  'friendlyMatch',
-  'leagueMatch',
-  'playoffMatch',
-] as const
-export type MatchType = (typeof MATCH_TYPES)[number]
+export { ProClubsClient } from './client.js'
+export type {
+  ProClubsClientOptions,
+  ProClubsRequestInit,
+  ProClubsRequestOptions,
+  ProClubsResponse,
+  ProClubsTransport,
+} from './client.js'
+export {
+  DEFAULT_PLATFORM,
+  MATCH_TYPES,
+  PLATFORMS,
+} from './constants.js'
+export type { MatchType, Platform } from './constants.js'
+export {
+  ProClubsAbortError,
+  ProClubsError,
+  ProClubsHttpError,
+  ProClubsNetworkError,
+  ProClubsResponseError,
+  ProClubsTimeoutError,
+  ProClubsValidationError,
+} from './errors.js'
+export type {
+  ProClubsErrorCode,
+  ProClubsHttpErrorOptions,
+} from './errors.js'
+export {
+  clubInfoResponseSchema,
+  clubInfoSchema,
+  clubMatchesResponseSchema,
+  clubMatchSchema,
+  clubMemberSchema,
+  clubMemberStatsSchema,
+  clubOverallStatsResponseSchema,
+  clubOverallStatsSchema,
+  clubSearchResponseSchema,
+  clubSummarySchema,
+} from './schemas.js'
+export type {
+  ClubInfo,
+  ClubMatch,
+  ClubMember,
+  ClubMemberCareerStats,
+  ClubMemberStats,
+  ClubOverallStats,
+  ClubRequest,
+  ClubSummary,
+  ListMatchesInput,
+  SearchClubsInput,
+} from './schemas.js'
