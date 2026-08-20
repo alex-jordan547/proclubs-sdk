@@ -1,0 +1,48 @@
+---
+title: "Matches"
+description: "List recent friendly, league, or playoff matches for a club."
+---
+
+## `matches.list`
+
+```ts
+const matches = await proclubs.matches.list({
+  clubId: '12345',
+  platform: 'common-gen5',
+  type: 'friendlyMatch',
+  limit: 5,
+})
+```
+
+<ParamField path="clubId" type="string | integer" required>
+  Non-empty club identifier.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ParamField path="type" type="MatchType" default="leagueMatch">
+  One of `friendlyMatch`, `leagueMatch`, or `playoffMatch`.
+</ParamField>
+
+<ParamField path="limit" type="integer" default="10">
+  Maximum number of results, from `1` through `10`.
+</ParamField>
+
+<ResponseField name="result" type="Promise<ClubMatch[]>">
+  Recent matches. Known fields include `matchId`, `timestamp`, `clubs`,
+  `players`, and `aggregate`.
+</ResponseField>
+
+```ts
+for (const match of matches) {
+  console.log(match.matchId, match.timestamp)
+}
+```
+
+<Note>
+  Match internals are deliberately open records. EA may change nested club,
+  player, and aggregate fields without notice, so inspect and narrow those
+  values in your application before relying on them.
+</Note>

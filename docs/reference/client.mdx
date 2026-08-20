@@ -1,0 +1,64 @@
+---
+title: "ProClubsClient"
+description: "Constructor, namespaces, options, and request behavior."
+---
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient(options)
+```
+
+## Constructor
+
+```ts
+interface ProClubsClientOptions {
+  platform?: Platform
+  timeoutMs?: number
+  maxAttempts?: number
+  baseDelayMs?: number
+  transport?: ProClubsTransport
+}
+```
+
+All options are optional. See [Configure the client](/docs/guides/configuration)
+for defaults, constraints, and custom transport behavior.
+
+## Namespaces
+
+<CardGroup cols={3}>
+  <Card title="clubs" icon="shield" href="/docs/reference/clubs">
+    Search, information, and overall statistics.
+  </Card>
+  <Card title="members" icon="users" href="/docs/reference/members">
+    Current and career member statistics.
+  </Card>
+  <Card title="matches" icon="futbol" href="/docs/reference/matches">
+    Recent friendly, league, and playoff matches.
+  </Card>
+</CardGroup>
+
+## Request options
+
+Every public method accepts request options as its second argument.
+
+```ts
+interface ProClubsRequestOptions {
+  signal?: AbortSignal
+}
+```
+
+## Return behavior
+
+- Collection methods return an empty array when EA returns an empty collection.
+- `clubs.get` and `clubs.overallStats` return `null` when no matching club is
+  present in a valid response.
+- Member methods return an object containing both `members` and
+  `positionCount`.
+- Known response fields are typed, while additional EA fields are preserved.
+
+## Runtime behavior
+
+The built-in transport sends direct GET requests to
+`https://proclubs.ea.com/api/fc/` using Impit's Chrome profile. It does not add
+credentials, cookies, authentication, a proxy, a cache, or telemetry.

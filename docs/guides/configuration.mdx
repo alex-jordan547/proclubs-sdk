@@ -1,0 +1,82 @@
+---
+title: "Configure the client"
+description: "Set platforms, timeouts, retry limits, and a custom transport."
+---
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({
+  platform: 'common-gen5',
+  timeoutMs: 15_000,
+  maxAttempts: 3,
+  baseDelayMs: 400,
+})
+```
+
+## Options
+
+<ParamField path="platform" type="Platform" default="common-gen5">
+  Default platform for every request. A method input can override it.
+</ParamField>
+
+<ParamField path="timeoutMs" type="number" default="15000">
+  Positive, finite timeout used by the built-in Impit transport.
+</ParamField>
+
+<ParamField path="maxAttempts" type="number" default="3">
+  Total attempts for a request, including the first one. Must be an integer from
+  `1` through `5`.
+</ParamField>
+
+<ParamField path="baseDelayMs" type="number" default="400">
+  Non-negative, finite initial retry delay. Each retry doubles the previous
+  backoff delay.
+</ParamField>
+
+<ParamField path="transport" type="ProClubsTransport">
+  Optional request function for tests or custom Node.js runtimes.
+</ParamField>
+
+Invalid options throw `ProClubsValidationError` synchronously in the constructor.
+
+## Per-request platform
+
+Every method that accepts a platform uses this precedence:
+
+1. the platform supplied in the method input;
+2. the client default;
+3. `common-gen5`.
+
+```ts
+const proclubs = new ProClubsClient({ platform: 'common-gen5' })
+
+const legacyClub = await proclubs.clubs.get({
+  clubId: '12345',
+  platform: 'common-gen4',
+})
+```
+
+## Custom transport
+
+The default transport uses Impit with a Chrome network profile. You can inject a
+compatible transport at the HTTP boundary.
+
+```ts
+import {
+  ProClubsClient,
+  type ProClubsTransport,
+} from 'proclubs-sdk'
+
+const transport: ProClubsTransport = (url, init) => fetch(url, init)
+const proclubs = new ProClubsClient({ transport })
+```
+
+<Warning>
+  `timeoutMs` configures only the built-in transport. A custom transport must
+  implement its own timeout behavior and forward the supplied abort signal.
+</Warning>
+
+The transport receives a `URL`, a GET request initializer, and an optional
+`AbortSignal`. Its response must expose `status`, `statusText`, `ok`, `headers`,
+and an asynchronous `text()` method.

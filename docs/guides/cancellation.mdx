@@ -1,0 +1,53 @@
+---
+title: "Cancellation"
+description: "Cancel in-flight requests and retry delays with AbortSignal."
+---
+
+Every SDK method accepts `{ signal?: AbortSignal }` as its second argument.
+
+```ts
+import { ProClubsAbortError, ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const controller = new AbortController()
+
+try {
+  const matches = await proclubs.matches.list(
+    { clubId: '12345', type: 'friendlyMatch', limit: 5 },
+    { signal: controller.signal },
+  )
+
+  console.log(matches)
+} catch (error) {
+  if (error instanceof ProClubsAbortError) {
+    console.log('Request cancelled')
+  } else {
+    throw error
+  }
+}
+
+controller.abort()
+```
+
+## Cancel after a deadline
+
+Node.js 22 supports `AbortSignal.timeout()`.
+
+```ts
+const club = await proclubs.clubs.get(
+  { clubId: '12345' },
+  { signal: AbortSignal.timeout(5_000) },
+)
+```
+
+<Note>
+  A caller abort becomes `ProClubsAbortError` with code `ABORTED`. It is never
+  retried. The same signal also interrupts an exponential backoff or
+  `Retry-After` delay between attempts.
+</Note>
+
+`timeoutMs` and an external `AbortSignal` solve different problems:
+
+- `timeoutMs` configures the built-in transport's request timeout;
+- `AbortSignal` lets the caller cancel the complete SDK operation, including
+  retry delays.

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "proclubs-sdk",
+  "description": "TypeScript SDK for the public EA Sports FC Pro Clubs endpoints.",
+  "colors": {
+    "primary": "#635BFF",
+    "light": "#7C74FF",
+    "dark": "#4F46E5"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get started",
+        "pages": ["docs/index", "docs/quickstart"]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "docs/guides/configuration",
+          "docs/guides/errors-and-retries",
+          "docs/guides/cancellation"
+        ]
+      },
+      {
+        "group": "SDK reference",
+        "pages": [
+          "docs/reference/client",
+          "docs/reference/clubs",
+          "docs/reference/members",
+          "docs/reference/matches",
+          "docs/reference/types-and-schemas"
+        ]
+      },
+      {
+        "group": "Project",
+        "pages": ["docs/project/limitations", "docs/project/contributing"]
+      }
+    ]
+  }
+}

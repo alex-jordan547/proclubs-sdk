@@ -1,24 +1,26 @@
 # proclubs-sdk
 
-Unofficial TypeScript ESM SDK for the public EA Sports FC Pro Clubs endpoints.
-It provides typed inputs, validated responses, retries, and typed errors for
-server-side Node.js applications.
+[![npm version](https://img.shields.io/npm/v/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
+[![CI](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/proclubs-sdk.svg)](./LICENSE)
+
+A small, typed Node.js SDK for the public endpoints used by EA Sports FC Pro
+Clubs. It validates inputs and responses, retries transient failures, and exposes
+stable error classes without requiring EA credentials, cookies, or a hosted
+relay.
 
 > [!WARNING]
-> This project is not affiliated with or endorsed by Electronic Arts. The EA
-> endpoints are undocumented and may change or become unavailable without
-> notice. Use them responsibly and keep request volumes modest.
+> This project is not affiliated with or endorsed by Electronic Arts. The
+> upstream API is undocumented and may change or become unavailable without
+> notice.
 
-## Requirements
-
-- Node.js 22 or newer
-- ESM
-
-## Installation
+## Install
 
 ```bash
 npm install proclubs-sdk
 ```
+
+Requires Node.js 22 or newer and ESM.
 
 ## Quick start
 
@@ -26,113 +28,53 @@ npm install proclubs-sdk
 import { ProClubsClient } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
-const clubs = await proclubs.clubs.search({ name: 'Paris Eleven' })
+const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
 
-if (clubs[0]) {
-  const clubId = clubs[0].clubId
+if (club) {
+  const [info, members, matches] = await Promise.all([
+    proclubs.clubs.get({ clubId: club.clubId }),
+    proclubs.members.stats({ clubId: club.clubId }),
+    proclubs.matches.list({ clubId: club.clubId, limit: 5 }),
+  ])
 
-  const [info, overallStats, memberStats, careerStats, matches] =
-    await Promise.all([
-      proclubs.clubs.get({ clubId }),
-      proclubs.clubs.overallStats({ clubId }),
-      proclubs.members.stats({ clubId }),
-      proclubs.members.careerStats({ clubId }),
-      proclubs.matches.list({ clubId }),
-    ])
-
-  console.log({ info, overallStats, memberStats, careerStats, matches })
+  console.log({ info, members, matches })
 }
 ```
+
+The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
+`mrjordan_237` / `mrjordan237` as test member names.
 
 ## API
 
-| Method | Input | Result |
-| --- | --- | --- |
-| `clubs.search` | `{ name, platform? }` | `Promise<ClubSummary[]>` |
-| `clubs.get` | `{ clubId, platform? }` | `Promise<ClubInfo \| null>` |
-| `clubs.overallStats` | `{ clubId, platform? }` | `Promise<ClubOverallStats \| null>` |
-| `members.stats` | `{ clubId, platform? }` | `Promise<ClubMemberStats>` |
-| `members.careerStats` | `{ clubId, platform? }` | `Promise<ClubMemberCareerStats>` |
-| `matches.list` | `{ clubId, platform?, type?, limit? }` | `Promise<ClubMatch[]>` |
+| Method | Result |
+| --- | --- |
+| `clubs.search({ name, platform? })` | `Promise<ClubSummary[]>` |
+| `clubs.get({ clubId, platform? })` | `Promise<ClubInfo \| null>` |
+| `clubs.overallStats({ clubId, platform? })` | `Promise<ClubOverallStats \| null>` |
+| `members.stats({ clubId, platform? })` | `Promise<ClubMemberStats>` |
+| `members.careerStats({ clubId, platform? })` | `Promise<ClubMemberCareerStats>` |
+| `matches.list({ clubId, platform?, type?, limit? })` | `Promise<ClubMatch[]>` |
 
-Search names are trimmed and must contain 1 to 32 characters. `clubId` accepts a
-non-empty string or an integer. Supported platforms are `common-gen5` (the
-default), `common-gen4`, and `nx`.
+Supported platforms are `common-gen5` (default), `common-gen4`, and `nx`.
+Supported match types are `friendlyMatch`, `leagueMatch` (default), and
+`playoffMatch`.
 
-For `matches.list`, `type` defaults to `leagueMatch` and accepts
-`friendlyMatch`, `leagueMatch`, or `playoffMatch`. `limit` is an integer from 1
-to 10 and defaults to 10.
+## Documentation
 
-Every method accepts `{ signal?: AbortSignal }` as its second argument:
+- [Get started](./docs/index.mdx)
+- [Quickstart](./docs/quickstart.mdx)
+- [Configuration](./docs/guides/configuration.mdx)
+- [Errors and retries](./docs/guides/errors-and-retries.mdx)
+- [SDK reference](./docs/reference/client.mdx)
+- [Support and limitations](./docs/project/limitations.mdx)
 
-```ts
-const controller = new AbortController()
+Preview the Mintlify documentation locally with `npx mint dev`.
 
-const matches = await proclubs.matches.list(
-  { clubId: '12345', type: 'friendlyMatch', limit: 5 },
-  { signal: controller.signal },
-)
-```
+## Contributing
 
-## Client options
-
-```ts
-const proclubs = new ProClubsClient({
-  platform: 'common-gen5',
-  timeoutMs: 15_000,
-  maxAttempts: 3,
-  baseDelayMs: 400,
-})
-```
-
-- `platform`: default platform for requests; defaults to `common-gen5`.
-- `timeoutMs`: positive finite timeout used by the built-in transport; defaults
-  to `15_000`.
-- `maxAttempts`: total request attempts from 1 to 5; defaults to `3`.
-- `baseDelayMs`: non-negative initial retry delay; defaults to `400`.
-- `transport`: optional custom `ProClubsTransport` implementation.
-
-The built-in client retries transient network failures and retryable EA
-responses with exponential backoff, respecting `Retry-After` when present.
-
-## Typed errors
-
-All SDK errors extend `ProClubsError` and expose a typed `code`:
-
-- `ProClubsValidationError` (`VALIDATION`)
-- `ProClubsAbortError` (`ABORTED`)
-- `ProClubsTimeoutError` (`TIMEOUT`)
-- `ProClubsNetworkError` (`NETWORK`)
-- `ProClubsHttpError` (`HTTP`), with `status`, `endpoint`, and optional
-  `retryAfterMs` and `bodySnippet`
-- `ProClubsResponseError` (`INVALID_RESPONSE`), with `endpoint`
-
-```ts
-import { ProClubsError, ProClubsHttpError } from 'proclubs-sdk'
-
-try {
-  await proclubs.clubs.get({ clubId: '12345' })
-} catch (error) {
-  if (error instanceof ProClubsHttpError) {
-    console.error(error.status, error.endpoint)
-  } else if (error instanceof ProClubsError) {
-    console.error(error.code, error.message)
-  }
-}
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Run `npm run check` before opening a
+pull request.
 
 ## License
 
 [MIT](./LICENSE)
-
-## Development
-
-```bash
-npm install
-npm run check
-```
-
-See [docs/sdk-v1-spec.md](./docs/sdk-v1-spec.md) for the SDK v1 specification.
-
-The first npm release is prepared in
-[docs/npm-publish.md](./docs/npm-publish.md).

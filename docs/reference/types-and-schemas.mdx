@@ -1,0 +1,101 @@
+---
+title: "Types and schemas"
+description: "Public TypeScript types, constants, and Zod response schemas."
+---
+
+The package ships ESM JavaScript and TypeScript declarations from the same root
+export.
+
+## Input types
+
+```ts
+import type {
+  ClubRequest,
+  ListMatchesInput,
+  SearchClubsInput,
+} from 'proclubs-sdk'
+```
+
+| Type | Fields |
+| --- | --- |
+| `SearchClubsInput` | `name`, optional `platform` |
+| `ClubRequest` | `clubId`, optional `platform` |
+| `ListMatchesInput` | `clubId`, optional `platform`, `type`, and `limit` |
+
+## Response types
+
+```ts
+import type {
+  ClubInfo,
+  ClubMatch,
+  ClubMember,
+  ClubMemberCareerStats,
+  ClubMemberStats,
+  ClubOverallStats,
+  ClubSummary,
+} from 'proclubs-sdk'
+```
+
+Response object types preserve unknown upstream fields. Known fields follow the
+validated shapes described on the namespace reference pages.
+
+## Constants
+
+```ts
+import {
+  DEFAULT_PLATFORM,
+  MATCH_TYPES,
+  PLATFORMS,
+  type MatchType,
+  type Platform,
+} from 'proclubs-sdk'
+```
+
+```ts
+PLATFORMS // ['common-gen5', 'common-gen4', 'nx']
+DEFAULT_PLATFORM // 'common-gen5'
+MATCH_TYPES // ['friendlyMatch', 'leagueMatch', 'playoffMatch']
+```
+
+## Response schemas
+
+The public Zod schemas let consumers validate stored or forwarded EA payloads
+against the same envelopes as the SDK.
+
+```ts
+import {
+  clubInfoResponseSchema,
+  clubInfoSchema,
+  clubMatchesResponseSchema,
+  clubMatchSchema,
+  clubMemberSchema,
+  clubMemberStatsSchema,
+  clubOverallStatsResponseSchema,
+  clubOverallStatsSchema,
+  clubSearchResponseSchema,
+  clubSummarySchema,
+} from 'proclubs-sdk'
+```
+
+```ts
+const result = clubMemberStatsSchema.safeParse(untrustedPayload)
+
+if (result.success) {
+  console.log(result.data.members)
+}
+```
+
+## Transport types
+
+```ts
+import type {
+  ProClubsClientOptions,
+  ProClubsRequestInit,
+  ProClubsRequestOptions,
+  ProClubsResponse,
+  ProClubsTransport,
+} from 'proclubs-sdk'
+```
+
+See [Configure the client](/docs/guides/configuration) for the transport
+contract and a minimal adapter.

@@ -1,0 +1,61 @@
+---
+title: "Members"
+description: "Retrieve current and career statistics for club members."
+---
+
+## `members.stats`
+
+Get the current member statistics and position counts for a club.
+
+```ts
+const stats = await proclubs.members.stats({ clubId: '12345' })
+
+const testMembers = stats.members.filter((member) =>
+  ['mrjordan_237', 'mrjordan237'].includes(member.name ?? ''),
+)
+
+for (const member of testMembers) {
+  console.log(member.name, member.goals, member.assists)
+}
+```
+
+## `members.careerStats`
+
+Get career statistics for the members of a club.
+
+```ts
+const career = await proclubs.members.careerStats({ clubId: '12345' })
+```
+
+## Shared input
+
+<ParamField path="clubId" type="string | integer" required>
+  Non-empty club identifier.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+## Shared result shape
+
+Both methods return `Promise<ClubMemberStats>`. `members.careerStats` aliases
+that shape as `ClubMemberCareerStats`.
+
+<ResponseField name="members" type="ClubMember[]" required>
+  Member records. Known fields include `name`, `gamesPlayed`, `goals`, `assists`,
+  and `ratingAve`.
+</ResponseField>
+
+<ResponseField name="positionCount" type="Record<string, number>" required>
+  Number of members grouped by EA position key.
+</ResponseField>
+
+<Warning>
+  `members` and `positionCount` are required in a valid response. An error body
+  such as `{ "error": "Forbidden" }` is rejected and can never become an empty
+  roster.
+</Warning>
+
+Numeric member values can arrive as a string, number, or `null`. Individual
+known member fields remain optional because EA's undocumented payload can vary.

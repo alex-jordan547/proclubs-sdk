@@ -1,0 +1,84 @@
+---
+title: "Errors and retries"
+description: "Handle stable SDK errors and understand transient request retries."
+---
+
+All stable SDK errors extend `ProClubsError` and expose a typed `code`.
+
+| Error class | Code | Meaning |
+| --- | --- | --- |
+| `ProClubsValidationError` | `VALIDATION` | Local input or client options are invalid |
+| `ProClubsAbortError` | `ABORTED` | The caller or transport aborted the request |
+| `ProClubsTimeoutError` | `TIMEOUT` | The final attempt ended in a timeout |
+| `ProClubsNetworkError` | `NETWORK` | The final attempt ended in another transport failure |
+| `ProClubsHttpError` | `HTTP` | EA returned a rejected HTTP response |
+| `ProClubsResponseError` | `INVALID_RESPONSE` | A successful response had invalid JSON or an unexpected shape |
+
+## Catch errors by class
+
+```ts
+import {
+  ProClubsClient,
+  ProClubsError,
+  ProClubsHttpError,
+  ProClubsValidationError,
+} from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+
+try {
+  await proclubs.matches.list({ clubId: '12345', limit: 5 })
+} catch (error) {
+  if (error instanceof ProClubsValidationError) {
+    console.error('Fix the request:', error.message)
+  } else if (error instanceof ProClubsHttpError) {
+    console.error({
+      status: error.status,
+      endpoint: error.endpoint,
+      retryAfterMs: error.retryAfterMs,
+      bodySnippet: error.bodySnippet,
+    })
+  } else if (error instanceof ProClubsError) {
+    console.error(error.code, error.message)
+  } else {
+    throw error
+  }
+}
+```
+
+`ProClubsHttpError` adds the rejected `status`, internal `endpoint`, optional
+`retryAfterMs`, and an optional sanitized body excerpt limited to 200 characters.
+`ProClubsResponseError` adds the internal `endpoint`. Original errors are
+available through `cause` where applicable.
+
+## Retry policy
+
+The SDK retries:
+
+- network failures and timeouts;
+- `429`, `502`, `503`, and `504` responses;
+- `403` responses only when the body does not validate as the requested
+  endpoint's expected payload.
+
+Retries use exponential backoff from `baseDelayMs`. If EA returns `Retry-After`
+with a longer delay, that value wins. The total number of attempts is bounded by
+`maxAttempts`, from `1` through `5`.
+
+<Info>
+  EA has been observed returning valid payloads with status `403`. The SDK
+  accepts such a response only when its body validates for that exact endpoint.
+  A body such as `{ "error": "Forbidden" }` is never treated as valid data.
+</Info>
+
+The SDK does not retry:
+
+- local validation failures;
+- caller aborts;
+- a `2xx` response containing invalid JSON or an unexpected payload;
+- non-retryable HTTP statuses.
+
+<Tip>
+  Avoid wrapping the client in an unbounded retry loop. If your application adds
+  another retry layer, cap it and include the SDK's own `maxAttempts` in the
+  total request budget.
+</Tip>

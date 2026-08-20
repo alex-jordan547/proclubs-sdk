@@ -1,0 +1,67 @@
+---
+title: "proclubs-sdk"
+description: "A small, typed Node.js SDK for EA Sports FC Pro Clubs data."
+---
+
+`proclubs-sdk` is an unofficial TypeScript client for the public endpoints used
+by EA Sports FC Pro Clubs. It gives server-side applications a stable interface
+for club discovery, rosters, statistics, and recent matches.
+
+<Warning>
+  This project is not affiliated with or endorsed by Electronic Arts. The
+  upstream API is undocumented and can change or become unavailable without
+  notice.
+</Warning>
+
+## What you get
+
+<CardGroup cols={2}>
+  <Card title="Typed methods" icon="code">
+    Six focused methods with TypeScript declarations and validated inputs.
+  </Card>
+  <Card title="Validated responses" icon="shield-check">
+    Known response envelopes are checked with Zod before data reaches your app.
+  </Card>
+  <Card title="Resilient requests" icon="rotate">
+    Bounded retries, exponential backoff, `Retry-After`, timeouts, and aborts.
+  </Card>
+  <Card title="No account required" icon="key">
+    No EA credentials, cookies, proxy, hosted relay, cache, or telemetry.
+  </Card>
+</CardGroup>
+
+## Requirements
+
+- Node.js 22 or newer
+- ESM
+- A server-side runtime
+
+<Note>
+  Browser, CommonJS, React Native, Deno, and edge runtimes are outside the
+  `0.1.x` support contract.
+</Note>
+
+## SDK surface
+
+| Namespace | Method | Purpose |
+| --- | --- | --- |
+| `clubs` | `search` | Find clubs by name |
+| `clubs` | `get` | Get one club's information |
+| `clubs` | `overallStats` | Get the club's aggregate record |
+| `members` | `stats` | Get the current member statistics |
+| `members` | `careerStats` | Get career statistics for members |
+| `matches` | `list` | List recent matches by match type |
+
+<CardGroup cols={2}>
+  <Card title="Install and query" icon="bolt" href="/docs/quickstart">
+    Make your first request in a few lines.
+  </Card>
+  <Card title="Explore the client" icon="book-open" href="/docs/reference/client">
+    Review options, defaults, and the complete public surface.
+  </Card>
+</CardGroup>
+
+## Responsible use
+
+Keep request volumes modest and cache data in your application when appropriate.
+The SDK does not bypass authorization, access controls, or rate limits.

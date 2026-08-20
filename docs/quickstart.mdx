@@ -1,0 +1,101 @@
+---
+title: "Quickstart"
+description: "Install proclubs-sdk and make your first club request."
+---
+
+## Install
+
+```bash
+npm install proclubs-sdk
+```
+
+## Search for a club
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const clubs = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+
+console.log(clubs)
+```
+
+The default platform is `common-gen5`. Search names are trimmed and must contain
+between 1 and 32 characters.
+
+## Load a club dashboard
+
+Use the `clubId` returned by search to request the other resources. Independent
+requests can run in parallel.
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+
+if (!club) {
+  console.log('Club not found')
+  process.exit(0)
+}
+
+const clubId = club.clubId
+const [info, overallStats, memberStats, careerStats, matches] =
+  await Promise.all([
+    proclubs.clubs.get({ clubId }),
+    proclubs.clubs.overallStats({ clubId }),
+    proclubs.members.stats({ clubId }),
+    proclubs.members.careerStats({ clubId }),
+    proclubs.matches.list({ clubId }),
+  ])
+
+console.log({ info, overallStats, memberStats, careerStats, matches })
+```
+
+<Tip>
+  EA may add fields to responses. The SDK validates the known envelope and
+  preserves additional upstream fields instead of discarding them.
+</Tip>
+
+## Choose a platform
+
+Set a default on the client or override it for one call.
+
+```ts
+const proclubs = new ProClubsClient({ platform: 'common-gen4' })
+
+const switchClubs = await proclubs.clubs.search({
+  name: 'HEMLE FC',
+  platform: 'nx',
+})
+```
+
+Supported platforms are `common-gen5`, `common-gen4`, and `nx`.
+
+## Handle SDK errors
+
+```ts
+import {
+  ProClubsClient,
+  ProClubsError,
+  ProClubsHttpError,
+} from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+
+try {
+  await proclubs.clubs.get({ clubId: '12345' })
+} catch (error) {
+  if (error instanceof ProClubsHttpError) {
+    console.error(error.status, error.endpoint)
+  } else if (error instanceof ProClubsError) {
+    console.error(error.code, error.message)
+  } else {
+    throw error
+  }
+}
+```
+
+<Card title="Understand failures" icon="triangle-exclamation" href="/docs/guides/errors-and-retries">
+  See every error class and the exact retry policy.
+</Card>

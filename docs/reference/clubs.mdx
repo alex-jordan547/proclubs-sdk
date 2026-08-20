@@ -1,0 +1,75 @@
+---
+title: "Clubs"
+description: "Search for clubs and retrieve club information and aggregate statistics."
+---
+
+## `clubs.search`
+
+Find clubs by name.
+
+```ts
+const clubs = await proclubs.clubs.search({
+  name: 'HEMLE FC',
+  platform: 'common-gen5',
+})
+```
+
+<ParamField path="name" type="string" required>
+  Club name, trimmed by the SDK. Must contain from 1 through 32 characters.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<ClubSummary[]>">
+  Matching clubs. Known fields include `clubId`, `clubName`, `platform`, `wins`,
+  `losses`, `ties`, `gamesPlayed`, and `clubInfo`.
+</ResponseField>
+
+## `clubs.get`
+
+Get information for one club.
+
+```ts
+const club = await proclubs.clubs.get({ clubId: '12345' })
+```
+
+<ParamField path="clubId" type="string | integer" required>
+  Non-empty club identifier.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<ClubInfo | null>">
+  The selected club or `null`. Known fields include `clubId`, `name`, `regionId`,
+  `teamId`, and `customKit`.
+</ResponseField>
+
+## `clubs.overallStats`
+
+Get the aggregate record for one club.
+
+```ts
+const stats = await proclubs.clubs.overallStats({ clubId: 12345 })
+```
+
+<ParamField path="clubId" type="string | integer" required>
+  Non-empty club identifier.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<ClubOverallStats | null>">
+  The selected aggregate record or `null`. Known fields include `clubId`,
+  `wins`, `losses`, `ties`, and `gamesPlayed`.
+</ResponseField>
+
+<Note>
+  Numeric statistics can arrive from EA as a string, number, or `null`. The SDK
+  preserves that upstream representation.
+</Note>

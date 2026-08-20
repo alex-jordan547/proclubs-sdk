@@ -20,17 +20,17 @@ describe('ProClubsClient', () => {
       transport: async (url) => {
         requestedUrls.push(url.toString())
         return new Response(
-          JSON.stringify([{ clubId: '42', clubName: 'Paris Eleven' }]),
+          JSON.stringify([{ clubId: '42', clubName: 'ALL STAR 237' }]),
           { status: 200 },
         )
       },
     })
 
-    const clubs = await client.clubs.search({ name: 'Paris Eleven' })
+    const clubs = await client.clubs.search({ name: 'ALL STAR 237' })
 
-    expect(clubs).toEqual([{ clubId: '42', clubName: 'Paris Eleven' }])
+    expect(clubs).toEqual([{ clubId: '42', clubName: 'ALL STAR 237' }])
     expect(requestedUrls).toEqual([
-      'https://proclubs.ea.com/api/fc/allTimeLeaderboard/search?clubName=Paris+Eleven&platform=common-gen5',
+      'https://proclubs.ea.com/api/fc/allTimeLeaderboard/search?clubName=ALL+STAR+237&platform=common-gen5',
     ])
   })
 
@@ -43,11 +43,17 @@ describe('ProClubsClient', () => {
 
         const bodies: Record<string, unknown> = {
           '/api/fc/clubs/info': {
-            '42': { clubId: 42, name: 'Paris Eleven' },
+            '42': { clubId: 42, name: 'ALL STAR 237' },
           },
           '/api/fc/clubs/overallStats': [{ clubId: '42', wins: '8' }],
-          '/api/fc/members/stats': { members: [], positionCount: {} },
-          '/api/fc/members/career/stats': { members: [], positionCount: {} },
+          '/api/fc/members/stats': {
+            members: [{ name: 'mrjordan_237', goals: '7' }],
+            positionCount: { forward: 1 },
+          },
+          '/api/fc/members/career/stats': {
+            members: [{ name: 'mrjordan237', gamesPlayed: 12 }],
+            positionCount: { midfield: 1 },
+          },
           '/api/fc/clubs/matches': [],
         }
 
@@ -65,10 +71,16 @@ describe('ProClubsClient', () => {
 
     expect({ club, overall, members, careers, matches, requestedUrls }).toEqual(
       {
-        club: { clubId: 42, name: 'Paris Eleven' },
+        club: { clubId: 42, name: 'ALL STAR 237' },
         overall: { clubId: '42', wins: '8' },
-        members: { members: [], positionCount: {} },
-        careers: { members: [], positionCount: {} },
+        members: {
+          members: [{ name: 'mrjordan_237', goals: '7' }],
+          positionCount: { forward: 1 },
+        },
+        careers: {
+          members: [{ name: 'mrjordan237', gamesPlayed: 12 }],
+          positionCount: { midfield: 1 },
+        },
         matches: [],
         requestedUrls: [
           '/api/fc/clubs/info?clubIds=42&platform=common-gen5',
@@ -92,17 +104,17 @@ describe('ProClubsClient', () => {
           return new Response('Too Many Requests', { status: 429 })
         }
         return new Response(
-          JSON.stringify([{ clubId: '42', clubName: 'Paris Eleven' }]),
+          JSON.stringify([{ clubId: '42', clubName: 'ALL STAR 237' }]),
           { status: 200 },
         )
       },
     })
 
-    const clubs = await client.clubs.search({ name: 'Paris Eleven' })
+    const clubs = await client.clubs.search({ name: 'ALL STAR 237' })
 
     expect({ attempts, clubs }).toEqual({
       attempts: 2,
-      clubs: [{ clubId: '42', clubName: 'Paris Eleven' }],
+      clubs: [{ clubId: '42', clubName: 'ALL STAR 237' }],
     })
   })
 
@@ -111,14 +123,14 @@ describe('ProClubsClient', () => {
       maxAttempts: 1,
       transport: async () =>
         new Response(
-          JSON.stringify([{ clubId: '42', clubName: 'Paris Eleven' }]),
+          JSON.stringify([{ clubId: '42', clubName: 'ALL STAR 237' }]),
           { status: 403 },
         ),
     })
 
     await expect(
-      client.clubs.search({ name: 'Paris Eleven' }),
-    ).resolves.toEqual([{ clubId: '42', clubName: 'Paris Eleven' }])
+      client.clubs.search({ name: 'ALL STAR 237' }),
+    ).resolves.toEqual([{ clubId: '42', clubName: 'ALL STAR 237' }])
   })
 
   it('rejects a forbidden member-stats body instead of treating it as an empty roster', async () => {
@@ -149,13 +161,13 @@ describe('ProClubsClient', () => {
     })
 
     await client.clubs.search(
-      { name: 'Paris Eleven', platform: 'nx' },
+      { name: 'HEMLE FC', platform: 'nx' },
       { signal: controller.signal },
     )
 
     expect({ requestedUrl, requestedSignal }).toEqual({
       requestedUrl:
-        'https://proclubs.ea.com/api/fc/allTimeLeaderboard/search?clubName=Paris+Eleven&platform=nx',
+        'https://proclubs.ea.com/api/fc/allTimeLeaderboard/search?clubName=HEMLE+FC&platform=nx',
       requestedSignal: controller.signal,
     })
   })
@@ -210,7 +222,7 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      client.clubs.search({ name: 'Paris Eleven' }),
+      client.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toMatchObject({
       name: 'ProClubsHttpError',
       code: 'HTTP',
@@ -227,7 +239,7 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      client.clubs.search({ name: 'Paris Eleven' }),
+      client.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toMatchObject({
       name: 'ProClubsResponseError',
       code: 'INVALID_RESPONSE',
@@ -247,7 +259,7 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      client.clubs.search({ name: 'Paris Eleven' }),
+      client.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsAbortError)
     expect(attempts).toBe(1)
   })
@@ -268,10 +280,10 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      timeoutClient.clubs.search({ name: 'Paris Eleven' }),
+      timeoutClient.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsTimeoutError)
     await expect(
-      networkClient.clubs.search({ name: 'Paris Eleven' }),
+      networkClient.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsNetworkError)
   })
 
@@ -331,17 +343,17 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      abortClient.clubs.search({ name: 'Paris Eleven' }),
+      abortClient.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsAbortError)
     expect(abortAttempts).toBe(1)
 
     await expect(
-      timeoutClient.clubs.search({ name: 'Paris Eleven' }),
+      timeoutClient.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsTimeoutError)
     expect(timeoutAttempts).toBe(2)
 
     await expect(
-      networkClient.clubs.search({ name: 'Paris Eleven' }),
+      networkClient.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toBeInstanceOf(ProClubsNetworkError)
     expect(networkAttempts).toBe(2)
   })
@@ -359,7 +371,7 @@ describe('ProClubsClient', () => {
       })
 
       await expect(
-        client.clubs.search({ name: 'Paris Eleven' }),
+        client.clubs.search({ name: 'ALL STAR 237' }),
       ).rejects.toBeInstanceOf(ProClubsTimeoutError)
     }
   })
@@ -395,7 +407,7 @@ describe('ProClubsClient', () => {
 
     await expect(
       client.clubs.search(
-        { name: 'Paris Eleven' },
+        { name: 'ALL STAR 237' },
         { signal: controller.signal },
       ),
     ).rejects.toBeInstanceOf(ProClubsAbortError)
@@ -417,18 +429,18 @@ describe('ProClubsClient', () => {
           })
         }
         return new Response(
-          JSON.stringify([{ clubId: '42', clubName: 'Paris Eleven' }]),
+          JSON.stringify([{ clubId: '42', clubName: 'ALL STAR 237' }]),
           { status: 200 },
         )
       },
     })
 
-    const pending = client.clubs.search({ name: 'Paris Eleven' })
+    const pending = client.clubs.search({ name: 'ALL STAR 237' })
     await vi.advanceTimersByTimeAsync(1_999)
     expect(attempts).toBe(1)
     await vi.advanceTimersByTimeAsync(1)
     await expect(pending).resolves.toEqual([
-      { clubId: '42', clubName: 'Paris Eleven' },
+      { clubId: '42', clubName: 'ALL STAR 237' },
     ])
     expect(attempts).toBe(2)
 
@@ -442,7 +454,7 @@ describe('ProClubsClient', () => {
     })
 
     await expect(
-      exhausted.clubs.search({ name: 'Paris Eleven' }),
+      exhausted.clubs.search({ name: 'ALL STAR 237' }),
     ).rejects.toMatchObject({
       name: 'ProClubsHttpError',
       status: 429,

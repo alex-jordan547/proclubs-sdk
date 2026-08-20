@@ -1,0 +1,57 @@
+---
+title: "Contributing"
+description: "Develop, test, and preview documentation changes locally."
+---
+
+Start from an open GitHub issue and keep each change scoped to one verifiable
+outcome.
+
+## SDK development
+
+```bash
+git clone https://github.com/alex-jordan547/proclubs-sdk.git
+cd proclubs-sdk
+npm install
+npm run check
+```
+
+The default test suite must remain offline and deterministic. Test through the
+public SDK interface and inject a transport at the network boundary.
+
+## Documentation preview
+
+From the repository root, run:
+
+```bash
+npx mint dev
+```
+
+Mintlify serves the local preview at `http://localhost:3000` by default.
+
+Validate all pages and navigation before opening a pull request:
+
+```bash
+npx mint validate
+```
+
+## Data safety
+
+Never commit:
+
+- cookies, tokens, or credentials;
+- complete live response dumps;
+- personal data;
+- fixtures that have not been manually sanitized.
+
+Live compatibility probes must remain explicit, sequential, and low volume.
+They must not become required CI checks.
+
+## Project scope
+
+`proclubs-sdk` is a small Node.js library. Contributions should not add a hosted
+relay, database, cache, browser automation, authentication flow, or telemetry to
+the core package.
+
+<Card title="Open the repository" icon="github" href="https://github.com/alex-jordan547/proclubs-sdk">
+  Browse issues, source code, and pull requests on GitHub.
+</Card>

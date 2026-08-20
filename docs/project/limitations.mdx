@@ -1,0 +1,49 @@
+---
+title: "Support and limitations"
+description: "Understand the SDK's runtime contract, upstream risks, and non-goals."
+---
+
+## Supported contract
+
+- Node.js 22 or newer
+- ESM imports
+- TypeScript declarations
+- direct, low-volume server-side requests
+- injectable transport for tests and custom Node.js runtimes
+
+## Not supported in 0.1.x
+
+- browser or CommonJS applications;
+- React Native, Deno, or edge runtimes;
+- EA account authentication or private endpoints;
+- a shared proxy, relay, cache, or database;
+- bulk scraping, club enumeration, or data warehousing;
+- a guarantee of upstream availability or long-term schema stability.
+
+## Upstream stability
+
+EA's Pro Clubs endpoints are public but undocumented. Routes, fields, response
+statuses, and availability can change without notice. The SDK validates known
+response envelopes and preserves additional fields, but it cannot make the
+upstream service stable.
+
+<Warning>
+  Do not send EA credentials, cookies, or session tokens to this SDK. It does
+  not need them. A request for those values should be treated as a security
+  issue.
+</Warning>
+
+## Responsible operation
+
+- Keep request volumes modest.
+- Cache results in your own application when appropriate.
+- Do not bypass authorization, access controls, or rate limits.
+- Follow applicable EA terms and local laws.
+- Keep live compatibility probes explicit, sequential, and low volume.
+
+## Reporting issues
+
+Use [GitHub Issues](https://github.com/alex-jordan547/proclubs-sdk/issues) for
+non-sensitive correctness and compatibility reports. Report vulnerabilities
+privately through
+[GitHub Security Advisories](https://github.com/alex-jordan547/proclubs-sdk/security/advisories/new).
