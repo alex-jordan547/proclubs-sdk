@@ -1,4 +1,8 @@
-import { ProClubsClient, type ProClubsTransport } from './client.js'
+import {
+  ProClubsClient,
+  createDefaultTransport,
+  type ProClubsTransport,
+} from './client.js'
 import { DEFAULT_PLATFORM, type Endpoint, type Platform } from './constants.js'
 import {
   detectDrift,
@@ -15,10 +19,10 @@ import {
 } from './errors.js'
 
 export interface CompatibilityRunnerOptions {
-  readonly client?: ProClubsClient
   readonly transport?: ProClubsTransport
   readonly platform?: Platform
   readonly searchQuery?: string
+  readonly timeoutMs?: number
   readonly onProgress?: (endpoint: Endpoint, status: string) => void
 }
 
@@ -65,17 +69,15 @@ export async function runCompatibilityCheck(
 ): Promise<CompatibilityCheckResult> {
   const platform = options.platform ?? DEFAULT_PLATFORM
   const searchQuery = options.searchQuery ?? 'ALL STAR 237'
+  const timeoutMs = options.timeoutMs ?? 15_000
   const results = createInitialResults()
   const executedEndpoints: Endpoint[] = []
 
   let lastCapturedJson: unknown
+  const innerTransport = options.transport ?? createDefaultTransport(timeoutMs)
 
   const capturingTransport: ProClubsTransport = async (url, init) => {
-    const baseTransport = options.transport
-    const res = baseTransport
-      ? await baseTransport(url, init)
-      : await fetch(url, init)
-
+    const res = await innerTransport(url, init)
     const originalText = await res.text()
     try {
       lastCapturedJson = JSON.parse(originalText)
@@ -92,18 +94,28 @@ export async function runCompatibilityCheck(
     }
   }
 
-  const client =
-    options.client ??
-    new ProClubsClient({
-      platform,
-      maxAttempts: 1,
-      timeoutMs: 15_000,
-      transport: capturingTransport,
-    })
+  const client = new ProClubsClient({
+    platform,
+    maxAttempts: 1,
+    timeoutMs,
+    transport: capturingTransport,
+  })
 
   let stoppedEarly = false
   let stopReason: string | undefined
   let targetClubId: string | undefined
+
+  const recordCapturedDrift = (endpoint: Endpoint): void => {
+    if (lastCapturedJson !== undefined) {
+      results[endpoint] = detectDrift(endpoint, lastCapturedJson)
+      return
+    }
+    results[endpoint] = {
+      endpoint,
+      status: 'unverified',
+      issues: [],
+    }
+  }
 
   const executeEndpoint = async (
     endpoint: Endpoint,
@@ -111,23 +123,39 @@ export async function runCompatibilityCheck(
   ): Promise<boolean> => {
     executedEndpoints.push(endpoint)
     options.onProgress?.(endpoint, 'running')
+    lastCapturedJson = undefined
 
     try {
       await action()
-      if (lastCapturedJson !== undefined) {
-        results[endpoint] = detectDrift(endpoint, lastCapturedJson)
-      } else {
-        results[endpoint] = {
-          endpoint,
-          status: 'unverified',
-          issues: [],
-        }
-      }
+      recordCapturedDrift(endpoint)
       options.onProgress?.(endpoint, results[endpoint].status)
       return true
     } catch (error) {
       stoppedEarly = true
-      if (error instanceof ProClubsHttpError) {
+      if (error instanceof ProClubsResponseError) {
+        if (lastCapturedJson !== undefined) {
+          recordCapturedDrift(endpoint)
+          stopReason =
+            results[endpoint].status === 'drifted'
+              ? 'Response drifted from the known contract'
+              : 'Invalid response or non-JSON body received'
+        } else {
+          stopReason = 'Invalid response or non-JSON body received'
+          results[endpoint] = {
+            endpoint,
+            status: 'drifted',
+            issues: [
+              {
+                kind: 'envelope_changed',
+                path: '$',
+                message:
+                  'Upstream returned invalid response structure or non-JSON',
+                actual: 'invalid_response',
+              },
+            ],
+          }
+        }
+      } else if (error instanceof ProClubsHttpError) {
         stopReason = `Access control or HTTP error: ${error.status}`
         results[endpoint] = {
           endpoint,
@@ -138,21 +166,6 @@ export async function runCompatibilityCheck(
               path: '$',
               message: `Endpoint returned HTTP ${error.status}`,
               actual: `HTTP ${error.status}`,
-            },
-          ],
-        }
-      } else if (error instanceof ProClubsResponseError) {
-        stopReason = 'Invalid response or non-JSON body received'
-        results[endpoint] = {
-          endpoint,
-          status: 'drifted',
-          issues: [
-            {
-              kind: 'envelope_changed',
-              path: '$',
-              message:
-                'Upstream returned invalid response structure or non-JSON',
-              actual: 'invalid_response',
             },
           ],
         }
@@ -175,7 +188,6 @@ export async function runCompatibilityCheck(
     }
   }
 
-  // 1. clubsSearch
   const searchOk = await executeEndpoint('clubsSearch', async () => {
     const clubs = await client.clubs.search({
       name: searchQuery,
@@ -206,7 +218,6 @@ export async function runCompatibilityCheck(
 
   const clubId = targetClubId
 
-  // 2. clubsGet
   const getOk = await executeEndpoint('clubsGet', () =>
     client.clubs.get({ clubId, platform }),
   )
@@ -219,7 +230,6 @@ export async function runCompatibilityCheck(
     }
   }
 
-  // 3. clubsOverallStats
   const overallOk = await executeEndpoint('clubsOverallStats', () =>
     client.clubs.overallStats({ clubId, platform }),
   )
@@ -232,7 +242,6 @@ export async function runCompatibilityCheck(
     }
   }
 
-  // 4. membersStats
   const memOk = await executeEndpoint('membersStats', () =>
     client.members.stats({ clubId, platform }),
   )
@@ -245,7 +254,6 @@ export async function runCompatibilityCheck(
     }
   }
 
-  // 5. membersCareerStats
   const carOk = await executeEndpoint('membersCareerStats', () =>
     client.members.careerStats({ clubId, platform }),
   )
@@ -258,7 +266,6 @@ export async function runCompatibilityCheck(
     }
   }
 
-  // 6. matchesList
   await executeEndpoint('matchesList', () =>
     client.matches.list({
       clubId,

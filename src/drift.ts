@@ -490,11 +490,11 @@ function validateAgainstContract(
     }
     const rec = data as Record<string, unknown>
     if (contract.recordValueContract) {
-      for (const [key, val] of Object.entries(rec)) {
+      for (const val of Object.values(rec)) {
         validateAgainstContract(
           val,
           contract.recordValueContract,
-          `${path}.${key}`,
+          `${path}.*`,
           issues,
         )
       }
@@ -582,20 +582,16 @@ function validateAgainstContract(
             issues,
           )
         } else if (fieldDef.recordValueContract) {
-          for (const [subKey, subVal] of Object.entries(
-            val as Record<string, unknown>,
-          )) {
+          for (const subVal of Object.values(val as Record<string, unknown>)) {
             validateAgainstContract(
               subVal,
               fieldDef.recordValueContract,
-              `${fieldPath}.${subKey}`,
+              `${fieldPath}.*`,
               issues,
             )
           }
         } else if (fieldDef.recordValueTypes) {
-          for (const [subKey, subVal] of Object.entries(
-            val as Record<string, unknown>,
-          )) {
+          for (const subVal of Object.values(val as Record<string, unknown>)) {
             const subActualType = getTypeCategory(subVal)
             const isSubCompatible = fieldDef.recordValueTypes.some((allowed) =>
               matchesAllowedType(subActualType, allowed),
@@ -603,8 +599,8 @@ function validateAgainstContract(
             if (!isSubCompatible) {
               issues.push({
                 kind: 'type_changed',
-                path: `${fieldPath}.${subKey}`,
-                message: `Field ${fieldPath}.${subKey} type changed: expected ${fieldDef.recordValueTypes.join(' | ')}, received ${subActualType}`,
+                path: `${fieldPath}.*`,
+                message: `Field ${fieldPath}.* type changed: expected ${fieldDef.recordValueTypes.join(' | ')}, received ${subActualType}`,
                 expected: fieldDef.recordValueTypes.join(' | '),
                 actual: subActualType,
               })

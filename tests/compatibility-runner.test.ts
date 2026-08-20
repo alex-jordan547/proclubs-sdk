@@ -107,6 +107,31 @@ describe('Compatibility runner', () => {
     expect(result.report.endpoints.clubsSearch.status).toBe('drifted')
   })
 
+  it('reports field-level drift when Zod rejects a captured JSON body', async () => {
+    const executedCalls: string[] = []
+    const transport = async (url: string | URL) => {
+      const parsed = new URL(url)
+      executedCalls.push(parsed.pathname)
+      return new Response(JSON.stringify([{ wins: '8' }]), { status: 200 })
+    }
+
+    const result = await runCompatibilityCheck({ transport })
+
+    expect(executedCalls).toEqual(['/api/fc/allTimeLeaderboard/search'])
+    expect(result.stoppedEarly).toBe(true)
+    expect(result.report.endpoints.clubsSearch.status).toBe('drifted')
+    expect(result.report.endpoints.clubsSearch.issues).toEqual([
+      {
+        kind: 'field_removed',
+        path: '$[0].clubId',
+        message: 'Required field $[0].clubId is missing',
+        expected: 'id',
+        actual: 'undefined',
+      },
+    ])
+    expect(result.stopReason).toContain('drifted')
+  })
+
   it('stops gracefully when search returns an empty array', async () => {
     const executedCalls: string[] = []
 

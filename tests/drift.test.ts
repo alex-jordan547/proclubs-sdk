@@ -110,8 +110,28 @@ describe('Contract drift detector', () => {
     expect(result.status).toBe('drifted')
     expect(result.issues[0]).toMatchObject({
       kind: 'field_added',
-      path: '$.42.customKit.sponsorLogoUrl',
+      path: '$.*.customKit.sponsorLogoUrl',
     })
+  })
+
+  it('redacts dynamic club and player ids from drift paths', () => {
+    const fixture = loadFixture<Array<Record<string, unknown>>>('matches-list')
+    const match = fixture[0] as Record<string, unknown>
+    const clubs = match['clubs'] as Record<string, Record<string, unknown>>
+    const firstClub = Object.values(clubs)[0]
+    if (!firstClub) {
+      throw new Error('expected a club map entry')
+    }
+    firstClub['unexpectedClubField'] = true
+
+    const result = detectDrift('matchesList', [match])
+    expect(result.status).toBe('drifted')
+    expect(result.issues[0]).toMatchObject({
+      kind: 'field_added',
+      path: '$[0].clubs.*.unexpectedClubField',
+    })
+    expect(JSON.stringify(result.issues)).not.toContain('42')
+    expect(JSON.stringify(result.issues)).not.toContain('1001')
   })
 
   it('detects field_removed when a required field is missing', () => {
