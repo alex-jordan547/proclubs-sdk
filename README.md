@@ -7,7 +7,7 @@
 A small, typed Node.js SDK for the public endpoints used by EA Sports FC Pro
 Clubs. It validates inputs and responses, retries transient failures, and exposes
 stable error classes without requiring EA credentials, cookies, or a hosted
-relay.
+relay. An optional local memory cache helps repeated requests stay lightweight.
 
 > [!WARNING]
 > This project is not affiliated with or endorsed by Electronic Arts. The
@@ -65,7 +65,9 @@ Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 - [Quickstart](./docs/quickstart.mdx)
 - [Configuration](./docs/guides/configuration.mdx)
 - [Errors and retries](./docs/guides/errors-and-retries.mdx)
+- [Cache and observability](./docs/guides/cache-and-observability.mdx)
 - [SDK reference](./docs/reference/client.mdx)
+- [Roadmap](./docs/project/roadmap.mdx)
 - [Support and limitations](./docs/project/limitations.mdx)
 
 Preview the Mintlify documentation locally with `npx mint dev`.

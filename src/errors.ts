@@ -1,4 +1,4 @@
-import type { Endpoint } from './constants.js'
+import type { ProClubsEndpoint } from './constants.js'
 
 export type ProClubsErrorCode =
   | 'VALIDATION'
@@ -55,14 +55,14 @@ export class ProClubsNetworkError extends ProClubsError {
 
 export interface ProClubsHttpErrorOptions extends ErrorOptions {
   status: number
-  endpoint: Endpoint
+  endpoint: ProClubsEndpoint
   retryAfterMs?: number
   bodySnippet?: string
 }
 
 export class ProClubsHttpError extends ProClubsError {
   readonly status: number
-  readonly endpoint: Endpoint
+  readonly endpoint: ProClubsEndpoint
   readonly retryAfterMs?: number
   readonly bodySnippet?: string
 
@@ -81,9 +81,13 @@ export class ProClubsHttpError extends ProClubsError {
 }
 
 export class ProClubsResponseError extends ProClubsError {
-  readonly endpoint: Endpoint
+  readonly endpoint: ProClubsEndpoint
 
-  constructor(message: string, endpoint: Endpoint, options?: ErrorOptions) {
+  constructor(
+    message: string,
+    endpoint: ProClubsEndpoint,
+    options?: ErrorOptions,
+  ) {
     super(message, 'INVALID_RESPONSE', options)
     this.name = 'ProClubsResponseError'
     this.endpoint = endpoint

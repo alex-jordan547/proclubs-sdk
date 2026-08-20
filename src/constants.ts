@@ -21,4 +21,5 @@ export const EA_ROUTES = {
   matchesList: 'clubs/matches',
 } as const
 
-export type Endpoint = keyof typeof EA_ROUTES
+export type ProClubsEndpoint = keyof typeof EA_ROUTES
+export type Endpoint = ProClubsEndpoint

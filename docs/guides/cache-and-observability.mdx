@@ -1,0 +1,87 @@
+---
+title: "Cache and observability"
+description: "Keep repeated requests light and inspect SDK activity without telemetry."
+---
+
+## The simple option
+
+If you are new to caching, start here:
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({ cache: true })
+```
+
+This keeps successful responses in memory for 60 seconds and avoids sending
+the same request to EA again during that window. The cache belongs only to this
+client instance; it is not shared with another process or user.
+
+For example, after loading `ALL STAR 237`, opening the same dashboard again
+within 60 seconds can reuse the club, member, and match responses locally.
+
+<Note>
+  Cached data can be temporarily out of date. Use `refresh` when you need the
+  latest response immediately.
+</Note>
+
+## Advanced settings
+
+```ts
+const proclubs = new ProClubsClient({
+  cache: {
+    ttlMs: 120_000,
+    maxEntries: 1_000,
+  },
+})
+```
+
+`ttlMs` defaults to `60_000` and `maxEntries` defaults to `500`. The cache is a
+bounded in-memory LRU cache. Successful responses are cached after their Zod
+validation; errors are never cached.
+
+## Per-request modes
+
+```ts
+await proclubs.clubs.get({ clubId: '12345' })
+
+await proclubs.clubs.get(
+  { clubId: '12345' },
+  { cache: 'bypass' },
+)
+
+await proclubs.clubs.get(
+  { clubId: '12345' },
+  { cache: 'refresh' },
+)
+```
+
+- `default` reads the cache and writes successful responses.
+- `bypass` skips both reading and writing the cache.
+- `refresh` skips the cached value, requests EA, and replaces the cached value.
+
+Identical concurrent requests are deduplicated while the cache is enabled.
+Requests with an `AbortSignal` remain independent so one caller cannot cancel
+another caller's request.
+
+## Observe activity
+
+The optional hook is local only. It never sends telemetry anywhere.
+
+```ts
+const proclubs = new ProClubsClient({
+  cache: true,
+  onEvent: (event) => {
+    if (event.type === 'request:retry') {
+      console.warn('EA retry', event.endpoint, event.delayMs)
+    }
+  },
+})
+```
+
+Events cover cache hits and misses, deduplication, request attempts, retries,
+successes, and final errors. They include endpoint, attempt, status, duration,
+retry delay, and error code where relevant. They do not include URLs, query
+parameters, club IDs, player names, or response bodies.
+
+Observer failures are ignored by the SDK and cannot change the request result.

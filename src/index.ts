@@ -1,5 +1,14 @@
 export { ProClubsClient } from './client.js'
 export type {
+  ProClubsCacheMode,
+  ProClubsCacheOptions,
+} from './cache.js'
+export type {
+  ProClubsEvent,
+  ProClubsEventHandler,
+  ProClubsEndpoint,
+} from './events.js'
+export type {
   ProClubsClientOptions,
   ProClubsRequestInit,
   ProClubsRequestOptions,

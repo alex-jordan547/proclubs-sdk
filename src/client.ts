@@ -9,14 +9,24 @@ import {
   type Platform,
 } from './constants.js'
 import {
+  DEFAULT_CACHE_MAX_ENTRIES,
+  DEFAULT_CACHE_TTL_MS,
+  MemoryCache,
+  type ProClubsCacheMode,
+  type ProClubsCacheOptions,
+  cloneValue,
+} from './cache.js'
+import {
   ProClubsAbortError,
   ProClubsHttpError,
   ProClubsNetworkError,
   ProClubsResponseError,
   ProClubsTimeoutError,
   ProClubsValidationError,
+  type ProClubsErrorCode,
   type ProClubsHttpErrorOptions,
 } from './errors.js'
+import type { ProClubsEvent, ProClubsEventHandler } from './events.js'
 import {
   clubInfoResponseSchema,
   clubMatchesResponseSchema,
@@ -63,10 +73,13 @@ export interface ProClubsClientOptions {
   maxAttempts?: number
   baseDelayMs?: number
   transport?: ProClubsTransport
+  cache?: boolean | ProClubsCacheOptions
+  onEvent?: ProClubsEventHandler
 }
 
 export interface ProClubsRequestOptions {
   signal?: AbortSignal
+  cache?: ProClubsCacheMode
 }
 
 function createDefaultTransport(timeoutMs: number): ProClubsTransport {
@@ -114,6 +127,9 @@ export class ProClubsClient {
   readonly #transport: ProClubsTransport
   readonly #maxAttempts: number
   readonly #baseDelayMs: number
+  readonly #cache?: MemoryCache<unknown>
+  readonly #inFlight = new Map<string, Promise<unknown>>()
+  readonly #onEvent: ProClubsEventHandler | undefined
 
   constructor(options: ProClubsClientOptions = {}) {
     const timeoutMs = options.timeoutMs ?? 15_000
@@ -138,6 +154,24 @@ export class ProClubsClient {
     this.#transport = options.transport ?? createDefaultTransport(timeoutMs)
     this.#maxAttempts = maxAttempts
     this.#baseDelayMs = baseDelayMs
+    this.#onEvent = options.onEvent
+
+    if (options.cache) {
+      const cacheOptions = options.cache === true ? {} : options.cache
+      const ttlMs = cacheOptions.ttlMs ?? DEFAULT_CACHE_TTL_MS
+      const maxEntries = cacheOptions.maxEntries ?? DEFAULT_CACHE_MAX_ENTRIES
+      if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+        throw new ProClubsValidationError(
+          'cache.ttlMs must be a positive finite number',
+        )
+      }
+      if (!Number.isInteger(maxEntries) || maxEntries < 1) {
+        throw new ProClubsValidationError(
+          'cache.maxEntries must be a positive integer',
+        )
+      }
+      this.#cache = new MemoryCache(ttlMs, maxEntries)
+    }
   }
 
   private async searchClubs(
@@ -248,14 +282,86 @@ export class ProClubsClient {
     schema: ZodType<T>,
     options?: ProClubsRequestOptions,
   ): Promise<T> {
+    if (options?.signal?.aborted) {
+      throw new ProClubsAbortError(undefined, {
+        cause: options.signal.reason,
+      })
+    }
+
+    const cacheMode = options?.cache ?? 'default'
+    const cacheEnabled = this.#cache !== undefined && cacheMode !== 'bypass'
+    const cacheKey = cacheEnabled
+      ? this.createCacheKey(endpoint, searchParams)
+      : undefined
+
+    if (this.#cache && cacheKey && cacheMode === 'default') {
+      const cached = this.#cache.get(cacheKey)
+      if (cached !== undefined) {
+        this.emit({ type: 'cache:hit', endpoint })
+        return cached as T
+      }
+      this.emit({ type: 'cache:miss', endpoint })
+    }
+
+    const shouldDedupe =
+      this.#cache !== undefined &&
+      cacheMode !== 'bypass' &&
+      options?.signal === undefined
+    const existing =
+      shouldDedupe && cacheKey ? this.#inFlight.get(cacheKey) : undefined
+    if (existing) {
+      this.emit({ type: 'dedupe:join', endpoint })
+      return cloneValue(await existing) as T
+    }
+
+    const operation = this.performRequest(
+      endpoint,
+      searchParams,
+      schema,
+      options,
+    )
+    if (shouldDedupe && cacheKey) {
+      this.#inFlight.set(cacheKey, operation as Promise<unknown>)
+    }
+
+    try {
+      const result = await operation
+      if (this.#cache && cacheKey) {
+        this.#cache.set(cacheKey, result)
+        this.emit({ type: 'cache:write', endpoint })
+        return cloneValue(result)
+      }
+      return result
+    } finally {
+      if (
+        shouldDedupe &&
+        cacheKey &&
+        this.#inFlight.get(cacheKey) === operation
+      ) {
+        this.#inFlight.delete(cacheKey)
+      }
+    }
+  }
+
+  private async performRequest<T>(
+    endpoint: Endpoint,
+    searchParams: URLSearchParams,
+    schema: ZodType<T>,
+    options?: ProClubsRequestOptions,
+  ): Promise<T> {
     const url = new URL(EA_ROUTES[endpoint], EA_BASE_URL)
     url.search = searchParams.toString()
 
     for (let attempt = 1; attempt <= this.#maxAttempts; attempt += 1) {
+      const startedAt = Date.now()
+      let outcomeEmitted = false
+      this.emit({ type: 'request:start', endpoint, attempt })
       if (options?.signal?.aborted) {
-        throw new ProClubsAbortError(undefined, {
+        const error = new ProClubsAbortError(undefined, {
           cause: options.signal.reason,
         })
+        this.emitRequestError(endpoint, attempt, startedAt, error.code)
+        throw error
       }
 
       let response: ProClubsResponse
@@ -279,18 +385,41 @@ export class ProClubsClient {
         const parsed = parsedJson ? schema.safeParse(json) : null
         if (response.ok) {
           if (parsed?.success) {
+            this.emit({
+              type: 'request:success',
+              endpoint,
+              attempt,
+              status: response.status,
+              durationMs: this.durationSince(startedAt),
+            })
             return parsed.data
           }
-          throw new ProClubsResponseError(
+          const error = new ProClubsResponseError(
             parsedJson
               ? `EA FC ${endpoint} returned an unexpected payload`
               : `EA FC ${endpoint} returned invalid JSON`,
             endpoint,
             { cause: parsed?.error ?? jsonError },
           )
+          this.emitRequestError(
+            endpoint,
+            attempt,
+            startedAt,
+            error.code,
+            response.status,
+          )
+          outcomeEmitted = true
+          throw error
         }
 
         if (response.status === 403 && parsed?.success) {
+          this.emit({
+            type: 'request:success',
+            endpoint,
+            attempt,
+            status: response.status,
+            durationMs: this.durationSince(startedAt),
+          })
           return parsed.data
         }
 
@@ -310,45 +439,126 @@ export class ProClubsClient {
           if (bodySnippet) {
             errorOptions.bodySnippet = bodySnippet
           }
-          throw new ProClubsHttpError(
+          const error = new ProClubsHttpError(
             `EA FC ${endpoint} failed with HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`,
             errorOptions,
           )
+          this.emitRequestError(
+            endpoint,
+            attempt,
+            startedAt,
+            error.code,
+            response.status,
+          )
+          outcomeEmitted = true
+          throw error
         }
 
         const backoffMs = this.#baseDelayMs * 2 ** (attempt - 1)
-        await this.delay(
-          Math.max(backoffMs, this.parseRetryAfter(response.headers) ?? 0),
-          options?.signal,
+        const delayMs = Math.max(
+          backoffMs,
+          this.parseRetryAfter(response.headers) ?? 0,
         )
+        this.emit({
+          type: 'request:retry',
+          endpoint,
+          attempt,
+          status: response.status,
+          delayMs,
+        })
+        await this.delay(delayMs, options?.signal)
       } catch (error) {
         if (
           error instanceof ProClubsResponseError ||
           error instanceof ProClubsHttpError ||
           error instanceof ProClubsAbortError
         ) {
+          if (!outcomeEmitted) {
+            this.emitRequestError(
+              endpoint,
+              attempt,
+              startedAt,
+              error.code,
+              error instanceof ProClubsHttpError ? error.status : undefined,
+            )
+          }
           throw error
         }
         if (
           this.isNamedError(error, 'AbortError') ||
           options?.signal?.aborted
         ) {
-          throw new ProClubsAbortError(undefined, { cause: error })
+          const abortError = new ProClubsAbortError(undefined, {
+            cause: error,
+          })
+          this.emitRequestError(endpoint, attempt, startedAt, abortError.code)
+          throw abortError
         }
         if (attempt === this.#maxAttempts) {
-          if (this.isTimeoutError(error)) {
-            throw new ProClubsTimeoutError(undefined, { cause: error })
-          }
-          throw new ProClubsNetworkError(undefined, { cause: error })
+          const finalError = this.isTimeoutError(error)
+            ? new ProClubsTimeoutError(undefined, { cause: error })
+            : new ProClubsNetworkError(undefined, { cause: error })
+          this.emitRequestError(endpoint, attempt, startedAt, finalError.code)
+          throw finalError
         }
-        await this.delay(
-          this.#baseDelayMs * 2 ** (attempt - 1),
-          options?.signal,
-        )
+        const errorCode = this.isTimeoutError(error) ? 'TIMEOUT' : 'NETWORK'
+        const delayMs = this.#baseDelayMs * 2 ** (attempt - 1)
+        this.emit({
+          type: 'request:retry',
+          endpoint,
+          attempt,
+          errorCode,
+          delayMs,
+        })
+        await this.delay(delayMs, options?.signal)
       }
     }
 
     throw new ProClubsNetworkError('EA FC request exhausted all attempts')
+  }
+
+  private createCacheKey(
+    endpoint: Endpoint,
+    searchParams: URLSearchParams,
+  ): string {
+    const params = [...searchParams.entries()].sort(
+      ([leftKey, leftValue], [rightKey, rightValue]) =>
+        leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue),
+    )
+    return JSON.stringify([endpoint, params])
+  }
+
+  private durationSince(startedAt: number): number {
+    return Math.max(0, Date.now() - startedAt)
+  }
+
+  private emitRequestError(
+    endpoint: Endpoint,
+    attempt: number,
+    startedAt: number,
+    errorCode: ProClubsErrorCode,
+    status?: number,
+  ): void {
+    const event = {
+      type: 'request:error' as const,
+      endpoint,
+      attempt,
+      durationMs: this.durationSince(startedAt),
+      ...(status === undefined ? {} : { status }),
+      errorCode,
+    } satisfies ProClubsEvent
+    this.emit(event)
+  }
+
+  private emit(event: ProClubsEvent): void {
+    if (!this.#onEvent) {
+      return
+    }
+    try {
+      void Promise.resolve(this.#onEvent(event)).catch(() => undefined)
+    } catch {
+      // Observability must never change request behavior.
+    }
   }
 
   private parseInput<T>(schema: ZodType<T>, input: unknown): T {

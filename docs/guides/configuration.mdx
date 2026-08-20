@@ -38,6 +38,16 @@ const proclubs = new ProClubsClient({
   Optional request function for tests or custom Node.js runtimes.
 </ParamField>
 
+<ParamField path="cache" type="boolean | ProClubsCacheOptions" default="false">
+  Set to `true` for a 60-second memory cache, or provide `ttlMs` and
+  `maxEntries` for advanced control. See [Cache and observability](/docs/guides/cache-and-observability).
+</ParamField>
+
+<ParamField path="onEvent" type="ProClubsEventHandler">
+  Optional local hook for cache, retry, request, and error events. It never
+  enables telemetry.
+</ParamField>
+
 Invalid options throw `ProClubsValidationError` synchronously in the constructor.
 
 ## Per-request platform

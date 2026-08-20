@@ -18,6 +18,8 @@ interface ProClubsClientOptions {
   maxAttempts?: number
   baseDelayMs?: number
   transport?: ProClubsTransport
+  cache?: boolean | ProClubsCacheOptions
+  onEvent?: ProClubsEventHandler
 }
 ```
 
@@ -45,6 +47,7 @@ Every public method accepts request options as its second argument.
 ```ts
 interface ProClubsRequestOptions {
   signal?: AbortSignal
+  cache?: 'default' | 'bypass' | 'refresh'
 }
 ```
 
@@ -61,4 +64,5 @@ interface ProClubsRequestOptions {
 
 The built-in transport sends direct GET requests to
 `https://proclubs.ea.com/api/fc/` using Impit's Chrome profile. It does not add
-credentials, cookies, authentication, a proxy, a cache, or telemetry.
+credentials, cookies, authentication, a proxy, or telemetry. The optional
+cache is local to the client instance; see [Cache and observability](/docs/guides/cache-and-observability).
