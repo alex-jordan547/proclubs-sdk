@@ -1,8 +1,8 @@
 {
-  "name": "ea-fc-pro-clubs-api-sdk",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Unofficial TypeScript SDK for the internal EA Sports FC Pro Clubs endpoints.",
+  "name": "proclubs-sdk",
+  "version": "0.1.0",
+  "description": "Unofficial TypeScript SDK for EA Sports FC Pro Clubs.",
+  "author": "Alex Jordan",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -10,7 +10,14 @@
   "packageManager": "npm@10.9.8",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alex-jordan547/ea-fc-pro-clubs-api-sdk.git"
+    "url": "git+https://github.com/alex-jordan547/proclubs-sdk.git"
+  },
+  "homepage": "https://github.com/alex-jordan547/proclubs-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/alex-jordan547/proclubs-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
     ".": {
@@ -26,6 +33,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run pack:check",
     "format": "biome format --write .",
     "format:check": "biome format .",
@@ -41,7 +49,11 @@
     "sdk",
     "typescript"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "dependencies": {
+    "impit": "0.14.3",
+    "zod": "4.4.3"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
     "@types/node": "^22.20.1",
