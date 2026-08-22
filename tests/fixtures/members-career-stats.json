@@ -1,0 +1,21 @@
+{
+  "members": [
+    {
+      "name": "mrjordan237",
+      "proPos": "14",
+      "gamesPlayed": "475",
+      "goals": "352",
+      "assists": "462",
+      "manOfTheMatch": "35",
+      "ratingAve": "7.4",
+      "prevGoals": "1",
+      "favoritePosition": "midfielder"
+    }
+  ],
+  "positionCount": {
+    "midfielder": 11,
+    "goalkeeper": 3,
+    "forward": 11,
+    "defender": 4
+  }
+}

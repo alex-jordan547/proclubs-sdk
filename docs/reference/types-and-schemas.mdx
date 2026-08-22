@@ -1,6 +1,6 @@
 ---
 title: "Types and schemas"
-description: "Public TypeScript types, constants, and Zod response schemas."
+description: "Public TypeScript types, constants, Zod response schemas, and drift detection."
 ---
 
 The package ships ESM JavaScript and TypeScript declarations from the same root
@@ -27,17 +27,33 @@ import type {
 ```ts
 import type {
   ClubInfo,
+  ClubInfoResponse,
   ClubMatch,
+  ClubMatchesResponse,
   ClubMember,
   ClubMemberCareerStats,
   ClubMemberStats,
   ClubOverallStats,
+  ClubOverallStatsResponse,
+  ClubSearchResponse,
   ClubSummary,
+  ClubSummaryInfo,
+  CustomKit,
+  MatchAggregateStats,
+  MatchClubDetails,
+  MatchPlayerStats,
+  MatchTimeAgo,
 } from 'proclubs-sdk'
 ```
 
-Response object types preserve unknown upstream fields. Known fields follow the
-validated shapes described on the namespace reference pages.
+Response object types preserve unknown upstream fields at runtime. Known fields follow the
+observed FC26 shapes described on the namespace reference pages.
+
+## Runtime fidelity and normalizations
+
+- **Runtime fidelity:** All object schemas use loose object validation, meaning any additional fields sent by EA are preserved and accessible on returned objects.
+- **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`), without modifying any nested fields.
+- The other four endpoints (`clubs.search`, `members.stats`, `members.careerStats`, `matches.list`) return their full response data directly.
 
 ## Constants
 
@@ -73,7 +89,16 @@ import {
   clubOverallStatsResponseSchema,
   clubOverallStatsSchema,
   clubSearchResponseSchema,
+  clubSummaryInfoSchema,
   clubSummarySchema,
+  customKitSchema,
+  listMatchesInputSchema,
+  matchAggregateStatsSchema,
+  matchClubDetailsSchema,
+  matchPlayerStatsSchema,
+  matchTimeAgoSchema,
+  clubRequestSchema,
+  searchClubsInputSchema,
 } from 'proclubs-sdk'
 ```
 
@@ -84,6 +109,44 @@ if (result.success) {
   console.log(result.data.members)
 }
 ```
+
+## Drift detection and compatibility
+
+```ts
+import {
+  ENDPOINT_CONTRACTS,
+  detectDrift,
+  generateReport,
+  runCompatibilityCheck,
+  type CompatibilityReport,
+  type DriftIssue,
+  type EndpointDriftResult,
+} from 'proclubs-sdk'
+```
+
+The SDK provides a deterministic structural drift detector that compares EA responses against the observed FC26 contract shape. It categorizes changes into `field_added`, `field_removed`, `type_changed`, and `envelope_changed`.
+
+```ts
+const drift = detectDrift('clubsSearch', searchPayload)
+if (drift.status === 'drifted') {
+  console.log(drift.issues)
+}
+```
+
+### Interpreting compatibility reports
+
+Each report ends with a summary status and a release recommendation:
+
+| Recommendation | Meaning | Suggested action |
+| --- | --- | --- |
+| `patch` | All endpoints match the known contract. | Safe to release; no contract change. |
+| `minor` | EA added fields only (`field_added`). Existing fields are intact. | Type and document the new fields, then release a minor version. |
+| `major` | Fields were removed or renamed, types changed, or envelopes shifted. | Assess consumer impact before releasing a major version. |
+| `manual_review` | The run stopped early or produced mixed signals (for example, a Zod rejection on top of structural drift). | Inspect the per-endpoint issues before deciding. |
+
+Drift detection never mutates schemas, fixtures, or types automatically.
+Update the contract manually after confirming each reported change against
+live data.
 
 ## Transport types
 

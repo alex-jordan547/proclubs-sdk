@@ -82,7 +82,7 @@ export interface ProClubsRequestOptions {
   cache?: ProClubsCacheMode
 }
 
-function createDefaultTransport(timeoutMs: number): ProClubsTransport {
+export function createDefaultTransport(timeoutMs: number): ProClubsTransport {
   const client = new Impit({ browser: 'chrome', timeout: timeoutMs })
   return (url, init) => client.fetch(url, init)
 }
