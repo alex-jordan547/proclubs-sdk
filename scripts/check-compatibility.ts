@@ -1,10 +1,16 @@
 import { writeFileSync } from 'node:fs'
 import { runCompatibilityCheck } from '../src/compatibility.js'
-import type { Platform } from '../src/constants.js'
+import { PLATFORMS, type Platform } from '../src/constants.js'
 
 async function main() {
-  const targetPlatform: Platform =
-    (process.env.TARGET_PLATFORM as Platform) || 'common-gen5'
+  const requestedPlatform = process.env.TARGET_PLATFORM ?? 'common-gen5'
+  if (!PLATFORMS.includes(requestedPlatform as Platform)) {
+    console.error(
+      `Unknown platform: ${requestedPlatform}. Valid platforms: ${PLATFORMS.join(', ')}`,
+    )
+    process.exit(1)
+  }
+  const targetPlatform = requestedPlatform as Platform
   const outputPath = process.env.COMPATIBILITY_REPORT_PATH
 
   console.log('--- Pro Clubs SDK Compatibility & Drift Check ---')
@@ -28,15 +34,14 @@ async function main() {
   }
 
   console.log('\n--- Platform Matrix ---')
-  console.log(
-    `common-gen5: ${result.report.platform === 'common-gen5' ? result.report.summary.status : 'unverified'}`,
-  )
-  console.log(
-    `common-gen4: ${result.report.platform === 'common-gen4' ? result.report.summary.status : 'unverified (no live probe)'}`,
-  )
-  console.log(
-    `nx:          ${result.report.platform === 'nx' ? result.report.summary.status : 'unverified (no live probe)'}`,
-  )
+  for (const platform of PLATFORMS) {
+    const label = platform.padEnd(12)
+    if (result.report.platform === platform) {
+      console.log(`${label}: ${result.report.summary.status}`)
+    } else {
+      console.log(`${label}: unverified (no live probe)`)
+    }
+  }
 
   if (outputPath) {
     writeFileSync(outputPath, JSON.stringify(result.report, null, 2), 'utf8')

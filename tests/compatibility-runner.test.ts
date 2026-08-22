@@ -107,6 +107,19 @@ describe('Compatibility runner', () => {
     expect(result.report.endpoints.clubsSearch.status).toBe('drifted')
   })
 
+  it('treats non-access-control HTTP errors as unverified, not drifted', async () => {
+    const transport = async () =>
+      new Response(JSON.stringify({ error: 'Not Found' }), { status: 404 })
+
+    const result = await runCompatibilityCheck({ transport })
+
+    expect(result.stoppedEarly).toBe(true)
+    expect(result.stopReason).toContain('404')
+    expect(result.stopReason).not.toContain('Access control')
+    expect(result.report.endpoints.clubsSearch.status).toBe('unverified')
+    expect(result.report.endpoints.clubsGet.status).toBe('unverified')
+  })
+
   it('reports field-level drift when Zod rejects a captured JSON body', async () => {
     const executedCalls: string[] = []
     const transport = async (url: string | URL) => {
@@ -127,6 +140,13 @@ describe('Compatibility runner', () => {
         message: 'Required field $[0].clubId is missing',
         expected: 'id',
         actual: 'undefined',
+      },
+      {
+        kind: 'envelope_changed',
+        path: '$',
+        message:
+          'SDK rejected a JSON payload that matched the structural contract',
+        actual: 'schema_rejected',
       },
     ])
     expect(result.stopReason).toContain('drifted')

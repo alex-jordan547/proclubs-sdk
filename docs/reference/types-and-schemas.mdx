@@ -133,6 +133,21 @@ if (drift.status === 'drifted') {
 }
 ```
 
+### Interpreting compatibility reports
+
+Each report ends with a summary status and a release recommendation:
+
+| Recommendation | Meaning | Suggested action |
+| --- | --- | --- |
+| `patch` | All endpoints match the known contract. | Safe to release; no contract change. |
+| `minor` | EA added fields only (`field_added`). Existing fields are intact. | Type and document the new fields, then release a minor version. |
+| `major` | Fields were removed or renamed, types changed, or envelopes shifted. | Assess consumer impact before releasing a major version. |
+| `manual_review` | The run stopped early or produced mixed signals (for example, a Zod rejection on top of structural drift). | Inspect the per-endpoint issues before deciding. |
+
+Drift detection never mutates schemas, fixtures, or types automatically.
+Update the contract manually after confirming each reported change against
+live data.
+
 ## Transport types
 
 ```ts

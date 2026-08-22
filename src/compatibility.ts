@@ -18,6 +18,8 @@ import {
   ProClubsTimeoutError,
 } from './errors.js'
 
+const ACCESS_CONTROL_STATUSES = new Set([401, 403, 429])
+
 export interface CompatibilityRunnerOptions {
   readonly transport?: ProClubsTransport
   readonly platform?: Platform
@@ -68,22 +70,19 @@ function markSchemaRejected(
   endpoint: Endpoint,
   existing: EndpointDriftResult,
 ): EndpointDriftResult {
-  if (existing.status === 'drifted') {
+  const schemaRejectedIssue = {
+    kind: 'envelope_changed' as const,
+    path: '$',
+    message: 'SDK rejected a JSON payload that matched the structural contract',
+    actual: 'schema_rejected',
+  }
+  if (existing.issues.some((issue) => issue.actual === 'schema_rejected')) {
     return existing
   }
   return {
     endpoint,
     status: 'drifted',
-    issues: [
-      ...existing.issues,
-      {
-        kind: 'envelope_changed',
-        path: '$',
-        message:
-          'SDK rejected a JSON payload that matched the structural contract',
-        actual: 'schema_rejected',
-      },
-    ],
+    issues: [...existing.issues, schemaRejectedIssue],
     ...(existing.itemCount === undefined
       ? {}
       : { itemCount: existing.itemCount }),
@@ -180,18 +179,27 @@ export async function runCompatibilityCheck(
           }
         }
       } else if (error instanceof ProClubsHttpError) {
-        stopReason = `Access control or HTTP error: ${error.status}`
-        results[endpoint] = {
-          endpoint,
-          status: 'drifted',
-          issues: [
-            {
-              kind: 'envelope_changed',
-              path: '$',
-              message: `Endpoint returned HTTP ${error.status}`,
-              actual: `HTTP ${error.status}`,
-            },
-          ],
+        if (ACCESS_CONTROL_STATUSES.has(error.status)) {
+          stopReason = `Access control or rate limit error: ${error.status}`
+          results[endpoint] = {
+            endpoint,
+            status: 'drifted',
+            issues: [
+              {
+                kind: 'envelope_changed',
+                path: '$',
+                message: `Endpoint returned HTTP ${error.status}`,
+                actual: `HTTP ${error.status}`,
+              },
+            ],
+          }
+        } else {
+          stopReason = `Unexpected HTTP error: ${error.status}`
+          results[endpoint] = {
+            endpoint,
+            status: 'unverified',
+            issues: [],
+          }
         }
       } else if (
         error instanceof ProClubsTimeoutError ||
@@ -212,6 +220,13 @@ export async function runCompatibilityCheck(
     }
   }
 
+  const buildResult = (): CompatibilityCheckResult => ({
+    report: generateReport(platform, results),
+    stoppedEarly,
+    ...(stopReason ? { stopReason } : {}),
+    executedEndpoints,
+  })
+
   const searchOk = await executeEndpoint('clubsSearch', async () => {
     const clubs = await client.clubs.search({
       name: searchQuery,
@@ -223,85 +238,50 @@ export async function runCompatibilityCheck(
   })
 
   if (!searchOk) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      ...(stopReason ? { stopReason } : {}),
-      executedEndpoints,
-    }
+    return buildResult()
   }
 
   if (!targetClubId) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      stopReason: 'No clubs returned in search to verify remaining endpoints',
-      executedEndpoints,
-    }
+    stoppedEarly = true
+    stopReason = 'No clubs returned in search to verify remaining endpoints'
+    options.onProgress?.('clubsSearch', 'stopped')
+    return buildResult()
   }
 
   const clubId = targetClubId
 
-  const getOk = await executeEndpoint('clubsGet', () =>
-    client.clubs.get({ clubId, platform }),
-  )
-  if (!getOk) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      ...(stopReason ? { stopReason } : {}),
-      executedEndpoints,
+  const remainingSteps: ReadonlyArray<{
+    endpoint: Endpoint
+    action: () => Promise<unknown>
+  }> = [
+    {
+      endpoint: 'clubsGet',
+      action: () => client.clubs.get({ clubId, platform }),
+    },
+    {
+      endpoint: 'clubsOverallStats',
+      action: () => client.clubs.overallStats({ clubId, platform }),
+    },
+    {
+      endpoint: 'membersStats',
+      action: () => client.members.stats({ clubId, platform }),
+    },
+    {
+      endpoint: 'membersCareerStats',
+      action: () => client.members.careerStats({ clubId, platform }),
+    },
+    {
+      endpoint: 'matchesList',
+      action: () => client.matches.list({ clubId, platform, limit: 5 }),
+    },
+  ]
+
+  for (const step of remainingSteps) {
+    const ok = await executeEndpoint(step.endpoint, step.action)
+    if (!ok) {
+      return buildResult()
     }
   }
 
-  const overallOk = await executeEndpoint('clubsOverallStats', () =>
-    client.clubs.overallStats({ clubId, platform }),
-  )
-  if (!overallOk) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      ...(stopReason ? { stopReason } : {}),
-      executedEndpoints,
-    }
-  }
-
-  const memOk = await executeEndpoint('membersStats', () =>
-    client.members.stats({ clubId, platform }),
-  )
-  if (!memOk) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      ...(stopReason ? { stopReason } : {}),
-      executedEndpoints,
-    }
-  }
-
-  const carOk = await executeEndpoint('membersCareerStats', () =>
-    client.members.careerStats({ clubId, platform }),
-  )
-  if (!carOk) {
-    return {
-      report: generateReport(platform, results),
-      stoppedEarly: true,
-      ...(stopReason ? { stopReason } : {}),
-      executedEndpoints,
-    }
-  }
-
-  await executeEndpoint('matchesList', () =>
-    client.matches.list({
-      clubId,
-      platform,
-      limit: 5,
-    }),
-  )
-
-  return {
-    report: generateReport(platform, results),
-    stoppedEarly,
-    ...(stopReason ? { stopReason } : {}),
-    executedEndpoints,
-  }
+  return buildResult()
 }

@@ -47,6 +47,8 @@ for (const match of matches) {
 ```
 
 <Note>
-  Match internals are loose records. All observed FC26 fields are explicitly typed
-  and any future fields added by EA are preserved at runtime.
+  Match internals are loose records. All observed FC26 fields are explicitly
+  typed and any future fields added by EA are preserved at runtime, but nested
+  match objects remain dynamic: inspect unexpected values before relying on
+  them in production logic.
 </Note>

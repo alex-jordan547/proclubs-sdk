@@ -121,7 +121,7 @@ describe('Fixtures parity and client mapping', () => {
     const result = await client.matches.list({ clubId: '42' })
 
     expect(result).toEqual(rawFixture)
-    expect(result[0]?.matchId).toBe('983294691180495')
+    expect(result[0]?.matchId).toBe('100000000000001')
     expect(result[0]?.timeAgo?.unit).toBe('days')
     expect(result[0]?.clubs?.['42']?.details?.name).toBe('ALL STAR 237')
     expect(result[0]?.players?.['42']?.['1001']?.playername).toBe(
@@ -205,5 +205,35 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<MatchPlayerStats>().toHaveProperty('playername')
     expectTypeOf<MatchPlayerStats>().toHaveProperty('match_event_aggregate_0')
     expectTypeOf<MatchAggregateStats>().toHaveProperty('realtimegame')
+  })
+
+  it('declares precise union types for string | number | null and id fields', () => {
+    // idSchema: string | number (club identifiers, match identifiers)
+    expectTypeOf<ClubSummary['clubId']>().toEqualTypeOf<string | number>()
+    expectTypeOf<ClubInfo['clubId']>().toEqualTypeOf<
+      string | number | undefined
+    >()
+    expectTypeOf<ClubOverallStats['clubId']>().toEqualTypeOf<
+      string | number | undefined
+    >()
+    expectTypeOf<ClubMatch['matchId']>().toEqualTypeOf<
+      string | number | undefined
+    >()
+
+    // numberLikeSchema: string | number | null (volatile EA numerics)
+    expectTypeOf<CustomKit['kitId']>().toEqualTypeOf<
+      string | number | null | undefined
+    >()
+    expectTypeOf<ClubSummaryInfo['regionId']>().toEqualTypeOf<
+      string | number | null | undefined
+    >()
+    expectTypeOf<MatchPlayerStats['rating']>().toEqualTypeOf<
+      string | number | null | undefined
+    >()
+
+    // Nested resource references keep their precise optional shape.
+    expectTypeOf<ClubSummaryInfo['customKit']>().toEqualTypeOf<
+      CustomKit | undefined
+    >()
   })
 })
