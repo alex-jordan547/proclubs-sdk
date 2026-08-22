@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  ENDPOINT_CONTRACTS,
   classifyRecommendation,
   detectDrift,
   generateReport,
@@ -19,6 +20,29 @@ function loadFixture<T>(name: string): T {
 }
 
 describe('Contract drift detector', () => {
+  it('derives endpoint contracts from the Zod response schemas', () => {
+    // Single source of truth: contract fields must mirror schema shape.
+    const searchContract = ENDPOINT_CONTRACTS.clubsSearch
+    expect(searchContract.kind).toBe('array')
+    const summaryFields = searchContract.elementContract?.fields
+    expect(Object.keys(summaryFields ?? {})).toEqual(
+      expect.arrayContaining([
+        'clubId',
+        'clubName',
+        'wins',
+        'gamesPlayedPlayoff',
+        'clubInfo',
+      ]),
+    )
+    // Required field derived from non-optional Zod schema.
+    expect(summaryFields?.['clubId']?.required).toBe(true)
+    // Optional fields stay optional.
+    expect(summaryFields?.['wins']?.required).toBeUndefined()
+
+    const membersContract = ENDPOINT_CONTRACTS.membersStats
+    expect(membersContract.fields?.['members']?.elementContract).toBeDefined()
+  })
+
   it('passes on all sanitized FC26 fixtures', () => {
     const search = detectDrift('clubsSearch', loadFixture('clubs-search'))
     const get = detectDrift('clubsGet', loadFixture('clubs-get'))

@@ -88,11 +88,12 @@ export {
   generateReport,
 } from './drift.js'
 export type {
+  AllowedType,
   CompatibilityReport,
+  ContractNode,
   DriftIssue,
   DriftIssueKind,
   EndpointDriftResult,
-  FieldContract,
   ShapeContract,
 } from './drift.js'
 export { runCompatibilityCheck } from './compatibility.js'

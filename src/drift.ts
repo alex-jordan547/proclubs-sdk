@@ -1,4 +1,15 @@
+import { z } from 'zod'
+
 import type { Endpoint, Platform } from './constants.js'
+import {
+  clubInfoSchema,
+  clubInfoResponseSchema,
+  clubMatchesResponseSchema,
+  clubMemberStatsSchema,
+  clubOverallStatsSchema,
+  clubOverallStatsResponseSchema,
+  clubSearchResponseSchema,
+} from './schemas.js'
 
 export type AllowedType =
   | 'string'
@@ -25,22 +36,23 @@ export interface DriftIssue {
   readonly actual?: string
 }
 
-export interface FieldContract {
+export type ContractNode = {
+  /** Discriminates root envelope shapes when present. */
+  readonly kind?: 'array' | 'object' | 'record'
   readonly types: readonly AllowedType[]
   readonly required?: boolean
-  readonly elementContract?: ShapeContract
-  readonly fields?: Readonly<Record<string, FieldContract>>
-  readonly recordValueContract?: ShapeContract
+  readonly elementContract?: ContractNode
+  readonly fields?: Readonly<Record<string, ContractNode>>
+  readonly recordValueContract?: ContractNode
   readonly recordValueTypes?: readonly AllowedType[]
 }
 
-export interface ShapeContract {
+/**
+ * A contract node describing an object shape (fields) or a collection
+ * envelope (kind + children). Root endpoint contracts always set kind.
+ */
+export type ShapeContract = ContractNode & {
   readonly kind: 'array' | 'object' | 'record'
-  readonly required?: boolean
-  readonly elementContract?: ShapeContract
-  readonly fields?: Readonly<Record<string, FieldContract>>
-  readonly recordValueContract?: ShapeContract
-  readonly recordValueTypes?: readonly AllowedType[]
 }
 
 export interface EndpointDriftResult {
@@ -60,353 +72,126 @@ export interface CompatibilityReport {
   readonly endpoints: Readonly<Record<Endpoint, EndpointDriftResult>>
 }
 
-const customKitFields: Record<string, FieldContract> = {
-  stadName: { types: ['string'] },
-  kitId: { types: ['numberLike'] },
-  seasonalTeamId: { types: ['numberLike'] },
-  seasonalKitId: { types: ['numberLike'] },
-  selectedKitType: { types: ['numberLike'] },
-  customKitId: { types: ['numberLike'] },
-  customAwayKitId: { types: ['numberLike'] },
-  customThirdKitId: { types: ['numberLike'] },
-  customKeeperKitId: { types: ['numberLike'] },
-  kitColor1: { types: ['numberLike'] },
-  kitColor2: { types: ['numberLike'] },
-  kitColor3: { types: ['numberLike'] },
-  kitColor4: { types: ['numberLike'] },
-  kitAColor1: { types: ['numberLike'] },
-  kitAColor2: { types: ['numberLike'] },
-  kitAColor3: { types: ['numberLike'] },
-  kitAColor4: { types: ['numberLike'] },
-  kitThrdColor1: { types: ['numberLike'] },
-  kitThrdColor2: { types: ['numberLike'] },
-  kitThrdColor3: { types: ['numberLike'] },
-  kitThrdColor4: { types: ['numberLike'] },
-  dCustomKit: { types: ['numberLike'] },
-  crestColor: { types: ['numberLike'] },
-  crestAssetId: { types: ['numberLike'] },
+type AnySchema = z.ZodType
+
+function unwrapOptional(schema: AnySchema): {
+  inner: AnySchema
+  optional: boolean
+} {
+  const def = schema.def as { type: string; innerType?: AnySchema }
+  if (def.type === 'optional' && def.innerType) {
+    return { inner: def.innerType, optional: true }
+  }
+  return { inner: schema, optional: false }
 }
 
-const clubInfoFields: Record<string, FieldContract> = {
-  name: { types: ['string'] },
-  clubId: { types: ['id'] },
-  regionId: { types: ['numberLike'] },
-  teamId: { types: ['numberLike'] },
-  customKit: {
-    types: ['object'],
-    fields: customKitFields,
-  },
+function deriveAllowedTypes(inner: AnySchema): AllowedType[] {
+  const type = (inner.def as { type: string }).type
+  if (type === 'union') {
+    const options = (
+      (inner.def as { options?: readonly AnySchema[] }).options ?? []
+    ).map((o) => (o.def as { type: string }).type)
+    if (
+      options.includes('string') &&
+      options.includes('number') &&
+      options.includes('null')
+    ) {
+      return ['numberLike']
+    }
+    if (options.includes('string') && options.includes('number')) {
+      return ['id']
+    }
+  }
+  if (type === 'array') {
+    return ['array']
+  }
+  if (type === 'record') {
+    return ['record']
+  }
+  if (type === 'object') {
+    return ['object']
+  }
+  return [type as AllowedType]
 }
 
-const clubSummaryFields: Record<string, FieldContract> = {
-  clubId: { types: ['id'], required: true },
-  clubName: { types: ['string'] },
-  platform: { types: ['string'] },
-  wins: { types: ['numberLike'] },
-  losses: { types: ['numberLike'] },
-  ties: { types: ['numberLike'] },
-  gamesPlayed: { types: ['numberLike'] },
-  gamesPlayedPlayoff: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  goalsAgainst: { types: ['numberLike'] },
-  cleanSheets: { types: ['numberLike'] },
-  points: { types: ['numberLike'] },
-  reputationtier: { types: ['numberLike'] },
-  promotions: { types: ['numberLike'] },
-  relegations: { types: ['numberLike'] },
-  bestDivision: { types: ['numberLike'] },
-  currentDivision: { types: ['numberLike'] },
-  clubInfo: {
-    types: ['object'],
-    fields: clubInfoFields,
-  },
+export function deriveFieldContract(schema: AnySchema): ContractNode {
+  const { inner, optional } = unwrapOptional(schema)
+  const types = deriveAllowedTypes(inner)
+  const contract: {
+    -readonly [K in keyof ContractNode]: ContractNode[K]
+  } = {
+    types,
+    ...(optional ? {} : { required: true }),
+  }
+  const def = inner.def as {
+    type: string
+    shape?: Readonly<Record<string, AnySchema>>
+    element?: AnySchema
+    valueType?: AnySchema
+  }
+  const type = def.type
+
+  if (type === 'object' && def.shape) {
+    contract.fields = Object.fromEntries(
+      Object.entries(def.shape).map(([key, child]) => [
+        key,
+        deriveFieldContract(child),
+      ]),
+    )
+  } else if (type === 'array' && def.element) {
+    contract.elementContract = deriveShapeContract(def.element)
+  } else if (type === 'record' && def.valueType) {
+    contract.recordValueContract = deriveShapeContract(def.valueType)
+  }
+
+  return contract
 }
 
-const clubOverallStatsFields: Record<string, FieldContract> = {
-  clubId: { types: ['id'] },
-  bestDivision: { types: ['numberLike'] },
-  bestFinishGroup: { types: ['numberLike'] },
-  finishesInDivision1Group1: { types: ['numberLike'] },
-  finishesInDivision2Group1: { types: ['numberLike'] },
-  finishesInDivision3Group1: { types: ['numberLike'] },
-  finishesInDivision4Group1: { types: ['numberLike'] },
-  finishesInDivision5Group1: { types: ['numberLike'] },
-  finishesInDivision6Group1: { types: ['numberLike'] },
-  gamesPlayed: { types: ['numberLike'] },
-  gamesPlayedPlayoff: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  goalsAgainst: { types: ['numberLike'] },
-  promotions: { types: ['numberLike'] },
-  relegations: { types: ['numberLike'] },
-  losses: { types: ['numberLike'] },
-  ties: { types: ['numberLike'] },
-  wins: { types: ['numberLike'] },
-  lastMatch0: { types: ['numberLike'] },
-  lastMatch1: { types: ['numberLike'] },
-  lastMatch2: { types: ['numberLike'] },
-  lastMatch3: { types: ['numberLike'] },
-  lastMatch4: { types: ['numberLike'] },
-  lastMatch5: { types: ['numberLike'] },
-  lastMatch6: { types: ['numberLike'] },
-  lastMatch7: { types: ['numberLike'] },
-  lastMatch8: { types: ['numberLike'] },
-  lastMatch9: { types: ['numberLike'] },
-  lastOpponent0: { types: ['id'] },
-  lastOpponent1: { types: ['id'] },
-  lastOpponent2: { types: ['id'] },
-  lastOpponent3: { types: ['id'] },
-  lastOpponent4: { types: ['id'] },
-  lastOpponent5: { types: ['id'] },
-  lastOpponent6: { types: ['id'] },
-  lastOpponent7: { types: ['id'] },
-  lastOpponent8: { types: ['id'] },
-  lastOpponent9: { types: ['id'] },
-  wstreak: { types: ['numberLike'] },
-  unbeatenstreak: { types: ['numberLike'] },
-  skillRating: { types: ['numberLike'] },
-  reputationtier: { types: ['numberLike'] },
-  leagueAppearances: { types: ['numberLike'] },
+export function deriveShapeContract(schema: AnySchema): ShapeContract {
+  const { inner } = unwrapOptional(schema)
+  const field = deriveFieldContract(schema)
+  let kind: 'array' | 'object' | 'record'
+  const t = (inner.def as { type: string }).type
+  if (t === 'array') {
+    kind = 'array'
+  } else if (t === 'record') {
+    kind = 'record'
+  } else if (field.fields) {
+    kind = 'object'
+  } else {
+    // Primitive value schema used as a record/array element: keep the leaf
+    // types so the parent validator checks value types directly instead of
+    // recursing into an object contract.
+    const { fields: _omit, ...leaf } = field
+    return { ...leaf, kind: 'object' }
+  }
+  return { ...field, kind }
 }
 
-const clubMemberFields: Record<string, FieldContract> = {
-  name: { types: ['string'] },
-  gamesPlayed: { types: ['numberLike'] },
-  winRate: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  assists: { types: ['numberLike'] },
-  cleanSheetsDef: { types: ['numberLike'] },
-  cleanSheetsGK: { types: ['numberLike'] },
-  shotSuccessRate: { types: ['numberLike'] },
-  passesMade: { types: ['numberLike'] },
-  passSuccessRate: { types: ['numberLike'] },
-  ratingAve: { types: ['numberLike'] },
-  tacklesMade: { types: ['numberLike'] },
-  tackleSuccessRate: { types: ['numberLike'] },
-  proName: { types: ['string'] },
-  proPos: { types: ['string'] },
-  proStyle: { types: ['numberLike'] },
-  proHeight: { types: ['numberLike'] },
-  proNationality: { types: ['numberLike'] },
-  proOverall: { types: ['numberLike'] },
-  proOverallStr: { types: ['string'] },
-  manOfTheMatch: { types: ['numberLike'] },
-  redCards: { types: ['numberLike'] },
-  prevGoals: { types: ['numberLike'] },
-  prevGoals1: { types: ['numberLike'] },
-  prevGoals2: { types: ['numberLike'] },
-  prevGoals3: { types: ['numberLike'] },
-  prevGoals4: { types: ['numberLike'] },
-  prevGoals5: { types: ['numberLike'] },
-  prevGoals6: { types: ['numberLike'] },
-  prevGoals7: { types: ['numberLike'] },
-  prevGoals8: { types: ['numberLike'] },
-  prevGoals9: { types: ['numberLike'] },
-  prevGoals10: { types: ['numberLike'] },
-  favoritePosition: { types: ['string'] },
-}
-
-const matchClubDetailsFields: Record<string, FieldContract> = {
-  date: { types: ['numberLike'] },
-  gameNumber: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  goalsAgainst: { types: ['numberLike'] },
-  losses: { types: ['numberLike'] },
-  matchType: { types: ['numberLike'] },
-  result: { types: ['numberLike'] },
-  score: { types: ['numberLike'] },
-  season_id: { types: ['numberLike'] },
-  TEAM: { types: ['numberLike'] },
-  ties: { types: ['numberLike'] },
-  winnerByDnf: { types: ['numberLike'] },
-  wins: { types: ['numberLike'] },
-  details: {
-    types: ['object'],
-    fields: clubInfoFields,
-  },
-}
-
-const matchPlayerStatsFields: Record<string, FieldContract> = {
-  playername: { types: ['string'] },
-  pos: { types: ['string'] },
-  rating: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  assists: { types: ['numberLike'] },
-  shots: { types: ['numberLike'] },
-  saves: { types: ['numberLike'] },
-  passesmade: { types: ['numberLike'] },
-  passattempts: { types: ['numberLike'] },
-  tacklesmade: { types: ['numberLike'] },
-  tackleattempts: { types: ['numberLike'] },
-  redcards: { types: ['numberLike'] },
-  mom: { types: ['numberLike'] },
-  archetypeid: { types: ['numberLike'] },
-  cleansheetsany: { types: ['numberLike'] },
-  cleansheetsdef: { types: ['numberLike'] },
-  cleansheetsgk: { types: ['numberLike'] },
-  secondsPlayed: { types: ['numberLike'] },
-  gameTime: { types: ['numberLike'] },
-  realtimegame: { types: ['numberLike'] },
-  realtimeidle: { types: ['numberLike'] },
-  SCORE: { types: ['numberLike'] },
-  wins: { types: ['numberLike'] },
-  losses: { types: ['numberLike'] },
-  vproattr: { types: ['string'] },
-  vprohackreason: { types: ['numberLike'] },
-  ballDiveSaves: { types: ['numberLike'] },
-  crossSaves: { types: ['numberLike'] },
-  goalsconceded: { types: ['numberLike'] },
-  goodDirectionSaves: { types: ['numberLike'] },
-  namespace: { types: ['numberLike'] },
-  parrySaves: { types: ['numberLike'] },
-  punchSaves: { types: ['numberLike'] },
-  reflexSaves: { types: ['numberLike'] },
-  userResult: { types: ['numberLike'] },
-  match_event_aggregate_0: { types: ['string'] },
-  match_event_aggregate_1: { types: ['string'] },
-  match_event_aggregate_2: { types: ['string'] },
-  match_event_aggregate_3: { types: ['string'] },
-}
-
-const matchAggregateStatsFields: Record<string, FieldContract> = {
-  archetypeid: { types: ['numberLike'] },
-  assists: { types: ['numberLike'] },
-  ballDiveSaves: { types: ['numberLike'] },
-  cleansheetsany: { types: ['numberLike'] },
-  cleansheetsdef: { types: ['numberLike'] },
-  cleansheetsgk: { types: ['numberLike'] },
-  crossSaves: { types: ['numberLike'] },
-  gameTime: { types: ['numberLike'] },
-  goals: { types: ['numberLike'] },
-  goalsconceded: { types: ['numberLike'] },
-  goodDirectionSaves: { types: ['numberLike'] },
-  losses: { types: ['numberLike'] },
-  match_event_aggregate_0: { types: ['numberLike'] },
-  match_event_aggregate_1: { types: ['numberLike'] },
-  match_event_aggregate_2: { types: ['numberLike'] },
-  match_event_aggregate_3: { types: ['numberLike'] },
-  mom: { types: ['numberLike'] },
-  namespace: { types: ['numberLike'] },
-  parrySaves: { types: ['numberLike'] },
-  passattempts: { types: ['numberLike'] },
-  passesmade: { types: ['numberLike'] },
-  pos: { types: ['numberLike'] },
-  punchSaves: { types: ['numberLike'] },
-  rating: { types: ['numberLike'] },
-  realtimegame: { types: ['numberLike'] },
-  realtimeidle: { types: ['numberLike'] },
-  redcards: { types: ['numberLike'] },
-  reflexSaves: { types: ['numberLike'] },
-  saves: { types: ['numberLike'] },
-  SCORE: { types: ['numberLike'] },
-  secondsPlayed: { types: ['numberLike'] },
-  shots: { types: ['numberLike'] },
-  tackleattempts: { types: ['numberLike'] },
-  tacklesmade: { types: ['numberLike'] },
-  userResult: { types: ['numberLike'] },
-  vproattr: { types: ['numberLike'] },
-  vprohackreason: { types: ['numberLike'] },
-  wins: { types: ['numberLike'] },
-}
-
+/**
+ * Single source of truth: endpoint contracts are derived from the Zod
+ * response schemas. Adding a field to a schema automatically extends the
+ * drift contract; there is no second declaration to keep in sync.
+ */
 export const ENDPOINT_CONTRACTS: Record<Endpoint, ShapeContract> = {
-  clubsSearch: {
-    kind: 'array',
-    elementContract: {
-      kind: 'object',
-      fields: clubSummaryFields,
-    },
-  },
-  clubsGet: {
-    kind: 'record',
-    recordValueContract: {
-      kind: 'object',
-      fields: clubInfoFields,
-    },
-  },
-  clubsOverallStats: {
-    kind: 'array',
-    elementContract: {
-      kind: 'object',
-      fields: clubOverallStatsFields,
-    },
-  },
-  membersStats: {
-    kind: 'object',
-    fields: {
-      members: {
-        types: ['array'],
-        required: true,
-        elementContract: {
-          kind: 'object',
-          fields: clubMemberFields,
-        },
-      },
-      positionCount: {
-        types: ['record'],
-        required: true,
-        recordValueTypes: ['number'],
-      },
-    },
-  },
-  membersCareerStats: {
-    kind: 'object',
-    fields: {
-      members: {
-        types: ['array'],
-        required: true,
-        elementContract: {
-          kind: 'object',
-          fields: clubMemberFields,
-        },
-      },
-      positionCount: {
-        types: ['record'],
-        required: true,
-        recordValueTypes: ['number'],
-      },
-    },
-  },
-  matchesList: {
-    kind: 'array',
-    elementContract: {
-      kind: 'object',
-      fields: {
-        matchId: { types: ['id'] },
-        timestamp: { types: ['numberLike'] },
-        timeAgo: {
-          types: ['object'],
-          fields: {
-            number: { types: ['number'] },
-            unit: { types: ['string'] },
-          },
-        },
-        clubs: {
-          types: ['record'],
-          recordValueContract: {
-            kind: 'object',
-            fields: matchClubDetailsFields,
-          },
-        },
-        players: {
-          types: ['record'],
-          recordValueContract: {
-            kind: 'record',
-            recordValueContract: {
-              kind: 'object',
-              fields: matchPlayerStatsFields,
-            },
-          },
-        },
-        aggregate: {
-          types: ['record'],
-          recordValueContract: {
-            kind: 'object',
-            fields: matchAggregateStatsFields,
-          },
-        },
-      },
-    },
-  },
+  clubsSearch: deriveShapeContract(clubSearchResponseSchema),
+  clubsGet: deriveRecordContract(clubInfoResponseSchema),
+  clubsOverallStats: deriveShapeContract(clubOverallStatsResponseSchema),
+  membersStats: deriveShapeContract(clubMemberStatsSchema),
+  membersCareerStats: deriveShapeContract(clubMemberStatsSchema),
+  matchesList: deriveShapeContract(clubMatchesResponseSchema),
+}
+
+function deriveRecordContract(schema: AnySchema): ShapeContract {
+  const def = schema.def as { type?: string; valueType?: AnySchema }
+  if (def.type === 'record' && def.valueType) {
+    return {
+      kind: 'record',
+      types: ['record'],
+      recordValueContract: deriveShapeContract(def.valueType),
+    }
+  }
+  return deriveShapeContract(schema)
 }
 
 function getTypeCategory(value: unknown): string {
@@ -439,7 +224,7 @@ function matchesAllowedType(actualType: string, allowed: AllowedType): boolean {
 
 function validateAgainstContract(
   data: unknown,
-  contract: ShapeContract,
+  contract: ContractNode & { kind?: 'array' | 'object' | 'record' },
   path: string,
   issues: DriftIssue[],
 ): void {
@@ -490,13 +275,27 @@ function validateAgainstContract(
     }
     const rec = data as Record<string, unknown>
     if (contract.recordValueContract) {
-      for (const val of Object.values(rec)) {
-        validateAgainstContract(
-          val,
-          contract.recordValueContract,
-          `${path}.*`,
-          issues,
-        )
+      const valueContract = contract.recordValueContract
+      if (valueContract.fields) {
+        for (const val of Object.values(rec)) {
+          validateAgainstContract(val, valueContract, `${path}.*`, issues)
+        }
+      } else {
+        for (const val of Object.values(rec)) {
+          const actualType = getTypeCategory(val)
+          const ok = valueContract.types.some((allowed) =>
+            matchesAllowedType(actualType, allowed),
+          )
+          if (!ok) {
+            issues.push({
+              kind: 'type_changed',
+              path: `${path}.*`,
+              message: `Record value at ${path}.* type changed: expected ${valueContract.types.join(' | ')}, received ${actualType}`,
+              expected: valueContract.types.join(' | '),
+              actual: actualType,
+            })
+          }
+        }
       }
     }
     return
@@ -577,18 +376,46 @@ function validateAgainstContract(
         if (fieldDef.fields) {
           validateAgainstContract(
             val,
-            { kind: 'object', fields: fieldDef.fields },
+            {
+              kind: 'object',
+              types: ['object'],
+              fields: fieldDef.fields,
+            },
             fieldPath,
             issues,
           )
         } else if (fieldDef.recordValueContract) {
-          for (const subVal of Object.values(val as Record<string, unknown>)) {
-            validateAgainstContract(
-              subVal,
-              fieldDef.recordValueContract,
-              `${fieldPath}.*`,
-              issues,
-            )
+          const valueContract = fieldDef.recordValueContract
+          if (valueContract.fields) {
+            for (const subVal of Object.values(
+              val as Record<string, unknown>,
+            )) {
+              validateAgainstContract(
+                subVal,
+                valueContract,
+                `${fieldPath}.*`,
+                issues,
+              )
+            }
+          } else {
+            // Leaf record values: check types directly.
+            for (const subVal of Object.values(
+              val as Record<string, unknown>,
+            )) {
+              const subActualType = getTypeCategory(subVal)
+              const ok = valueContract.types.some((allowed) =>
+                matchesAllowedType(subActualType, allowed),
+              )
+              if (!ok) {
+                issues.push({
+                  kind: 'type_changed',
+                  path: `${fieldPath}.*`,
+                  message: `Field ${fieldPath}.* type changed: expected ${valueContract.types.join(' | ')}, received ${subActualType}`,
+                  expected: valueContract.types.join(' | '),
+                  actual: subActualType,
+                })
+              }
+            }
           }
         } else if (fieldDef.recordValueTypes) {
           for (const subVal of Object.values(val as Record<string, unknown>)) {
