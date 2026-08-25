@@ -7,16 +7,13 @@ import {
   type ProClubsEvent,
   type ProClubsResponse,
   ProClubsValidationError,
-  type RankingListResponse,
 } from '../src/index.js'
 
-function loadFixture(name: string): RankingListResponse {
-  const raw = readFileSync(
+function loadFixture(name: string): string {
+  return readFileSync(
     join(process.cwd(), 'tests', 'fixtures', `${name}.json`),
     'utf8',
   )
-  // SAFETY: ranking fixtures are validated by the client in every use below.
-  return JSON.parse(raw) as RankingListResponse
 }
 
 function rankingResponse(rank: number): ProClubsResponse {
@@ -77,10 +74,10 @@ describe('ProClubsClient rankings', () => {
     const client = new ProClubsClient({
       transport: async (url) => {
         const pathname = new URL(url).pathname
-        const fixture = pathname.endsWith('/currentSeasonLeaderboard')
+        const body = pathname.endsWith('/currentSeasonLeaderboard')
           ? currentSeasonFixture
           : allTimeFixture
-        return new Response(JSON.stringify(fixture), { status: 200 })
+        return new Response(body, { status: 200 })
       },
     })
 
@@ -104,8 +101,8 @@ describe('ProClubsClient rankings', () => {
     const client = new ProClubsClient({
       transport: async (url) => {
         const name = new URL(url).searchParams.get('clubName')
-        const fixture = name === 'HEMLE FC' ? emptyFixture : hitFixture
-        return new Response(JSON.stringify(fixture), { status: 200 })
+        const body = name === 'HEMLE FC' ? emptyFixture : hitFixture
+        return new Response(body, { status: 200 })
       },
     })
 
