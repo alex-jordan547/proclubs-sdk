@@ -24,10 +24,11 @@ export function resolveRegionLabel(
 
   const tag = Object.prototype.toString.call(regionId)
   if (tag === '[object Number]') {
-    if (!Number.isFinite(regionId)) {
+    const numericId = Number(regionId)
+    if (!Number.isFinite(numericId)) {
       return undefined
     }
-    return lookupRegionLabel(String(regionId))
+    return lookupRegionLabel(String(numericId))
   }
 
   if (tag === '[object String]') {

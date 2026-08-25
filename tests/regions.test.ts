@@ -40,6 +40,12 @@ describe('REGION_LABELS and resolveRegionLabel', () => {
   it('resolves the HEMLE FC Southern Europe id as string or number', () => {
     expect(resolveRegionLabel(5457237)).toBe('Southern Europe')
     expect(resolveRegionLabel('5457237')).toBe('Southern Europe')
+    // SAFETY: Object() boxes a Number; cast reaches the [object Number] branch.
+    const boxedId = Object(5457237) as number
+    expect(resolveRegionLabel(boxedId)).toBe('Southern Europe')
+    // SAFETY: boxed NaN must still be rejected after Number() normalization.
+    const boxedNaN = Object(Number.NaN) as number
+    expect(resolveRegionLabel(boxedNaN)).toBeUndefined()
   })
 
   it('trims surrounding whitespace on string ids without fuzzy matching', () => {
