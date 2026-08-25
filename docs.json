@@ -28,6 +28,7 @@
         "pages": [
           "docs/reference/client",
           "docs/reference/clubs",
+          "docs/reference/rankings",
           "docs/reference/members",
           "docs/reference/matches",
           "docs/reference/regions",

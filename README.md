@@ -51,6 +51,10 @@ The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
 | `clubs.search({ name, platform? })` | `Promise<ClubSummary[]>` |
 | `clubs.get({ clubId, platform? })` | `Promise<ClubInfo \| null>` |
 | `clubs.overallStats({ clubId, platform? })` | `Promise<ClubOverallStats \| null>` |
+| `rankings.allTime(input?)` | `Promise<RankingEntry[]>` |
+| `rankings.searchAllTime({ name, platform? })` | `Promise<RankingEntry[]>` |
+| `rankings.currentSeason(input?)` | `Promise<RankingEntry[]>` |
+| `rankings.searchCurrentSeason({ name, platform? })` | `Promise<RankingEntry[]>` |
 | `members.stats({ clubId, platform? })` | `Promise<ClubMemberStats>` |
 | `members.careerStats({ clubId, platform? })` | `Promise<ClubMemberCareerStats>` |
 | `matches.list({ clubId, platform?, type?, limit? })` | `Promise<ClubMatch[]>` |

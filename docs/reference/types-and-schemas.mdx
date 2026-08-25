@@ -12,6 +12,8 @@ export.
 import type {
   ClubRequest,
   ListMatchesInput,
+  RankingListInput,
+  RankingSearchInput,
   SearchClubsInput,
 } from 'proclubs-sdk'
 ```
@@ -19,6 +21,8 @@ import type {
 | Type | Fields |
 | --- | --- |
 | `SearchClubsInput` | `name`, optional `platform` |
+| `RankingListInput` | optional `platform` |
+| `RankingSearchInput` | `name`, optional `platform` |
 | `ClubRequest` | `clubId`, optional `platform` |
 | `ListMatchesInput` | `clubId`, optional `platform`, `type`, and `limit` |
 
@@ -43,6 +47,8 @@ import type {
   MatchClubDetails,
   MatchPlayerStats,
   MatchTimeAgo,
+  RankingEntry,
+  RankingListResponse,
 } from 'proclubs-sdk'
 ```
 
@@ -53,8 +59,9 @@ observed FC26 shapes described on the namespace reference pages.
 
 - **Runtime fidelity:** All object schemas use loose object validation, meaning any additional fields sent by EA are preserved and accessible on returned objects.
 - **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`). Nested field values stay in their upstream representation.
-- **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on `clubs.search`, and match club `details`. See [Regions](/docs/reference/regions).
-- The other four endpoints (`clubs.search`, `members.stats`, `members.careerStats`, `matches.list`) return their full response data directly, aside from the region-label enrichment above.
+- **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on club searches and ranking entries, and match club `details`. See [Regions](/docs/reference/regions).
+- The other eight endpoints (`clubs.search`, the four ranking methods, `members.stats`, `members.careerStats`, and `matches.list`) return their full response data directly, aside from the region-label enrichment above.
+- Full leaderboards preserve EA response order and have no server pagination. Numeric strings remain strings.
 
 ## Constants
 
@@ -145,6 +152,10 @@ import {
   matchClubDetailsSchema,
   matchPlayerStatsSchema,
   matchTimeAgoSchema,
+  rankingEntrySchema,
+  rankingListInputSchema,
+  rankingListResponseSchema,
+  rankingSearchInputSchema,
   clubRequestSchema,
   searchClubsInputSchema,
 } from 'proclubs-sdk'
