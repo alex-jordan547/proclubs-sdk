@@ -1,0 +1,204 @@
+---
+title: "Metadata labels"
+description: "Resolve EA platform, match, position, reputation, division, and playoff codes to human labels."
+---
+
+EA Pro Clubs responses often expose technical codes instead of display text.
+A **mapping** is a readonly table that links each EA code to the label shown on
+the EA website. A **helper** is a small pure function that applies that mapping
+so your app does not reimplement the same rules.
+
+<Warning>
+  These mappings are reverse-engineered from the EA Pro Clubs website. They are
+  not an official EA contract and can change without notice. Unknown IDs never
+  throw: the raw value stays available and the helper returns `undefined`.
+</Warning>
+
+## Beginner example with ALL STAR 237
+
+```ts
+import {
+  ProClubsClient,
+  resolveClubCrestUrl,
+  resolveDivisionLabel,
+  resolveMatchTypeLabel,
+  resolveReputationLabel,
+} from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const [match] = await proclubs.matches.list({ clubId: club?.clubId ?? '42' })
+const homeClub = match?.clubs?.[club?.clubId ?? '42']
+
+console.log(homeClub?.matchType)
+// '1' — raw EA value on the match row
+
+console.log(resolveMatchTypeLabel(homeClub?.matchType))
+// 'League Match'
+
+console.log(club?.reputationtier)
+// '6' — raw EA value, still accessible
+
+console.log(resolveReputationLabel(club?.reputationtier))
+// undefined — tier 6 is not in the known mapping yet
+
+console.log(resolveDivisionLabel(club?.currentDivision))
+// 'Division 5'
+
+console.log(resolveClubCrestUrl(club?.clubInfo))
+// 'https://eafc24.content.easports.com/.../l99140109.png'
+```
+
+The SDK does not rewrite `reputationtier`, `currentDivision`, or `customKit`.
+Call the helpers explicitly when you need a display label or crest URL.
+
+## Known mappings
+
+### Platforms
+
+| Code | Label |
+| --- | --- |
+| `common-gen5` | Crossplatform Current Gen |
+| `common-gen4` | Crossplatform Last Gen |
+| `nx` | Switch |
+
+### Match types
+
+Request codes for `matches.list({ type })`:
+
+| Code | Label |
+| --- | --- |
+| `friendlyMatch` | Friendly Match |
+| `leagueMatch` | League Match |
+| `playoffMatch` | Playoff Match |
+
+Numeric `matchType` values on `matches.list` club rows:
+
+| ID | Label |
+| --- | --- |
+| `1` | League Match |
+| `3` | Playoff Match |
+| `5` | Friendly Match |
+
+`resolveMatchTypeLabel` accepts both namespaces. Use the request code when
+building SDK input and the numeric id when reading a match row from EA.
+
+### Position families
+
+| Code | Label |
+| --- | --- |
+| `defender` | Defender |
+| `forward` | Forward |
+| `goalkeeper` | Goalkeeper |
+| `midfielder` | Midfielder |
+
+### Reputation tiers
+
+| ID | Label |
+| --- | --- |
+| `0` | Hometown Heroes |
+| `1` | Emerging Stars |
+| `2` | Well Known |
+| `3` | World Renown |
+
+### Current divisions
+
+| ID | Label |
+| --- | --- |
+| `1` | Elite |
+| `2` | Division 1 |
+| `3` | Division 2 |
+| `4` | Division 3 |
+| `5` | Division 4 |
+| `6` | Division 5 |
+
+The legacy ten-division model returned by `/settings` is out of scope here.
+
+### Playoff results
+
+| ID | Label |
+| --- | --- |
+| `1` | Champion |
+| `2` | Runner-Up |
+| `3` | Competitive |
+| `4` | Mid-Table |
+| `5` | Also-ran |
+| `6` | Participant |
+
+Labels are copied exactly from EA, including `Runner-Up` and `Also-ran`.
+
+## Mapping and helpers
+
+```ts
+import {
+  DIVISION_LABELS,
+  PLATFORM_LABELS,
+  REPUTATION_LABELS,
+  resolveDivisionLabel,
+  resolvePlatformLabel,
+  resolveReputationLabel,
+  type KnownReputationId,
+  type ReputationLabel,
+} from 'proclubs-sdk'
+
+PLATFORM_LABELS['common-gen5']
+// 'Crossplatform Current Gen'
+
+resolveReputationLabel('2')
+resolveReputationLabel(2)
+resolveReputationLabel('  2  ')
+// 'Well Known'
+
+resolveReputationLabel('6')
+resolveReputationLabel(null)
+// undefined
+```
+
+Each family follows the same ergonomics as [Regions](/docs/reference/regions):
+
+- a frozen constant (`PLATFORM_LABELS`, `REPUTATION_LABELS`, …)
+- derived public types (`KnownPlatformId`, `ReputationLabel`, …)
+- a tolerant resolver (`resolvePlatformLabel`, `resolveReputationLabel`, …)
+
+String-code families (`platform`, `match type`, `position`) accept trimmed
+strings. Numeric families (`reputation`, `division`, `playoff result`) also
+accept finite numbers. There is no partial match and no fuzzy coercion.
+
+## Club crest URLs
+
+```ts
+import {
+  EA_CREST_ASSET_BASE_URL,
+  resolveClubCrestUrl,
+  type ClubCrestInput,
+} from 'proclubs-sdk'
+
+resolveClubCrestUrl({
+  teamId: 112809,
+  customKit: {
+    selectedKitType: '1',
+    crestAssetId: '99140109',
+  },
+})
+```
+
+Selection order matches the EA frontend:
+
+1. when `customKit.selectedKitType` is `1` and `crestAssetId` is present, use
+   `crestAssetId`;
+2. otherwise use `teamId`;
+3. when no usable identifier exists, return `undefined`.
+
+The helper only builds a URL. It does not download, cache, or host EA images.
+`EA_CREST_ASSET_BASE_URL` is centralized so maintainers can update it when EA
+changes asset hosts.
+
+## Stability limits
+
+- EA labels and asset hosts can change without notice.
+- Unknown IDs remain valid at runtime; extend the relevant `*_LABELS` constant
+  after confirming the EA label.
+- Crest URLs depend on EA CDN paths that have changed between FC releases.
+- Helpers never mutate the objects you pass in.
+
+See also [Support and limitations](/docs/project/limitations).

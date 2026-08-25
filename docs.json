@@ -31,6 +31,7 @@
           "docs/reference/members",
           "docs/reference/matches",
           "docs/reference/regions",
+          "docs/reference/metadata",
           "docs/reference/types-and-schemas"
         ]
       },

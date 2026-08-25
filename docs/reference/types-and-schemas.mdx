@@ -61,14 +61,43 @@ observed FC26 shapes described on the namespace reference pages.
 ```ts
 import {
   DEFAULT_PLATFORM,
+  DIVISION_LABELS,
+  EA_CREST_ASSET_BASE_URL,
+  MATCH_TYPE_LABELS,
+  MATCH_TYPE_RESPONSE_LABELS,
   MATCH_TYPES,
+  PLATFORM_LABELS,
+  PLAYOFF_RESULT_LABELS,
   PLATFORMS,
+  POSITION_LABELS,
   REGION_LABELS,
+  REPUTATION_LABELS,
+  resolveClubCrestUrl,
+  resolveDivisionLabel,
+  resolveMatchTypeLabel,
+  resolvePlatformLabel,
+  resolvePlayoffResultLabel,
+  resolvePositionLabel,
   resolveRegionLabel,
+  resolveReputationLabel,
+  type ClubCrestInput,
+  type DivisionLabel,
+  type KnownDivisionId,
+  type KnownMatchTypeId,
+  type KnownMatchTypeResponseId,
+  type KnownPlatformId,
+  type KnownPlayoffResultId,
+  type KnownPositionId,
   type KnownRegionId,
+  type KnownReputationId,
   type MatchType,
+  type MatchTypeLabel,
   type Platform,
+  type PlatformLabel,
+  type PlayoffResultLabel,
+  type PositionLabel,
   type RegionLabel,
+  type ReputationLabel,
 } from 'proclubs-sdk'
 ```
 
@@ -76,12 +105,21 @@ import {
 PLATFORMS // ['common-gen5', 'common-gen4', 'nx']
 DEFAULT_PLATFORM // 'common-gen5'
 MATCH_TYPES // ['friendlyMatch', 'leagueMatch', 'playoffMatch']
+MATCH_TYPE_RESPONSE_LABELS['1'] // 'League Match'
+resolveMatchTypeLabel('leagueMatch') // 'League Match'
+resolveMatchTypeLabel('1') // 'League Match'
+PLATFORM_LABELS['common-gen5'] // 'Crossplatform Current Gen'
+REPUTATION_LABELS['3'] // 'World Renown'
+resolveReputationLabel('6') // undefined
+resolveClubCrestUrl({ teamId: 112809, customKit: { selectedKitType: '1', crestAssetId: '99140109' } })
 REGION_LABELS['5457237'] // 'Southern Europe'
 resolveRegionLabel(5457237) // 'Southern Europe'
 ```
 
 `REGION_LABELS`, `KnownRegionId`, `RegionLabel`, and `resolveRegionLabel` are
-documented on [Regions](/docs/reference/regions).
+documented on [Regions](/docs/reference/regions). Platform, match-type,
+position, reputation, division, playoff, and crest helpers are documented on
+[Metadata labels](/docs/reference/metadata).
 
 ## Response schemas
 
