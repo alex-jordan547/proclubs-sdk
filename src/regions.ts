@@ -18,15 +18,20 @@ export type RegionLabel = (typeof REGION_LABELS)[KnownRegionId]
 export function resolveRegionLabel(
   regionId: string | number | null | undefined,
 ): RegionLabel | undefined {
-  if (typeof regionId === 'number') {
+  if (regionId === null || regionId === undefined) {
+    return undefined
+  }
+
+  const tag = Object.prototype.toString.call(regionId)
+  if (tag === '[object Number]') {
     if (!Number.isFinite(regionId)) {
       return undefined
     }
     return lookupRegionLabel(String(regionId))
   }
 
-  if (typeof regionId === 'string') {
-    return lookupRegionLabel(regionId.trim())
+  if (tag === '[object String]') {
+    return lookupRegionLabel(String(regionId).trim())
   }
 
   return undefined
@@ -36,5 +41,6 @@ function lookupRegionLabel(regionId: string): RegionLabel | undefined {
   if (!Object.hasOwn(REGION_LABELS, regionId)) {
     return undefined
   }
+  // SAFETY: Object.hasOwn confirmed regionId is an own key of REGION_LABELS.
   return REGION_LABELS[regionId as KnownRegionId]
 }

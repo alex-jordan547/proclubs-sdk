@@ -27,21 +27,28 @@ export interface DriftIssue {
   readonly actual?: string
 }
 
+export type JsonPrimitive = string | number | boolean | null
+export type JsonObject = { readonly [key: string]: JsonValue }
+export type JsonArray = readonly JsonValue[]
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray
+
+export type FieldContractMap = Record<string, FieldContract>
+
 export interface FieldContract {
   readonly types: readonly AllowedType[]
   readonly required?: boolean
-  readonly elementContract?: ShapeContract
-  readonly fields?: Readonly<Record<string, FieldContract>>
-  readonly recordValueContract?: ShapeContract
+  readonly elementContract?: PayloadContract
+  readonly fields?: FieldContractMap
+  readonly recordValueContract?: PayloadContract
   readonly recordValueTypes?: readonly AllowedType[]
 }
 
-export interface ShapeContract {
+export interface PayloadContract {
   readonly kind: 'array' | 'object' | 'record'
   readonly required?: boolean
-  readonly elementContract?: ShapeContract
-  readonly fields?: Readonly<Record<string, FieldContract>>
-  readonly recordValueContract?: ShapeContract
+  readonly elementContract?: PayloadContract
+  readonly fields?: FieldContractMap
+  readonly recordValueContract?: PayloadContract
   readonly recordValueTypes?: readonly AllowedType[]
 }
 
@@ -52,6 +59,10 @@ export interface EndpointDriftResult {
   readonly itemCount?: number
 }
 
+export type EndpointDriftResults = {
+  [E in Endpoint]: EndpointDriftResult
+}
+
 export interface CompatibilityReport {
   readonly timestamp: string
   readonly platform: Platform
@@ -59,10 +70,14 @@ export interface CompatibilityReport {
     readonly status: 'supported' | 'drifted' | 'stopped' | 'unverified'
     readonly recommendation: 'patch' | 'minor' | 'major' | 'manual_review'
   }
-  readonly endpoints: Readonly<Record<Endpoint, EndpointDriftResult>>
+  readonly endpoints: EndpointDriftResults
 }
 
-const customKitFields: Record<string, FieldContract> = {
+type EndpointContracts = {
+  readonly [E in Endpoint]: PayloadContract
+}
+
+const customKitFields = {
   stadName: { types: ['string'] },
   kitId: { types: ['numberLike'] },
   seasonalTeamId: { types: ['numberLike'] },
@@ -87,9 +102,9 @@ const customKitFields: Record<string, FieldContract> = {
   dCustomKit: { types: ['numberLike'] },
   crestColor: { types: ['numberLike'] },
   crestAssetId: { types: ['numberLike'] },
-}
+} satisfies FieldContractMap
 
-const clubInfoFields: Record<string, FieldContract> = {
+const clubInfoFields = {
   name: { types: ['string'] },
   clubId: { types: ['id'] },
   regionId: { types: ['numberLike'] },
@@ -98,9 +113,9 @@ const clubInfoFields: Record<string, FieldContract> = {
     types: ['object'],
     fields: customKitFields,
   },
-}
+} satisfies FieldContractMap
 
-const clubSummaryFields: Record<string, FieldContract> = {
+const clubSummaryFields = {
   clubId: { types: ['id'], required: true },
   clubName: { types: ['string'] },
   platform: { types: ['string'] },
@@ -122,9 +137,9 @@ const clubSummaryFields: Record<string, FieldContract> = {
     types: ['object'],
     fields: clubInfoFields,
   },
-}
+} satisfies FieldContractMap
 
-const clubOverallStatsFields: Record<string, FieldContract> = {
+const clubOverallStatsFields = {
   clubId: { types: ['id'] },
   bestDivision: { types: ['numberLike'] },
   bestFinishGroup: { types: ['numberLike'] },
@@ -168,9 +183,9 @@ const clubOverallStatsFields: Record<string, FieldContract> = {
   skillRating: { types: ['numberLike'] },
   reputationtier: { types: ['numberLike'] },
   leagueAppearances: { types: ['numberLike'] },
-}
+} satisfies FieldContractMap
 
-const clubMemberFields: Record<string, FieldContract> = {
+const clubMemberFields = {
   name: { types: ['string'] },
   gamesPlayed: { types: ['numberLike'] },
   winRate: { types: ['numberLike'] },
@@ -205,9 +220,9 @@ const clubMemberFields: Record<string, FieldContract> = {
   prevGoals9: { types: ['numberLike'] },
   prevGoals10: { types: ['numberLike'] },
   favoritePosition: { types: ['string'] },
-}
+} satisfies FieldContractMap
 
-const matchClubDetailsFields: Record<string, FieldContract> = {
+const matchClubDetailsFields = {
   date: { types: ['numberLike'] },
   gameNumber: { types: ['numberLike'] },
   goals: { types: ['numberLike'] },
@@ -225,9 +240,9 @@ const matchClubDetailsFields: Record<string, FieldContract> = {
     types: ['object'],
     fields: clubInfoFields,
   },
-}
+} satisfies FieldContractMap
 
-const matchPlayerStatsFields: Record<string, FieldContract> = {
+const matchPlayerStatsFields = {
   playername: { types: ['string'] },
   pos: { types: ['string'] },
   rating: { types: ['numberLike'] },
@@ -267,9 +282,9 @@ const matchPlayerStatsFields: Record<string, FieldContract> = {
   match_event_aggregate_1: { types: ['string'] },
   match_event_aggregate_2: { types: ['string'] },
   match_event_aggregate_3: { types: ['string'] },
-}
+} satisfies FieldContractMap
 
-const matchAggregateStatsFields: Record<string, FieldContract> = {
+const matchAggregateStatsFields = {
   archetypeid: { types: ['numberLike'] },
   assists: { types: ['numberLike'] },
   ballDiveSaves: { types: ['numberLike'] },
@@ -308,9 +323,9 @@ const matchAggregateStatsFields: Record<string, FieldContract> = {
   vproattr: { types: ['numberLike'] },
   vprohackreason: { types: ['numberLike'] },
   wins: { types: ['numberLike'] },
-}
+} satisfies FieldContractMap
 
-export const ENDPOINT_CONTRACTS: Record<Endpoint, ShapeContract> = {
+export const ENDPOINT_CONTRACTS = {
   clubsSearch: {
     kind: 'array',
     elementContract: {
@@ -409,27 +424,50 @@ export const ENDPOINT_CONTRACTS: Record<Endpoint, ShapeContract> = {
       },
     },
   },
+} satisfies EndpointContracts
+
+function jsonTag(value: JsonValue): string {
+  return Object.prototype.toString.call(value)
 }
 
-function isUnknownRegionId(value: unknown): boolean {
-  if (typeof value === 'number') {
+function isJsonObject(value: JsonValue): value is JsonObject {
+  return (
+    value !== null &&
+    !Array.isArray(value) &&
+    jsonTag(value) === '[object Object]'
+  )
+}
+
+function isJsonString(value: JsonValue): value is string {
+  return jsonTag(value) === '[object String]'
+}
+
+function isJsonNumber(value: JsonValue): value is number {
+  return jsonTag(value) === '[object Number]'
+}
+
+function isJsonBoolean(value: JsonValue): value is boolean {
+  return jsonTag(value) === '[object Boolean]'
+}
+
+function isUnknownRegionId(value: JsonValue): boolean {
+  if (isJsonNumber(value)) {
     return Number.isFinite(value) && resolveRegionLabel(value) === undefined
   }
-  if (typeof value === 'string') {
+  if (isJsonString(value)) {
     return value.trim() !== '' && resolveRegionLabel(value) === undefined
   }
   return false
 }
 
-function getTypeCategory(value: unknown): string {
+function getTypeCategory(value: JsonValue): string {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
-  const t = typeof value
-  if (t === 'string') return 'string'
-  if (t === 'number') return 'number'
-  if (t === 'boolean') return 'boolean'
-  if (t === 'object') return 'object'
-  return t
+  if (isJsonString(value)) return 'string'
+  if (isJsonNumber(value)) return 'number'
+  if (isJsonBoolean(value)) return 'boolean'
+  if (isJsonObject(value)) return 'object'
+  return 'object'
 }
 
 function matchesAllowedType(actualType: string, allowed: AllowedType): boolean {
@@ -449,9 +487,17 @@ function matchesAllowedType(actualType: string, allowed: AllowedType): boolean {
   return actualType === allowed
 }
 
+function hasUpstreamErrorField(value: JsonObject): boolean {
+  return Object.hasOwn(value, 'error') && value['error'] !== undefined
+}
+
+function jsonObjectValues(value: JsonObject): readonly JsonValue[] {
+  return Object.values(value)
+}
+
 function validateAgainstContract(
-  data: unknown,
-  contract: ShapeContract,
+  data: JsonValue,
+  contract: PayloadContract,
   path: string,
   issues: DriftIssue[],
 ): void {
@@ -468,8 +514,12 @@ function validateAgainstContract(
     }
     if (contract.elementContract) {
       for (let i = 0; i < data.length; i += 1) {
+        const item = data[i]
+        if (item === undefined) {
+          continue
+        }
         validateAgainstContract(
-          data[i],
+          item,
           contract.elementContract,
           `${path}[${i}]`,
           issues,
@@ -480,7 +530,7 @@ function validateAgainstContract(
   }
 
   if (contract.kind === 'record') {
-    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    if (!isJsonObject(data)) {
       issues.push({
         kind: 'envelope_changed',
         path,
@@ -490,7 +540,7 @@ function validateAgainstContract(
       })
       return
     }
-    if ((data as { error?: unknown }).error !== undefined) {
+    if (hasUpstreamErrorField(data)) {
       issues.push({
         kind: 'envelope_changed',
         path,
@@ -500,9 +550,8 @@ function validateAgainstContract(
       })
       return
     }
-    const rec = data as Record<string, unknown>
     if (contract.recordValueContract) {
-      for (const val of Object.values(rec)) {
+      for (const val of jsonObjectValues(data)) {
         validateAgainstContract(
           val,
           contract.recordValueContract,
@@ -515,7 +564,7 @@ function validateAgainstContract(
   }
 
   if (contract.kind === 'object') {
-    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    if (!isJsonObject(data)) {
       issues.push({
         kind: 'envelope_changed',
         path,
@@ -525,7 +574,7 @@ function validateAgainstContract(
       })
       return
     }
-    if ((data as { error?: unknown }).error !== undefined) {
+    if (hasUpstreamErrorField(data)) {
       issues.push({
         kind: 'envelope_changed',
         path,
@@ -536,12 +585,11 @@ function validateAgainstContract(
       return
     }
 
-    const obj = data as Record<string, unknown>
     const expectedFields = contract.fields ?? {}
     // 1. Check required fields and type-check present fields
     for (const [fieldKey, fieldDef] of Object.entries(expectedFields)) {
       const fieldPath = path === '$' ? `$.${fieldKey}` : `${path}.${fieldKey}`
-      if (obj[fieldKey] === undefined) {
+      if (data[fieldKey] === undefined) {
         if (fieldDef.required) {
           issues.push({
             kind: 'field_removed',
@@ -554,7 +602,10 @@ function validateAgainstContract(
         continue
       }
 
-      const val = obj[fieldKey]
+      const val = data[fieldKey]
+      if (val === undefined) {
+        continue
+      }
       const actualType = getTypeCategory(val)
       const isCompatible = fieldDef.types.some((allowed) =>
         matchesAllowedType(actualType, allowed),
@@ -584,18 +635,18 @@ function validateAgainstContract(
       // If array or object, recurse
       if (Array.isArray(val) && fieldDef.elementContract) {
         for (let i = 0; i < val.length; i += 1) {
+          const item = val[i]
+          if (item === undefined) {
+            continue
+          }
           validateAgainstContract(
-            val[i],
+            item,
             fieldDef.elementContract,
             `${fieldPath}[${i}]`,
             issues,
           )
         }
-      } else if (
-        typeof val === 'object' &&
-        val !== null &&
-        !Array.isArray(val)
-      ) {
+      } else if (isJsonObject(val)) {
         if (fieldDef.fields) {
           validateAgainstContract(
             val,
@@ -604,7 +655,7 @@ function validateAgainstContract(
             issues,
           )
         } else if (fieldDef.recordValueContract) {
-          for (const subVal of Object.values(val as Record<string, unknown>)) {
+          for (const subVal of jsonObjectValues(val)) {
             validateAgainstContract(
               subVal,
               fieldDef.recordValueContract,
@@ -613,7 +664,7 @@ function validateAgainstContract(
             )
           }
         } else if (fieldDef.recordValueTypes) {
-          for (const subVal of Object.values(val as Record<string, unknown>)) {
+          for (const subVal of jsonObjectValues(val)) {
             const subActualType = getTypeCategory(subVal)
             const isSubCompatible = fieldDef.recordValueTypes.some((allowed) =>
               matchesAllowedType(subActualType, allowed),
@@ -633,23 +684,35 @@ function validateAgainstContract(
     }
 
     // 2. Check for unexpected added fields
-    for (const key of Object.keys(obj)) {
-      if (!(key in expectedFields)) {
+    for (const key of Object.keys(data)) {
+      if (!Object.hasOwn(expectedFields, key)) {
         const fieldPath = path === '$' ? `$.${key}` : `${path}.${key}`
+        const added = data[key]
         issues.push({
           kind: 'field_added',
           path: fieldPath,
           message: `Unexpected field ${fieldPath} added upstream`,
-          actual: getTypeCategory(obj[key]),
+          actual: added === undefined ? 'undefined' : getTypeCategory(added),
         })
       }
     }
   }
 }
 
+function membersItemCount(payload: JsonValue): number | undefined {
+  if (!isJsonObject(payload)) {
+    return undefined
+  }
+  const members = payload['members']
+  if (!Array.isArray(members)) {
+    return undefined
+  }
+  return members.length
+}
+
 export function detectDrift(
   endpoint: Endpoint,
-  payload: unknown,
+  payload: JsonValue,
 ): EndpointDriftResult {
   const contract = ENDPOINT_CONTRACTS[endpoint]
   const issues: DriftIssue[] = []
@@ -659,29 +722,27 @@ export function detectDrift(
   let itemCount: number | undefined
   if (Array.isArray(payload)) {
     itemCount = payload.length
-  } else if (
-    typeof payload === 'object' &&
-    payload !== null &&
-    'members' in payload &&
-    Array.isArray((payload as { members?: unknown }).members)
-  ) {
-    itemCount = (payload as { members: unknown[] }).members.length
+  } else {
+    itemCount = membersItemCount(payload)
   }
 
   const isUnverified =
     Array.isArray(payload) && payload.length === 0 && issues.length === 0
 
-  return {
+  const result: EndpointDriftResult = {
     endpoint,
     status:
       issues.length > 0 ? 'drifted' : isUnverified ? 'unverified' : 'passed',
     issues,
-    ...(itemCount !== undefined ? { itemCount } : {}),
   }
+  if (itemCount !== undefined) {
+    return { ...result, itemCount }
+  }
+  return result
 }
 
 export function classifyRecommendation(
-  results: Record<Endpoint, EndpointDriftResult>,
+  results: EndpointDriftResults,
 ): 'patch' | 'minor' | 'major' | 'manual_review' {
   const allIssues = Object.values(results).flatMap((r) => r.issues)
   if (allIssues.length === 0) {
@@ -713,7 +774,7 @@ export function classifyRecommendation(
 
 export function generateReport(
   platform: Platform,
-  results: Record<Endpoint, EndpointDriftResult>,
+  results: EndpointDriftResults,
 ): CompatibilityReport {
   const hasDrift = Object.values(results).some((r) => r.status === 'drifted')
   const allPassed = Object.values(results).every((r) => r.status === 'passed')
