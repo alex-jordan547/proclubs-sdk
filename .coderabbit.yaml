@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "fr-FR"
+tone_instructions: >-
+  Sois direct, factuel et orienté régressions. Priorise les défauts vérifiables
+  avec leur impact et un correctif concret. Évite les préférences de style déjà
+  couvertes par Biome ou Oxlint et distingue clairement risque, suggestion et bug.
+
+reviews:
+  profile: "assertive"
+  path_instructions:
+    - path: "src/client.ts"
+      instructions: |
+        Vérifier en priorité les contrats HTTP publics, la construction des URL et paramètres EA,
+        la validation des entrées et réponses, les retries, timeouts, annulations, erreurs typées,
+        événements, cache et déduplication des requêtes concurrentes.
+        Signaler toute régression de compatibilité de l'API publique ou toute perte du nom/cause
+        d'une erreur transport. Le transport injectable doit rester utilisable dans les tests.
+
+    - path: "src/{schemas,index,constants,regions,errors,cache,events}.ts"
+      instructions: |
+        Traiter les schémas Zod, types et exports comme des contrats publics de bibliothèque.
+        Vérifier la cohérence entre types d'entrée/sortie, runtime et exports ESM, ainsi que la
+        rétrocompatibilité. Les réponses EA sont non documentées : préserver les champs inconnus
+        prévus par les loose objects, accepter les représentations historiques documentées et ne
+        pas inventer de garantie pour les regionId ou autres valeurs upstream.
+
+    - path: "src/{drift,compatibility}.ts"
+      instructions: |
+        Vérifier la détection de dérive sans faux positif : enveloppes, champs requis, types,
+        recommandations semver et états passed/drifted/unverified doivent rester cohérents.
+        Les probes live doivent rester explicites, séquentielles, faibles en volume, s'arrêter sur
+        les erreurs de contrôle d'accès et ne jamais exposer de payload brut, identifiant ou secret.
+
+    - path: "tests/**/*.ts"
+      instructions: |
+        Exiger des tests déterministes et entièrement offline via le transport injectable et les
+        fixtures. Vérifier les chemins succès, validation, erreur, timeout, AbortSignal, retry,
+        cache et champs upstream inconnus. Refuser les appels réseau live dans la suite par défaut
+        et les assertions qui reproduisent l'implémentation sans tester le contrat public.
+
+    - path: "tests/fixtures/**/*.json"
+      instructions: |
+        Vérifier que les fixtures restent minimales, réalistes et anonymisées. Ne jamais accepter
+        de cookie, token, identifiant personnel, dump complet de réponse live ou donnée sensible.
+
+    - path: "tools/oxlint/anti-slop/**/*.ts"
+      instructions: |
+        Vérifier la précision des visiteurs AST, les cas TypeScript couverts, les doublons de
+        diagnostics et les faux positifs. Une règle ne doit pas imposer un contournement moins sûr,
+        analyser ses propres fichiers vendored ni affaiblir les contrats publics du SDK.
+
+    - path: "docs/**/*.mdx"
+      instructions: |
+        Vérifier que la documentation correspond exactement aux exports et comportements actuels,
+        que les exemples ESM sont exécutables sur la version Node minimale et qu'aucune capacité EA
+        non supportée n'est promise. Préserver les avertissements sur stabilité upstream, sécurité,
+        faible volume et absence d'authentification.
+
+    - path: "README.md"
+      instructions: |
+        Vérifier la cohérence avec package.json, les exports publics et la documentation Mintlify.
+        Les exemples doivent utiliser l'API publiée et ne pas suggérer de runtime non supporté.
+
+    - path: ".github/workflows/*.yml"
+      instructions: |
+        Vérifier les versions Node supportées, npm ci, le gate npm run check, la reproductibilité
+        et les permissions minimales. Le probe EA live doit rester optionnel et ne jamais devenir
+        une condition requise de la CI standard.
+
+    - path: "package.json"
+      instructions: |
+        Vérifier la cohérence entre engines, CI, exports ESM, fichiers publiés, scripts et lockfile.
+        Signaler toute dépendance runtime inutile ou tout changement de publication non intentionnel.
