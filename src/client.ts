@@ -487,8 +487,27 @@ export class ProClubsClient {
           }
           throw error
         }
-        const failure =
-          error instanceof Error ? error : new Error(String(error))
+        let failure: Error
+        if (error instanceof Error) {
+          failure = error
+        } else {
+          failure = new Error(String(error))
+          if (
+            error !== null &&
+            error !== undefined &&
+            Object.prototype.toString.call(error) === '[object Object]' &&
+            Object.hasOwn(error, 'name')
+          ) {
+            // SAFETY: plain-object rejection; own `name` confirmed above.
+            const rejectionName = (error as { name: unknown }).name
+            if (
+              Object.prototype.toString.call(rejectionName) ===
+              '[object String]'
+            ) {
+              failure.name = String(rejectionName)
+            }
+          }
+        }
         if (
           this.isNamedError(failure, 'AbortError') ||
           options?.signal?.aborted

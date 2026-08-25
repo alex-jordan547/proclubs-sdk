@@ -306,6 +306,29 @@ describe('ProClubsClient', () => {
     ).rejects.toBeInstanceOf(ProClubsNetworkError)
   })
 
+  it('preserves AbortError and TimeoutError names from non-Error rejections', async () => {
+    const abortClient = new ProClubsClient({
+      maxAttempts: 3,
+      baseDelayMs: 0,
+      transport: async () => {
+        throw { name: 'AbortError', message: 'aborted' }
+      },
+    })
+    const timeoutClient = new ProClubsClient({
+      maxAttempts: 1,
+      transport: async () => {
+        throw { name: 'TimeoutError', message: 'timed out' }
+      },
+    })
+
+    await expect(
+      abortClient.clubs.search({ name: 'ALL STAR 237' }),
+    ).rejects.toBeInstanceOf(ProClubsAbortError)
+    await expect(
+      timeoutClient.clubs.search({ name: 'ALL STAR 237' }),
+    ).rejects.toBeInstanceOf(ProClubsTimeoutError)
+  })
+
   it('maps body-read transport failures into the exported SDK errors', async () => {
     let abortAttempts = 0
     const abortClient = new ProClubsClient({
