@@ -34,8 +34,18 @@ export const noForbiddenTermInSymbolNamesRule = defineRule({
         if (parent.type === "ImportSpecifier" && parent.imported === node) {
           return;
         }
-        if (parent.type === "Property" && parent.key === node && !parent.shorthand) {
-          return;
+        if (parent.type === "Property") {
+          if (parent.key === node && !parent.shorthand) {
+            return;
+          }
+          // Shorthand may visit distinct key/value Identifier nodes; report once via value.
+          if (
+            parent.shorthand &&
+            parent.key === node &&
+            parent.value !== node
+          ) {
+            return;
+          }
         }
       }
 
