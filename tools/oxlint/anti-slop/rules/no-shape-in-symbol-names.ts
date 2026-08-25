@@ -34,6 +34,18 @@ export const noForbiddenTermInSymbolNamesRule = defineRule({
         if (parent.type === "ImportSpecifier" && parent.imported === node) {
           return;
         }
+        if (parent.type === "JSXAttribute" && parent.name === node) {
+          return;
+        }
+        if (
+          parent.type === "JSXMemberExpression" &&
+          parent.property === node
+        ) {
+          return;
+        }
+        if (parent.type === "JSXNamespacedName") {
+          return;
+        }
         if (parent.type === "Property") {
           if (parent.key === node && !parent.shorthand) {
             return;

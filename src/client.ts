@@ -492,13 +492,14 @@ export class ProClubsClient {
           failure = error
         } else {
           failure = new Error(String(error))
+          const errorTag = Object.prototype.toString.call(error)
           if (
             error !== null &&
             error !== undefined &&
-            Object.prototype.toString.call(error) === '[object Object]' &&
+            (errorTag === '[object Object]' || errorTag === '[object Error]') &&
             Object.hasOwn(error, 'name')
           ) {
-            // SAFETY: plain-object rejection; own `name` confirmed above.
+            // SAFETY: error-like rejection; own `name` confirmed above.
             const rejectionName = (error as { name: unknown }).name
             if (
               Object.prototype.toString.call(rejectionName) ===
