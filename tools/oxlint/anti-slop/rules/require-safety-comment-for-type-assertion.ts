@@ -30,7 +30,18 @@ function hasSafetyComment(sourceCode: SourceCode, node: TypeAssertion): boolean 
     ) {
       return true;
     }
-    if (commentOwnerKinds.has(current.type) || current.parent.type === "Program") return false;
+    if (commentOwnerKinds.has(current.type)) {
+      const wrapper = current.parent;
+      if (
+        wrapper.type !== "ExportNamedDeclaration" &&
+        wrapper.type !== "ExportDefaultDeclaration"
+      ) {
+        return false;
+      }
+      current = wrapper;
+      continue;
+    }
+    if (current.parent.type === "Program") return false;
     current = current.parent;
   }
 }
