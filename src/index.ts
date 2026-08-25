@@ -25,6 +25,8 @@ export type {
   Platform,
   ProClubsEndpoint,
 } from './constants.js'
+export { REGION_LABELS, resolveRegionLabel } from './regions.js'
+export type { KnownRegionId, RegionLabel } from './regions.js'
 export {
   ProClubsAbortError,
   ProClubsError,
@@ -92,8 +94,10 @@ export type {
   DriftIssue,
   DriftIssueKind,
   EndpointDriftResult,
+  EndpointDriftResults,
   FieldContract,
-  ShapeContract,
+  JsonValue,
+  PayloadContract,
 } from './drift.js'
 export { runCompatibilityCheck } from './compatibility.js'
 export type {

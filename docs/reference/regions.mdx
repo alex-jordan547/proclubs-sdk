@@ -1,0 +1,85 @@
+---
+title: "Regions"
+description: "Resolve EA regionId values to typed region labels."
+---
+
+EA Pro Clubs responses identify a club's region with a numeric `regionId`.
+The SDK keeps that raw identifier and, when the value is known, adds a derived
+`regionLabel` on public club information.
+
+<Warning>
+  This mapping is reverse-engineered from the EA Pro Clubs website. It is not
+  an official EA contract and can change without notice. Unknown IDs never fail
+  a request: `regionId` stays available and `regionLabel` is omitted.
+</Warning>
+
+## Beginner example
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const club = await proclubs.clubs.get({ clubId: '12345' })
+
+console.log(club?.regionId, club?.regionLabel)
+// 5457237 'Southern Europe'
+```
+
+`clubs.search` applies the same enrichment to nested `clubInfo` when a
+`regionId` is present. Match club `details` use the same `ClubInfo` shape, so
+they receive `regionLabel` too.
+
+## Known regions
+
+| `regionId` | `regionLabel` |
+| --- | --- |
+| `4543827` | East Coast US |
+| `5723475` | West Coast US |
+| `5719381` | Western Europe |
+| `4539733` | Eastern Europe |
+| `5129557` | Northern Europe |
+| `5457237` | Southern Europe |
+| `4344147` | British Isles |
+| `5456205` | South America |
+| `4407629` | Central America |
+| `4281153` | Asia |
+| `4281683` | Australia/NewZealand |
+
+Labels are copied exactly from EA, including `Australia/NewZealand`.
+
+## Mapping and helper
+
+```ts
+import {
+  REGION_LABELS,
+  resolveRegionLabel,
+  type KnownRegionId,
+  type RegionLabel,
+} from 'proclubs-sdk'
+
+REGION_LABELS['5457237']
+// 'Southern Europe'
+
+resolveRegionLabel(5457237)
+resolveRegionLabel('5457237')
+resolveRegionLabel('  5457237  ')
+// 'Southern Europe'
+
+resolveRegionLabel(99999999)
+resolveRegionLabel(null)
+// undefined
+```
+
+- `REGION_LABELS` is a frozen object whose keys are the EA IDs as strings.
+- `KnownRegionId` and `RegionLabel` are derived from that constant.
+- `resolveRegionLabel` accepts `string | number | null | undefined`.
+- Surrounding whitespace on string IDs is ignored. There is no partial match
+  and no numeric coercion beyond the exact string or number EA sent.
+
+## Drift detection
+
+An unknown `regionId` is valid at runtime so a new EA region cannot break
+`clubs.get` or `clubs.search`. The [structural drift detector](/docs/reference/types-and-schemas)
+from issue #17 can report that ID as `unknown_value` on a live compatibility
+check. Maintainers then confirm the EA label and update `REGION_LABELS`
+deliberately. The mapping does not depend on the full compatibility workflow.

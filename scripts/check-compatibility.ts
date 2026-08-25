@@ -1,16 +1,18 @@
 import { writeFileSync } from 'node:fs'
 import { runCompatibilityCheck } from '../src/compatibility.js'
-import { PLATFORMS, type Platform } from '../src/constants.js'
+import { PLATFORMS } from '../src/constants.js'
 
 async function main() {
   const requestedPlatform = process.env.TARGET_PLATFORM ?? 'common-gen5'
-  if (!PLATFORMS.includes(requestedPlatform as Platform)) {
+  const targetPlatform = PLATFORMS.find(
+    (platform) => platform === requestedPlatform,
+  )
+  if (!targetPlatform) {
     console.error(
       `Unknown platform: ${requestedPlatform}. Valid platforms: ${PLATFORMS.join(', ')}`,
     )
     process.exit(1)
   }
-  const targetPlatform = requestedPlatform as Platform
   const outputPath = process.env.COMPATIBILITY_REPORT_PATH
 
   console.log('--- Pro Clubs SDK Compatibility & Drift Check ---')

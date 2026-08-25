@@ -5,6 +5,23 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
+  "files": {
+    "includes": [
+      "**",
+      "!.agent",
+      "!.agents",
+      "!.claude",
+      "!.codex",
+      "!.continue",
+      "!.cursor",
+      "!.gemini",
+      "!.opencode",
+      "!.pi",
+      "!.roo",
+      "!.windsurf",
+      "!tools/oxlint/anti-slop"
+    ]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

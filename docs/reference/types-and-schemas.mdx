@@ -52,8 +52,9 @@ observed FC26 shapes described on the namespace reference pages.
 ## Runtime fidelity and normalizations
 
 - **Runtime fidelity:** All object schemas use loose object validation, meaning any additional fields sent by EA are preserved and accessible on returned objects.
-- **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`), without modifying any nested fields.
-- The other four endpoints (`clubs.search`, `members.stats`, `members.careerStats`, `matches.list`) return their full response data directly.
+- **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`). Nested field values stay in their upstream representation.
+- **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on `clubs.search`, and match club `details`. See [Regions](/docs/reference/regions).
+- The other four endpoints (`clubs.search`, `members.stats`, `members.careerStats`, `matches.list`) return their full response data directly, aside from the region-label enrichment above.
 
 ## Constants
 
@@ -62,8 +63,12 @@ import {
   DEFAULT_PLATFORM,
   MATCH_TYPES,
   PLATFORMS,
+  REGION_LABELS,
+  resolveRegionLabel,
+  type KnownRegionId,
   type MatchType,
   type Platform,
+  type RegionLabel,
 } from 'proclubs-sdk'
 ```
 
@@ -71,7 +76,12 @@ import {
 PLATFORMS // ['common-gen5', 'common-gen4', 'nx']
 DEFAULT_PLATFORM // 'common-gen5'
 MATCH_TYPES // ['friendlyMatch', 'leagueMatch', 'playoffMatch']
+REGION_LABELS['5457237'] // 'Southern Europe'
+resolveRegionLabel(5457237) // 'Southern Europe'
 ```
+
+`REGION_LABELS`, `KnownRegionId`, `RegionLabel`, and `resolveRegionLabel` are
+documented on [Regions](/docs/reference/regions).
 
 ## Response schemas
 
@@ -124,7 +134,7 @@ import {
 } from 'proclubs-sdk'
 ```
 
-The SDK provides a deterministic structural drift detector that compares EA responses against the observed FC26 contract shape. It categorizes changes into `field_added`, `field_removed`, `type_changed`, and `envelope_changed`.
+The SDK provides a deterministic structural drift detector that compares EA responses against the observed FC26 contract shape. It categorizes changes into `field_added`, `field_removed`, `type_changed`, `envelope_changed`, and `unknown_value`.
 
 ```ts
 const drift = detectDrift('clubsSearch', searchPayload)
@@ -133,6 +143,15 @@ if (drift.status === 'drifted') {
 }
 ```
 
+Run drift detection on **raw EA payloads**, not on SDK output. `regionLabel` is
+a derived SDK field and would otherwise appear as `field_added`.
+
+An unknown `regionId` does not fail club requests. The same ID can appear in a
+compatibility report as `unknown_value` so maintainers can extend
+`REGION_LABELS` after confirming the EA label. That signal is additive (`minor`)
+and is separate from the mapping used at runtime. See [Regions](/docs/reference/regions)
+and issue #17.
+
 ### Interpreting compatibility reports
 
 Each report ends with a summary status and a release recommendation:
@@ -140,7 +159,7 @@ Each report ends with a summary status and a release recommendation:
 | Recommendation | Meaning | Suggested action |
 | --- | --- | --- |
 | `patch` | All endpoints match the known contract. | Safe to release; no contract change. |
-| `minor` | EA added fields only (`field_added`). Existing fields are intact. | Type and document the new fields, then release a minor version. |
+| `minor` | EA added fields only (`field_added`), or a `regionId` is not yet in `REGION_LABELS` (`unknown_value`). Existing fields are intact. | Type and document the new fields or region, then release a minor version. |
 | `major` | Fields were removed or renamed, types changed, or envelopes shifted. | Assess consumer impact before releasing a major version. |
 | `manual_review` | The run stopped early or produced mixed signals (for example, a Zod rejection on top of structural drift). | Inspect the per-endpoint issues before deciding. |
 

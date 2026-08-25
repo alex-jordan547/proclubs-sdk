@@ -67,6 +67,7 @@ Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 - [Errors and retries](./docs/guides/errors-and-retries.mdx)
 - [Cache and observability](./docs/guides/cache-and-observability.mdx)
 - [SDK reference](./docs/reference/client.mdx)
+- [Regions](./docs/reference/regions.mdx)
 - [Roadmap](./docs/project/roadmap.mdx)
 - [Support and limitations](./docs/project/limitations.mdx)
 

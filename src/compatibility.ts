@@ -9,6 +9,8 @@ import {
   generateReport,
   type CompatibilityReport,
   type EndpointDriftResult,
+  type EndpointDriftResults,
+  type JsonValue,
 } from './drift.js'
 import {
   ProClubsAbortError,
@@ -35,7 +37,7 @@ export interface CompatibilityCheckResult {
   readonly executedEndpoints: readonly Endpoint[]
 }
 
-function createInitialResults(): Record<Endpoint, EndpointDriftResult> {
+function createInitialResults(): EndpointDriftResults {
   return {
     clubsSearch: {
       endpoint: 'clubsSearch',
@@ -79,14 +81,15 @@ function markSchemaRejected(
   if (existing.issues.some((issue) => issue.actual === 'schema_rejected')) {
     return existing
   }
-  return {
+  const result: EndpointDriftResult = {
     endpoint,
     status: 'drifted',
     issues: [...existing.issues, schemaRejectedIssue],
-    ...(existing.itemCount === undefined
-      ? {}
-      : { itemCount: existing.itemCount }),
   }
+  if (existing.itemCount !== undefined) {
+    return { ...result, itemCount: existing.itemCount }
+  }
+  return result
 }
 
 export async function runCompatibilityCheck(
@@ -98,14 +101,15 @@ export async function runCompatibilityCheck(
   const results = createInitialResults()
   const executedEndpoints: Endpoint[] = []
 
-  let lastCapturedJson: unknown
+  let lastCapturedJson: JsonValue | undefined
   const innerTransport = options.transport ?? createDefaultTransport(timeoutMs)
 
   const capturingTransport: ProClubsTransport = async (url, init) => {
     const res = await innerTransport(url, init)
     const originalText = await res.text()
     try {
-      lastCapturedJson = JSON.parse(originalText)
+      // SAFETY: JSON.parse of a response body yields a JsonValue on success.
+      lastCapturedJson = JSON.parse(originalText) as JsonValue
     } catch {
       lastCapturedJson = undefined
     }
@@ -144,7 +148,7 @@ export async function runCompatibilityCheck(
 
   const executeEndpoint = async (
     endpoint: Endpoint,
-    action: () => Promise<unknown>,
+    action: () => Promise<void>,
   ): Promise<boolean> => {
     executedEndpoints.push(endpoint)
     options.onProgress?.(endpoint, 'running')
@@ -206,7 +210,7 @@ export async function runCompatibilityCheck(
         error instanceof ProClubsNetworkError ||
         error instanceof ProClubsAbortError
       ) {
-        stopReason = `Network or timeout failure: ${(error as Error).name}`
+        stopReason = `Network or timeout failure: ${error.name}`
         results[endpoint] = {
           endpoint,
           status: 'unverified',
@@ -220,12 +224,17 @@ export async function runCompatibilityCheck(
     }
   }
 
-  const buildResult = (): CompatibilityCheckResult => ({
-    report: generateReport(platform, results),
-    stoppedEarly,
-    ...(stopReason ? { stopReason } : {}),
-    executedEndpoints,
-  })
+  const buildResult = (): CompatibilityCheckResult => {
+    const result: CompatibilityCheckResult = {
+      report: generateReport(platform, results),
+      stoppedEarly,
+      executedEndpoints,
+    }
+    if (stopReason !== undefined) {
+      return { ...result, stopReason }
+    }
+    return result
+  }
 
   const searchOk = await executeEndpoint('clubsSearch', async () => {
     const clubs = await client.clubs.search({
@@ -252,27 +261,37 @@ export async function runCompatibilityCheck(
 
   const remainingSteps: ReadonlyArray<{
     endpoint: Endpoint
-    action: () => Promise<unknown>
+    action: () => Promise<void>
   }> = [
     {
       endpoint: 'clubsGet',
-      action: () => client.clubs.get({ clubId, platform }),
+      action: async () => {
+        await client.clubs.get({ clubId, platform })
+      },
     },
     {
       endpoint: 'clubsOverallStats',
-      action: () => client.clubs.overallStats({ clubId, platform }),
+      action: async () => {
+        await client.clubs.overallStats({ clubId, platform })
+      },
     },
     {
       endpoint: 'membersStats',
-      action: () => client.members.stats({ clubId, platform }),
+      action: async () => {
+        await client.members.stats({ clubId, platform })
+      },
     },
     {
       endpoint: 'membersCareerStats',
-      action: () => client.members.careerStats({ clubId, platform }),
+      action: async () => {
+        await client.members.careerStats({ clubId, platform })
+      },
     },
     {
       endpoint: 'matchesList',
-      action: () => client.matches.list({ clubId, platform, limit: 5 }),
+      action: async () => {
+        await client.matches.list({ clubId, platform, limit: 5 })
+      },
     },
   ]
 

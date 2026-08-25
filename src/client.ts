@@ -298,6 +298,7 @@ export class ProClubsClient {
       const cached = this.#cache.get(cacheKey)
       if (cached !== undefined) {
         this.emit({ type: 'cache:hit', endpoint })
+        // SAFETY: cache entries are always stored as T for this endpoint/key.
         return cached as T
       }
       this.emit({ type: 'cache:miss', endpoint })
@@ -311,6 +312,7 @@ export class ProClubsClient {
       shouldDedupe && cacheKey ? this.#inFlight.get(cacheKey) : undefined
     if (existing) {
       this.emit({ type: 'dedupe:join', endpoint })
+      // SAFETY: in-flight promises are the Promise<T> stored for this cache key.
       return cloneValue(await existing) as T
     }
 
@@ -321,6 +323,7 @@ export class ProClubsClient {
       options,
     )
     if (shouldDedupe && cacheKey) {
+      // SAFETY: Map stores heterogeneous endpoint promises behind Promise<unknown>.
       this.#inFlight.set(cacheKey, operation as Promise<unknown>)
     }
 
@@ -374,12 +377,12 @@ export class ProClubsClient {
         const body = await response.text()
         let json: unknown
         let parsedJson = true
-        let jsonError: unknown
+        let jsonError: Error | undefined
         try {
-          json = JSON.parse(body) as unknown
+          json = JSON.parse(body)
         } catch (error) {
           parsedJson = false
-          jsonError = error
+          jsonError = error instanceof Error ? error : undefined
         }
 
         const parsed = parsedJson ? schema.safeParse(json) : null
@@ -484,8 +487,29 @@ export class ProClubsClient {
           }
           throw error
         }
+        let failure: Error
+        if (error instanceof Error) {
+          failure = error
+        } else {
+          failure = new Error(String(error))
+          if (
+            error !== null &&
+            error !== undefined &&
+            Object.prototype.toString.call(error) === '[object Object]' &&
+            Object.hasOwn(error, 'name')
+          ) {
+            // SAFETY: plain-object rejection; own `name` confirmed above.
+            const rejectionName = (error as { name: unknown }).name
+            if (
+              Object.prototype.toString.call(rejectionName) ===
+              '[object String]'
+            ) {
+              failure.name = String(rejectionName)
+            }
+          }
+        }
         if (
-          this.isNamedError(error, 'AbortError') ||
+          this.isNamedError(failure, 'AbortError') ||
           options?.signal?.aborted
         ) {
           const abortError = new ProClubsAbortError(undefined, {
@@ -495,13 +519,13 @@ export class ProClubsClient {
           throw abortError
         }
         if (attempt === this.#maxAttempts) {
-          const finalError = this.isTimeoutError(error)
+          const finalError = this.isTimeoutError(failure)
             ? new ProClubsTimeoutError(undefined, { cause: error })
             : new ProClubsNetworkError(undefined, { cause: error })
           this.emitRequestError(endpoint, attempt, startedAt, finalError.code)
           throw finalError
         }
-        const errorCode = this.isTimeoutError(error) ? 'TIMEOUT' : 'NETWORK'
+        const errorCode = this.isTimeoutError(failure) ? 'TIMEOUT' : 'NETWORK'
         const delayMs = this.#baseDelayMs * 2 ** (attempt - 1)
         this.emit({
           type: 'request:retry',
@@ -556,15 +580,24 @@ export class ProClubsClient {
     errorCode: ProClubsErrorCode,
     status?: number,
   ): void {
-    const event = {
-      type: 'request:error' as const,
+    if (status === undefined) {
+      this.emit({
+        type: 'request:error',
+        endpoint,
+        attempt,
+        durationMs: this.durationSince(startedAt),
+        errorCode,
+      })
+      return
+    }
+    this.emit({
+      type: 'request:error',
       endpoint,
       attempt,
       durationMs: this.durationSince(startedAt),
-      ...(status === undefined ? {} : { status }),
       errorCode,
-    } satisfies ProClubsEvent
-    this.emit(event)
+      status,
+    })
   }
 
   private emit(event: ProClubsEvent): void {
@@ -578,7 +611,10 @@ export class ProClubsClient {
     }
   }
 
-  private parseInput<T>(schema: ZodType<T>, input: unknown): T {
+  private parseInput<T>(
+    schema: ZodType<T>,
+    input: SearchClubsInput | ClubRequest | ListMatchesInput,
+  ): T {
     const parsed = schema.safeParse(input)
     if (!parsed.success) {
       throw new ProClubsValidationError(
@@ -616,11 +652,11 @@ export class ProClubsClient {
     return compact.length <= 200 ? compact : `${compact.slice(0, 200)}…`
   }
 
-  private isNamedError(error: unknown, name: string): boolean {
-    return error instanceof Error && error.name === name
+  private isNamedError(error: Error, name: string): boolean {
+    return error.name === name
   }
 
-  private isTimeoutError(error: unknown): boolean {
+  private isTimeoutError(error: Error): boolean {
     return (
       error instanceof ImpitTimeoutError ||
       this.isNamedError(error, 'TimeoutError')

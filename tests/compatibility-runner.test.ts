@@ -12,24 +12,34 @@ function loadFixture(name: string): string {
   )
 }
 
+function fixtureBodyForPath(pathname: string): string {
+  switch (pathname) {
+    case '/api/fc/allTimeLeaderboard/search':
+      return loadFixture('clubs-search')
+    case '/api/fc/clubs/info':
+      return loadFixture('clubs-get')
+    case '/api/fc/clubs/overallStats':
+      return loadFixture('clubs-overall-stats')
+    case '/api/fc/members/stats':
+      return loadFixture('members-stats')
+    case '/api/fc/members/career/stats':
+      return loadFixture('members-career-stats')
+    case '/api/fc/clubs/matches':
+      return loadFixture('matches-list')
+    default:
+      return '[]'
+  }
+}
+
 describe('Compatibility runner', () => {
   it('runs all 6 endpoints sequentially on success and produces a sanitized report', async () => {
     const executedCalls: string[] = []
     const progressEvents: Array<{ endpoint: Endpoint; status: string }> = []
 
-    const fixtureMap: Record<string, string> = {
-      '/api/fc/allTimeLeaderboard/search': loadFixture('clubs-search'),
-      '/api/fc/clubs/info': loadFixture('clubs-get'),
-      '/api/fc/clubs/overallStats': loadFixture('clubs-overall-stats'),
-      '/api/fc/members/stats': loadFixture('members-stats'),
-      '/api/fc/members/career/stats': loadFixture('members-career-stats'),
-      '/api/fc/clubs/matches': loadFixture('matches-list'),
-    }
-
     const transport = async (url: string | URL) => {
       const parsed = new URL(url)
       executedCalls.push(parsed.pathname)
-      const body = fixtureMap[parsed.pathname] ?? '[]'
+      const body = fixtureBodyForPath(parsed.pathname)
       return new Response(body, { status: 200 })
     }
 
