@@ -686,7 +686,15 @@ export class ProClubsClient {
     }
   }
 
-  private parseInput<T>(schema: ZodType<T>, input: unknown): T {
+  private parseInput<T>(
+    schema: ZodType<T>,
+    input:
+      | SearchClubsInput
+      | RankingListInput
+      | RankingSearchInput
+      | ClubRequest
+      | ListMatchesInput,
+  ): T {
     const parsed = schema.safeParse(input)
     if (!parsed.success) {
       throw new ProClubsValidationError(
