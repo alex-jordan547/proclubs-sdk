@@ -221,8 +221,21 @@ describe('Compatibility runner', () => {
 
     const result = await runCompatibilityCheck({ transport })
 
-    expect(executedCalls).toEqual(['/api/fc/allTimeLeaderboard/search'])
+    expect(executedCalls).toEqual([
+      '/api/fc/allTimeLeaderboard/search',
+      '/api/fc/allTimeLeaderboard',
+      '/api/fc/currentSeasonLeaderboard',
+      '/api/fc/allTimeLeaderboard/search',
+      '/api/fc/currentSeasonLeaderboard/search',
+    ])
     expect(result.stoppedEarly).toBe(true)
     expect(result.stopReason).toContain('No clubs returned in search')
+    expect(result.executedEndpoints).toEqual([
+      'clubsSearch',
+      'rankingsAllTime',
+      'rankingsCurrentSeason',
+      'rankingsSearchAllTime',
+      'rankingsSearchCurrentSeason',
+    ])
   })
 })

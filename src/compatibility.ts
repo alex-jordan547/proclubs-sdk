@@ -270,49 +270,73 @@ export async function runCompatibilityCheck(
     return buildResult()
   }
 
-  if (!targetClubId) {
-    stoppedEarly = true
-    stopReason = 'No clubs returned in search to verify remaining endpoints'
-    options.onProgress?.('clubsSearch', 'stopped')
-    return buildResult()
+  const runSteps = async (
+    steps: ReadonlyArray<{
+      endpoint: Endpoint
+      action: () => Promise<void>
+    }>,
+  ): Promise<boolean> => {
+    for (const step of steps) {
+      const ok = await executeEndpoint(step.endpoint, step.action)
+      if (!ok) {
+        return false
+      }
+    }
+    return true
   }
 
-  const clubId = targetClubId
+  if (targetClubId) {
+    const clubId = targetClubId
+    const clubDependentSteps: ReadonlyArray<{
+      endpoint: Endpoint
+      action: () => Promise<void>
+    }> = [
+      {
+        endpoint: 'clubsGet',
+        action: async () => {
+          await client.clubs.get({ clubId, platform })
+        },
+      },
+      {
+        endpoint: 'clubsOverallStats',
+        action: async () => {
+          await client.clubs.overallStats({ clubId, platform })
+        },
+      },
+      {
+        endpoint: 'membersStats',
+        action: async () => {
+          await client.members.stats({ clubId, platform })
+        },
+      },
+      {
+        endpoint: 'membersCareerStats',
+        action: async () => {
+          await client.members.careerStats({ clubId, platform })
+        },
+      },
+      {
+        endpoint: 'matchesList',
+        action: async () => {
+          await client.matches.list({ clubId, platform, limit: 5 })
+        },
+      },
+    ]
+    const clubOk = await runSteps(clubDependentSteps)
+    if (!clubOk) {
+      return buildResult()
+    }
+  } else {
+    stoppedEarly = true
+    stopReason =
+      'No clubs returned in search to verify club, member, and match endpoints'
+    options.onProgress?.('clubsSearch', 'stopped')
+  }
 
-  const remainingSteps: ReadonlyArray<{
+  const rankingSteps: ReadonlyArray<{
     endpoint: Endpoint
     action: () => Promise<void>
   }> = [
-    {
-      endpoint: 'clubsGet',
-      action: async () => {
-        await client.clubs.get({ clubId, platform })
-      },
-    },
-    {
-      endpoint: 'clubsOverallStats',
-      action: async () => {
-        await client.clubs.overallStats({ clubId, platform })
-      },
-    },
-    {
-      endpoint: 'membersStats',
-      action: async () => {
-        await client.members.stats({ clubId, platform })
-      },
-    },
-    {
-      endpoint: 'membersCareerStats',
-      action: async () => {
-        await client.members.careerStats({ clubId, platform })
-      },
-    },
-    {
-      endpoint: 'matchesList',
-      action: async () => {
-        await client.matches.list({ clubId, platform, limit: 5 })
-      },
-    },
     {
       endpoint: 'rankingsAllTime',
       action: async () => {
@@ -342,11 +366,9 @@ export async function runCompatibilityCheck(
     },
   ]
 
-  for (const step of remainingSteps) {
-    const ok = await executeEndpoint(step.endpoint, step.action)
-    if (!ok) {
-      return buildResult()
-    }
+  const rankingsOk = await runSteps(rankingSteps)
+  if (!rankingsOk) {
+    return buildResult()
   }
 
   return buildResult()
