@@ -1,4 +1,5 @@
 import impit from 'impit'
+import { runInNewContext } from 'node:vm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -318,6 +319,38 @@ describe('ProClubsClient', () => {
       maxAttempts: 1,
       transport: async () => {
         throw { name: 'TimeoutError', message: 'timed out' }
+      },
+    })
+
+    await expect(
+      abortClient.clubs.search({ name: 'ALL STAR 237' }),
+    ).rejects.toBeInstanceOf(ProClubsAbortError)
+    await expect(
+      timeoutClient.clubs.search({ name: 'ALL STAR 237' }),
+    ).rejects.toBeInstanceOf(ProClubsTimeoutError)
+  })
+
+  it('preserves AbortError and TimeoutError names from cross-realm errors', async () => {
+    const crossRealmAbortError: unknown = runInNewContext(
+      "Object.assign(new Error('aborted'), { name: 'AbortError' })",
+    )
+    const crossRealmTimeoutError: unknown = runInNewContext(
+      "Object.assign(new Error('timed out'), { name: 'TimeoutError' })",
+    )
+    expect(crossRealmAbortError).not.toBeInstanceOf(Error)
+    expect(crossRealmTimeoutError).not.toBeInstanceOf(Error)
+
+    const abortClient = new ProClubsClient({
+      maxAttempts: 3,
+      baseDelayMs: 0,
+      transport: async () => {
+        throw crossRealmAbortError
+      },
+    })
+    const timeoutClient = new ProClubsClient({
+      maxAttempts: 1,
+      transport: async () => {
+        throw crossRealmTimeoutError
       },
     })
 
