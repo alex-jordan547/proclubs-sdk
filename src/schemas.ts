@@ -48,16 +48,6 @@ export const customKitSchema = z.looseObject({
   crestAssetId: numberLikeSchema.optional(),
 })
 
-function enrichClubRegion<T extends { regionId?: string | number | null }>(
-  club: T,
-): T & { regionLabel?: RegionLabel } {
-  const regionLabel = resolveRegionLabel(club.regionId)
-  if (regionLabel === undefined) {
-    return { ...club }
-  }
-  return { ...club, regionLabel }
-}
-
 const clubInfoObjectSchema = z.looseObject({
   name: z.string().optional(),
   clubId: idSchema.optional(),
@@ -66,10 +56,30 @@ const clubInfoObjectSchema = z.looseObject({
   customKit: customKitSchema.optional(),
 })
 
-export const clubSummaryInfoSchema =
-  clubInfoObjectSchema.transform(enrichClubRegion)
+type ClubInfoObject = z.output<typeof clubInfoObjectSchema>
+
+function toRegionIdInput(value: unknown): string | number | null | undefined {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value
+  }
+  if (value === null || value === undefined) {
+    return value
+  }
+  return undefined
+}
+
+function enrichClubRegion(
+  club: ClubInfoObject,
+): ClubInfoObject & { regionLabel?: RegionLabel } {
+  const regionLabel = resolveRegionLabel(toRegionIdInput(club.regionId))
+  if (regionLabel === undefined) {
+    return { ...club }
+  }
+  return { ...club, regionLabel }
+}
 
 export const clubInfoSchema = clubInfoObjectSchema.transform(enrichClubRegion)
+export const clubSummaryInfoSchema = clubInfoSchema
 
 export const clubSummarySchema = z.looseObject({
   clubId: idSchema,

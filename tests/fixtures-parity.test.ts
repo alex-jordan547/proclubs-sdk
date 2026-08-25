@@ -33,9 +33,9 @@ function loadFixture<T>(name: string): T {
   return JSON.parse(raw) as T
 }
 
-function withRegionLabel<T extends { regionId?: string | number | null }>(
-  club: T,
-): T & { regionLabel?: RegionLabel } {
+function withRegionLabel<
+  T extends { regionId?: string | number | null | undefined },
+>(club: T): T & { regionLabel?: RegionLabel } {
   const regionLabel = resolveRegionLabel(club.regionId)
   if (regionLabel === undefined) {
     return { ...club }
