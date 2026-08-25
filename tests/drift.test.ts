@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest'
 import {
   classifyRecommendation,
   detectDrift,
-  generateReport,
   type EndpointDriftResults,
+  generateReport,
   type JsonValue,
 } from '../src/index.js'
 
@@ -63,6 +63,26 @@ function driftResults(
       status: 'unverified',
       issues: [],
     },
+    rankingsAllTime: {
+      endpoint: 'rankingsAllTime',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsSearchAllTime: {
+      endpoint: 'rankingsSearchAllTime',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsCurrentSeason: {
+      endpoint: 'rankingsCurrentSeason',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsSearchCurrentSeason: {
+      endpoint: 'rankingsSearchCurrentSeason',
+      status: 'unverified',
+      issues: [],
+    },
     ...overrides,
   }
 }
@@ -113,6 +133,76 @@ describe('Contract drift detector', () => {
     })
     expect(matches).toEqual({
       endpoint: 'matchesList',
+      status: 'passed',
+      issues: [],
+      itemCount: 1,
+    })
+  })
+
+  it('passes each populated ranking fixture and accepts an empty search', () => {
+    const fixtures = [
+      ['rankingsAllTime', 'rankings-all-time', 2],
+      ['rankingsSearchAllTime', 'rankings-search-all-time', 1],
+      ['rankingsCurrentSeason', 'rankings-current-season', 2],
+      ['rankingsSearchCurrentSeason', 'rankings-search-current-season', 1],
+    ] as const
+
+    for (const [endpoint, fixture, itemCount] of fixtures) {
+      expect(detectDrift(endpoint, loadFixture(fixture))).toEqual({
+        endpoint,
+        status: 'passed',
+        issues: [],
+        itemCount,
+      })
+    }
+
+    expect(
+      detectDrift(
+        'rankingsSearchCurrentSeason',
+        loadFixture('rankings-search-empty'),
+      ),
+    ).toEqual({
+      endpoint: 'rankingsSearchCurrentSeason',
+      status: 'unverified',
+      issues: [],
+      itemCount: 0,
+    })
+  })
+
+  it('detects ranking contract drift and permits missing optional fields', () => {
+    const valid = {
+      clubId: '42',
+      rank: 1,
+      goalsPerGame: '4.47',
+    }
+
+    expect(
+      detectDrift('rankingsAllTime', [{ ...valid, unexpectedRankBand: 'A' }])
+        .issues[0],
+    ).toMatchObject({
+      kind: 'field_added',
+      path: '$[0].unexpectedRankBand',
+    })
+    expect(
+      detectDrift('rankingsAllTime', [{ rank: 1 }]).issues[0],
+    ).toMatchObject({
+      kind: 'field_removed',
+      path: '$[0].clubId',
+    })
+    expect(
+      detectDrift('rankingsAllTime', [{ ...valid, rank: '1' }]).issues[0],
+    ).toMatchObject({
+      kind: 'type_changed',
+      path: '$[0].rank',
+    })
+    expect(
+      detectDrift('rankingsAllTime', { entries: [valid] }).issues[0],
+    ).toMatchObject({
+      kind: 'envelope_changed',
+      path: '$',
+    })
+    expect(detectDrift('rankingsCurrentSeason', [{ clubId: '42' }])).toEqual({
+      endpoint: 'rankingsCurrentSeason',
       status: 'passed',
       issues: [],
       itemCount: 1,
@@ -407,6 +497,26 @@ describe('Contract drift detector', () => {
             status: 'passed',
             issues: [],
           },
+          rankingsAllTime: {
+            endpoint: 'rankingsAllTime',
+            status: 'passed',
+            issues: [],
+          },
+          rankingsSearchAllTime: {
+            endpoint: 'rankingsSearchAllTime',
+            status: 'passed',
+            issues: [],
+          },
+          rankingsCurrentSeason: {
+            endpoint: 'rankingsCurrentSeason',
+            status: 'passed',
+            issues: [],
+          },
+          rankingsSearchCurrentSeason: {
+            endpoint: 'rankingsSearchCurrentSeason',
+            status: 'passed',
+            issues: [],
+          },
         }),
       ),
     ).toBe('patch')
@@ -494,6 +604,26 @@ describe('Contract drift detector', () => {
         issues: [],
       },
       matchesList: { endpoint: 'matchesList', status: 'passed', issues: [] },
+      rankingsAllTime: {
+        endpoint: 'rankingsAllTime',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsSearchAllTime: {
+        endpoint: 'rankingsSearchAllTime',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsCurrentSeason: {
+        endpoint: 'rankingsCurrentSeason',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsSearchCurrentSeason: {
+        endpoint: 'rankingsSearchCurrentSeason',
+        status: 'passed',
+        issues: [],
+      },
     })
 
     const report = generateReport('common-gen5', results)

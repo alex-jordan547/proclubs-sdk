@@ -1,0 +1,106 @@
+---
+title: "Rankings"
+description: "Retrieve and search all-time and current-season club leaderboards."
+---
+
+## `rankings.allTime`
+
+Get the all-time club leaderboard.
+
+```ts
+const entries = await proclubs.rankings.allTime()
+```
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<RankingEntry[]>">
+  All-time leaderboard entries in EA response order. Known fields include
+  `rank`, `clubId`, `clubName`, `platform`, `skillRating`, `reputationtier`,
+  `reputationlevel`, `bestDivision`, `bestFinishGroup`, `wins`, `ties`,
+  `losses`, `gamesPlayed`, `goals`, `goalsAgainst`, `cleanSheets`,
+  `goalsPerGame`, `goalsAgainstPerGame`, and nested `clubInfo` (with
+  `customKit`). Ranking-only fields can be absent on a valid row.
+</ResponseField>
+
+## `rankings.searchAllTime`
+
+Search the all-time leaderboard by club name.
+
+```ts
+const entries = await proclubs.rankings.searchAllTime({
+  name: 'ALL STAR 237',
+  platform: 'common-gen5',
+})
+```
+
+<ParamField path="name" type="string" required>
+  Club name, trimmed by the SDK. Must contain from 1 through 32 characters.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<RankingEntry[]>">
+  Matching all-time entries. An empty search returns `[]`.
+</ResponseField>
+
+## `rankings.currentSeason`
+
+Get the current-season club leaderboard.
+
+```ts
+const entries = await proclubs.rankings.currentSeason({
+  platform: 'common-gen5',
+})
+```
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<RankingEntry[]>">
+  Current-season leaderboard entries in EA response order. Known fields match
+  the all-time board, with `currentDivision` as the season standing. Goal
+  averages can be absent on a valid row.
+</ResponseField>
+
+## `rankings.searchCurrentSeason`
+
+Search the current-season leaderboard by club name.
+
+```ts
+const entries = await proclubs.rankings.searchCurrentSeason({
+  name: 'HEMLE FC',
+})
+```
+
+<ParamField path="name" type="string" required>
+  Club name, trimmed by the SDK. Must contain from 1 through 32 characters.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<RankingEntry[]>">
+  Matching current-season entries. An empty search returns `[]`.
+</ResponseField>
+
+## Result shape
+
+`RankingEntry` includes the `ClubSummary` fields without changing
+`ClubSummary`. Ranking entries may also include `rank`, `skillRating`,
+`reputationlevel`, `bestFinishGroup`, `goalsPerGame`, and
+`goalsAgainstPerGame`. Search results can omit the ranking-only fields. Nested
+`clubInfo` includes `regionLabel` when EA returns a known `regionId`.
+
+Full leaderboard methods preserve EA response order. The routes do not provide
+server pagination, and the SDK does not sort or paginate the response. Numeric
+statistics can arrive as strings, numbers, or `null`. The SDK preserves numeric
+strings as strings.
+
+`clubs.search` remains the 0.x club search helper. It returns
+`Promise<ClubSummary[]>` and keeps its existing endpoint identity.

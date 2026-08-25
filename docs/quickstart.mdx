@@ -23,6 +23,23 @@ console.log(clubs)
 The default platform is `common-gen5`. Search names are trimmed and must contain
 between 1 and 32 characters.
 
+## Check club rankings
+
+```ts
+const [allStar] = await proclubs.rankings.searchAllTime({
+  name: 'ALL STAR 237',
+})
+const hemleSeason = await proclubs.rankings.searchCurrentSeason({
+  name: 'HEMLE FC',
+})
+const leaders = await proclubs.rankings.allTime()
+
+console.log(allStar, hemleSeason, leaders[0]?.rank)
+```
+
+Search returns `[]` when the club is not on that board. Full leaderboards keep
+EA response order. These routes do not provide server pagination.
+
 ## Load a club dashboard
 
 Use the `clubId` returned by search to request the other resources. Independent

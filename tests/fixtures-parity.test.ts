@@ -3,8 +3,6 @@ import { join } from 'node:path'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
-  ProClubsClient,
-  resolveRegionLabel,
   type ClubInfo,
   type ClubInfoResponse,
   type ClubMatch,
@@ -22,7 +20,11 @@ import {
   type MatchClubDetails,
   type MatchPlayerStats,
   type MatchTimeAgo,
+  ProClubsClient,
+  type RankingEntry,
+  type RankingListResponse,
   type RegionLabel,
+  resolveRegionLabel,
 } from '../src/index.js'
 
 function loadFixture<T>(name: string): T {
@@ -178,6 +180,62 @@ describe('Fixtures parity and client mapping', () => {
     )
   })
 
+  it('verifies ranking methods preserve fixtures and enrich nested clubInfo', async () => {
+    const fixtures = {
+      allTime: loadFixture<RankingListResponse>('rankings-all-time'),
+      searchAllTime: loadFixture<RankingListResponse>(
+        'rankings-search-all-time',
+      ),
+      currentSeason: loadFixture<RankingListResponse>(
+        'rankings-current-season',
+      ),
+      searchCurrentSeason: loadFixture<RankingListResponse>(
+        'rankings-search-current-season',
+      ),
+    }
+    const client = new ProClubsClient({
+      transport: async (url) => {
+        const pathname = new URL(url).pathname
+        const fixture =
+          pathname === '/api/fc/allTimeLeaderboard'
+            ? fixtures.allTime
+            : pathname === '/api/fc/allTimeLeaderboard/search'
+              ? fixtures.searchAllTime
+              : pathname === '/api/fc/currentSeasonLeaderboard'
+                ? fixtures.currentSeason
+                : fixtures.searchCurrentSeason
+        return new Response(JSON.stringify(fixture), { status: 200 })
+      },
+    })
+
+    const results = {
+      allTime: await client.rankings.allTime(),
+      searchAllTime: await client.rankings.searchAllTime({
+        name: 'ALL STAR 237',
+      }),
+      currentSeason: await client.rankings.currentSeason(),
+      searchCurrentSeason: await client.rankings.searchCurrentSeason({
+        name: 'ALL STAR 237',
+      }),
+    }
+
+    for (const key of [
+      'allTime',
+      'searchAllTime',
+      'currentSeason',
+      'searchCurrentSeason',
+    ] as const) {
+      const expected = fixtures[key].map((entry) =>
+        entry.clubInfo
+          ? { ...entry, clubInfo: withRegionLabel(entry.clubInfo) }
+          : entry,
+      )
+      expect(results[key]).toEqual(expected)
+      expect(results[key][0]?.clubInfo?.regionLabel).toBe('Southern Europe')
+      expect(fixtures[key][0]?.clubInfo).not.toHaveProperty('regionLabel')
+    }
+  })
+
   it('preserves unknown properties at multiple nesting depths', async () => {
     const payloadWithExtras = [
       {
@@ -250,6 +308,10 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<MatchPlayerStats>().toHaveProperty('playername')
     expectTypeOf<MatchPlayerStats>().toHaveProperty('match_event_aggregate_0')
     expectTypeOf<MatchAggregateStats>().toHaveProperty('realtimegame')
+
+    expectTypeOf<RankingEntry>().toHaveProperty('rank')
+    expectTypeOf<RankingEntry>().toHaveProperty('goalsPerGame')
+    expectTypeOf<RankingEntry>().toHaveProperty('clubId')
   })
 
   it('declares precise union types for string | number | null and id fields', () => {
@@ -275,6 +337,11 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<MatchPlayerStats['rating']>().toEqualTypeOf<
       string | number | null | undefined
     >()
+    expectTypeOf<RankingEntry['rank']>().toEqualTypeOf<number | undefined>()
+    expectTypeOf<RankingEntry['goalsPerGame']>().toEqualTypeOf<
+      string | number | null | undefined
+    >()
+    expectTypeOf<RankingEntry['clubId']>().toEqualTypeOf<string | number>()
 
     // Nested resource references keep their precise optional shape.
     expectTypeOf<ClubSummaryInfo['customKit']>().toEqualTypeOf<

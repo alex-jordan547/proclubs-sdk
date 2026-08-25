@@ -90,6 +90,10 @@ export {
   matchClubDetailsSchema,
   matchPlayerStatsSchema,
   matchTimeAgoSchema,
+  rankingEntrySchema,
+  rankingListInputSchema,
+  rankingListResponseSchema,
+  rankingSearchInputSchema,
   clubRequestSchema,
   searchClubsInputSchema,
 } from './schemas.js'
@@ -113,6 +117,10 @@ export type {
   MatchClubDetails,
   MatchPlayerStats,
   MatchTimeAgo,
+  RankingEntry,
+  RankingListInput,
+  RankingListResponse,
+  RankingSearchInput,
   SearchClubsInput,
 } from './schemas.js'
 export {

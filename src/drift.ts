@@ -139,6 +139,24 @@ const clubSummaryFields = {
   },
 } satisfies FieldContractMap
 
+const rankingEntryFields = {
+  ...clubSummaryFields,
+  rank: { types: ['number'] },
+  skillRating: { types: ['numberLike'] },
+  reputationlevel: { types: ['numberLike'] },
+  bestFinishGroup: { types: ['numberLike'] },
+  goalsPerGame: { types: ['numberLike'] },
+  goalsAgainstPerGame: { types: ['numberLike'] },
+} satisfies FieldContractMap
+
+const rankingListContract = {
+  kind: 'array',
+  elementContract: {
+    kind: 'object',
+    fields: rankingEntryFields,
+  },
+} satisfies PayloadContract
+
 const clubOverallStatsFields = {
   clubId: { types: ['id'] },
   bestDivision: { types: ['numberLike'] },
@@ -347,6 +365,10 @@ export const ENDPOINT_CONTRACTS = {
       fields: clubOverallStatsFields,
     },
   },
+  rankingsAllTime: rankingListContract,
+  rankingsSearchAllTime: rankingListContract,
+  rankingsCurrentSeason: rankingListContract,
+  rankingsSearchCurrentSeason: rankingListContract,
   membersStats: {
     kind: 'object',
     fields: {

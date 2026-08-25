@@ -5,7 +5,7 @@ description: "A small, typed Node.js SDK for EA Sports FC Pro Clubs data."
 
 `proclubs-sdk` is an unofficial TypeScript client for the public endpoints used
 by EA Sports FC Pro Clubs. It gives server-side applications a stable interface
-for club discovery, rosters, statistics, and recent matches.
+for club discovery, rankings, rosters, statistics, and recent matches.
 
 <Warning>
   This project is not affiliated with or endorsed by Electronic Arts. The
@@ -17,7 +17,7 @@ for club discovery, rosters, statistics, and recent matches.
 
 <CardGroup cols={2}>
   <Card title="Typed methods" icon="code">
-    Six focused methods with TypeScript declarations and validated inputs.
+    Ten focused methods with TypeScript declarations and validated inputs.
   </Card>
   <Card title="Validated responses" icon="shield-check">
     Known response envelopes are checked with Zod before data reaches your app.
@@ -49,6 +49,10 @@ for club discovery, rosters, statistics, and recent matches.
 | `clubs` | `search` | Find clubs by name |
 | `clubs` | `get` | Get one club's information |
 | `clubs` | `overallStats` | Get the club's aggregate record |
+| `rankings` | `allTime` | Get the all-time leaderboard |
+| `rankings` | `searchAllTime` | Search the all-time leaderboard |
+| `rankings` | `currentSeason` | Get the current-season leaderboard |
+| `rankings` | `searchCurrentSeason` | Search the current-season leaderboard |
 | `members` | `stats` | Get the current member statistics |
 | `members` | `careerStats` | Get career statistics for members |
 | `matches` | `list` | List recent matches by match type |

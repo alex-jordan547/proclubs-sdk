@@ -11,6 +11,12 @@ export const searchClubsInputSchema = z.object({
   platform: z.enum(PLATFORMS).optional(),
 })
 
+export const rankingListInputSchema = z.object({
+  platform: z.enum(PLATFORMS).optional(),
+})
+
+export const rankingSearchInputSchema = searchClubsInputSchema
+
 export const clubRequestSchema = z.object({
   clubId: z.union([z.string().trim().min(1), z.number().int()]),
   platform: z.enum(PLATFORMS).optional(),
@@ -96,6 +102,17 @@ export const clubSummarySchema = z.looseObject({
 })
 
 export const clubSearchResponseSchema = z.array(clubSummarySchema)
+
+export const rankingEntrySchema = clubSummarySchema.extend({
+  rank: z.number().optional(),
+  skillRating: numberLikeSchema.optional(),
+  reputationlevel: numberLikeSchema.optional(),
+  bestFinishGroup: numberLikeSchema.optional(),
+  goalsPerGame: numberLikeSchema.optional(),
+  goalsAgainstPerGame: numberLikeSchema.optional(),
+})
+
+export const rankingListResponseSchema = z.array(rankingEntrySchema)
 
 export const clubInfoResponseSchema = z.record(z.string(), clubInfoSchema)
 
@@ -308,12 +325,16 @@ export const clubMatchSchema = z.looseObject({
 export const clubMatchesResponseSchema = z.array(clubMatchSchema)
 
 export type SearchClubsInput = z.input<typeof searchClubsInputSchema>
+export type RankingListInput = z.input<typeof rankingListInputSchema>
+export type RankingSearchInput = z.input<typeof rankingSearchInputSchema>
 export type ClubRequest = z.input<typeof clubRequestSchema>
 export type ListMatchesInput = z.input<typeof listMatchesInputSchema>
 export type CustomKit = z.output<typeof customKitSchema>
 export type ClubSummaryInfo = z.output<typeof clubSummaryInfoSchema>
 export type ClubSummary = z.output<typeof clubSummarySchema>
 export type ClubSearchResponse = z.output<typeof clubSearchResponseSchema>
+export type RankingEntry = z.output<typeof rankingEntrySchema>
+export type RankingListResponse = z.output<typeof rankingListResponseSchema>
 export type ClubInfo = z.output<typeof clubInfoSchema>
 export type ClubInfoResponse = z.output<typeof clubInfoResponseSchema>
 export type ClubOverallStats = z.output<typeof clubOverallStatsSchema>
