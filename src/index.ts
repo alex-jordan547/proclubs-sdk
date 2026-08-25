@@ -28,6 +28,36 @@ export type {
 export { REGION_LABELS, resolveRegionLabel } from './regions.js'
 export type { KnownRegionId, RegionLabel } from './regions.js'
 export {
+  DIVISION_LABELS,
+  MATCH_TYPE_LABELS,
+  PLATFORM_LABELS,
+  PLAYOFF_RESULT_LABELS,
+  POSITION_LABELS,
+  REPUTATION_LABELS,
+  resolveDivisionLabel,
+  resolveMatchTypeLabel,
+  resolvePlatformLabel,
+  resolvePlayoffResultLabel,
+  resolvePositionLabel,
+  resolveReputationLabel,
+} from './metadata.js'
+export type {
+  DivisionLabel,
+  KnownDivisionId,
+  KnownMatchTypeId,
+  KnownPlatformId,
+  KnownPlayoffResultId,
+  KnownPositionId,
+  KnownReputationId,
+  MatchTypeLabel,
+  PlatformLabel,
+  PlayoffResultLabel,
+  PositionLabel,
+  ReputationLabel,
+} from './metadata.js'
+export { EA_CREST_ASSET_BASE_URL, resolveClubCrestUrl } from './crests.js'
+export type { ClubCrestInput } from './crests.js'
+export {
   ProClubsAbortError,
   ProClubsError,
   ProClubsHttpError,

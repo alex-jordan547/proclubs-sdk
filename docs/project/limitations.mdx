@@ -31,6 +31,11 @@ Region labels are reverse-engineered from the EA website. They are not an
 official EA contract. A new or renamed region keeps the raw `regionId` readable
 and omits `regionLabel` until the SDK mapping is updated.
 
+Platform, match-type, position, reputation, division, and playoff labels follow
+the same rule: raw EA codes stay on the response object and helpers return
+`undefined` for unknown values until the SDK mapping is updated. Crest URLs are
+built from EA CDN paths that can change between FC releases.
+
 <Warning>
   Do not send EA credentials, cookies, or session tokens to this SDK. It does
   not need them. A request for those values should be treated as a security
