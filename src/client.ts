@@ -35,6 +35,9 @@ import {
   clubSearchResponseSchema,
   clubRequestSchema,
   listMatchesInputSchema,
+  rankingListInputSchema,
+  rankingListResponseSchema,
+  rankingSearchInputSchema,
   searchClubsInputSchema,
   type ClubInfo,
   type ClubMatch,
@@ -44,10 +47,28 @@ import {
   type ClubRequest,
   type ClubSummary,
   type ListMatchesInput,
+  type RankingEntry,
+  type RankingListInput,
+  type RankingSearchInput,
   type SearchClubsInput,
 } from './schemas.js'
 
 const { Impit, TimeoutError: ImpitTimeoutError } = impit
+
+const RANKING_OPERATIONS = {
+  allTime: { endpoint: 'rankingsAllTime', requiresName: false },
+  searchAllTime: { endpoint: 'rankingsSearchAllTime', requiresName: true },
+  currentSeason: { endpoint: 'rankingsCurrentSeason', requiresName: false },
+  searchCurrentSeason: {
+    endpoint: 'rankingsSearchCurrentSeason',
+    requiresName: true,
+  },
+} as const satisfies Record<
+  string,
+  { readonly endpoint: Endpoint; readonly requiresName: boolean }
+>
+
+type RankingOperation = keyof typeof RANKING_OPERATIONS
 
 export interface ProClubsResponse {
   readonly status: number
@@ -102,6 +123,29 @@ export class ProClubsClient {
       options?: ProClubsRequestOptions,
     ): Promise<ClubOverallStats | null> =>
       this.getClubOverallStats(input, options),
+  }
+
+  readonly rankings = {
+    allTime: (
+      input?: RankingListInput,
+      options?: ProClubsRequestOptions,
+    ): Promise<RankingEntry[]> =>
+      this.getRankings('allTime', input ?? {}, options),
+    searchAllTime: (
+      input: RankingSearchInput,
+      options?: ProClubsRequestOptions,
+    ): Promise<RankingEntry[]> =>
+      this.getRankings('searchAllTime', input, options),
+    currentSeason: (
+      input?: RankingListInput,
+      options?: ProClubsRequestOptions,
+    ): Promise<RankingEntry[]> =>
+      this.getRankings('currentSeason', input ?? {}, options),
+    searchCurrentSeason: (
+      input: RankingSearchInput,
+      options?: ProClubsRequestOptions,
+    ): Promise<RankingEntry[]> =>
+      this.getRankings('searchCurrentSeason', input, options),
   }
 
   readonly members = {
@@ -187,6 +231,36 @@ export class ProClubsClient {
       'clubsSearch',
       url.searchParams,
       clubSearchResponseSchema,
+      options,
+    )
+  }
+
+  private async getRankings(
+    operation: RankingOperation,
+    input: RankingListInput | RankingSearchInput,
+    options?: ProClubsRequestOptions,
+  ): Promise<RankingEntry[]> {
+    const config = RANKING_OPERATIONS[operation]
+    if (config.requiresName) {
+      const parsed = this.parseInput(rankingSearchInputSchema, input)
+      const searchParams = new URLSearchParams()
+      searchParams.set('clubName', parsed.name)
+      searchParams.set('platform', parsed.platform ?? this.#platform)
+      return this.request(
+        config.endpoint,
+        searchParams,
+        rankingListResponseSchema,
+        options,
+      )
+    }
+
+    const parsed = this.parseInput(rankingListInputSchema, input)
+    return this.request(
+      config.endpoint,
+      new URLSearchParams({
+        platform: parsed.platform ?? this.#platform,
+      }),
+      rankingListResponseSchema,
       options,
     )
   }
@@ -612,10 +686,7 @@ export class ProClubsClient {
     }
   }
 
-  private parseInput<T>(
-    schema: ZodType<T>,
-    input: SearchClubsInput | ClubRequest | ListMatchesInput,
-  ): T {
+  private parseInput<T>(schema: ZodType<T>, input: unknown): T {
     const parsed = schema.safeParse(input)
     if (!parsed.success) {
       throw new ProClubsValidationError(

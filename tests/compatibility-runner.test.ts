@@ -16,6 +16,12 @@ function fixtureBodyForPath(pathname: string): string {
   switch (pathname) {
     case '/api/fc/allTimeLeaderboard/search':
       return loadFixture('clubs-search')
+    case '/api/fc/allTimeLeaderboard':
+      return loadFixture('rankings-all-time')
+    case '/api/fc/currentSeasonLeaderboard':
+      return loadFixture('rankings-current-season')
+    case '/api/fc/currentSeasonLeaderboard/search':
+      return loadFixture('rankings-search-current-season')
     case '/api/fc/clubs/info':
       return loadFixture('clubs-get')
     case '/api/fc/clubs/overallStats':
@@ -32,7 +38,7 @@ function fixtureBodyForPath(pathname: string): string {
 }
 
 describe('Compatibility runner', () => {
-  it('runs all 6 endpoints sequentially on success and produces a sanitized report', async () => {
+  it('runs all 10 endpoints sequentially on success and produces a sanitized report', async () => {
     const executedCalls: string[] = []
     const progressEvents: Array<{ endpoint: Endpoint; status: string }> = []
 
@@ -57,6 +63,22 @@ describe('Compatibility runner', () => {
       '/api/fc/members/stats',
       '/api/fc/members/career/stats',
       '/api/fc/clubs/matches',
+      '/api/fc/allTimeLeaderboard',
+      '/api/fc/currentSeasonLeaderboard',
+      '/api/fc/allTimeLeaderboard/search',
+      '/api/fc/currentSeasonLeaderboard/search',
+    ])
+    expect(result.executedEndpoints).toEqual([
+      'clubsSearch',
+      'clubsGet',
+      'clubsOverallStats',
+      'membersStats',
+      'membersCareerStats',
+      'matchesList',
+      'rankingsAllTime',
+      'rankingsCurrentSeason',
+      'rankingsSearchAllTime',
+      'rankingsSearchCurrentSeason',
     ])
 
     expect(result.stoppedEarly).toBe(false)

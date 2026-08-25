@@ -65,6 +65,26 @@ function createInitialResults(): EndpointDriftResults {
       status: 'unverified',
       issues: [],
     },
+    rankingsAllTime: {
+      endpoint: 'rankingsAllTime',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsSearchAllTime: {
+      endpoint: 'rankingsSearchAllTime',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsCurrentSeason: {
+      endpoint: 'rankingsCurrentSeason',
+      status: 'unverified',
+      issues: [],
+    },
+    rankingsSearchCurrentSeason: {
+      endpoint: 'rankingsSearchCurrentSeason',
+      status: 'unverified',
+      issues: [],
+    },
   }
 }
 
@@ -291,6 +311,33 @@ export async function runCompatibilityCheck(
       endpoint: 'matchesList',
       action: async () => {
         await client.matches.list({ clubId, platform, limit: 5 })
+      },
+    },
+    {
+      endpoint: 'rankingsAllTime',
+      action: async () => {
+        await client.rankings.allTime({ platform })
+      },
+    },
+    {
+      endpoint: 'rankingsCurrentSeason',
+      action: async () => {
+        await client.rankings.currentSeason({ platform })
+      },
+    },
+    {
+      endpoint: 'rankingsSearchAllTime',
+      action: async () => {
+        await client.rankings.searchAllTime({ name: searchQuery, platform })
+      },
+    },
+    {
+      endpoint: 'rankingsSearchCurrentSeason',
+      action: async () => {
+        await client.rankings.searchCurrentSeason({
+          name: searchQuery,
+          platform,
+        })
       },
     },
   ]
