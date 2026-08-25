@@ -35,7 +35,7 @@ const matches = await proclubs.matches.list({
   - `matchId`: Match identifier
   - `timestamp`: Unix timestamp
   - `timeAgo`: Object with `number` and `unit`
-  - `clubs`: Map of club ID to `MatchClubDetails` (`date`, `goals`, `score`, `result`, `TEAM`, `winnerByDnf`, and `details` containing full `ClubInfo`)
+  - `clubs`: Map of club ID to `MatchClubDetails` (`date`, `goals`, `score`, `result`, `TEAM`, `winnerByDnf`, and `details` containing full `ClubInfo`, including derived `regionLabel` when `regionId` is known)
   - `players`: Map of club ID to map of player ID to `MatchPlayerStats` (`playername`, `pos`, `rating`, `goals`, `assists`, `shots`, `saves`, `passesmade`, `tacklesmade`, `mom`, `vproattr`, `match_event_aggregate_0..3`, etc.)
   - `aggregate`: Map of club ID to `MatchAggregateStats`
 </ResponseField>

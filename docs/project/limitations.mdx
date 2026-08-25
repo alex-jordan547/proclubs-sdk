@@ -27,6 +27,10 @@ statuses, and availability can change without notice. The SDK validates known
 response envelopes and preserves additional fields, but it cannot make the
 upstream service stable.
 
+Region labels are reverse-engineered from the EA website. They are not an
+official EA contract. A new or renamed region keeps the raw `regionId` readable
+and omits `regionLabel` until the SDK mapping is updated.
+
 <Warning>
   Do not send EA credentials, cookies, or session tokens to this SDK. It does
   not need them. A request for those values should be treated as a security

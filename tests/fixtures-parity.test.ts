@@ -4,6 +4,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   ProClubsClient,
+  resolveRegionLabel,
   type ClubInfo,
   type ClubInfoResponse,
   type ClubMatch,
@@ -21,6 +22,7 @@ import {
   type MatchClubDetails,
   type MatchPlayerStats,
   type MatchTimeAgo,
+  type RegionLabel,
 } from '../src/index.js'
 
 function loadFixture<T>(name: string): T {
@@ -31,8 +33,18 @@ function loadFixture<T>(name: string): T {
   return JSON.parse(raw) as T
 }
 
+function withRegionLabel<T extends { regionId?: string | number | null }>(
+  club: T,
+): T & { regionLabel?: RegionLabel } {
+  const regionLabel = resolveRegionLabel(club.regionId)
+  if (regionLabel === undefined) {
+    return { ...club }
+  }
+  return { ...club, regionLabel }
+}
+
 describe('Fixtures parity and client mapping', () => {
-  it('verifies clubs.search returns exact raw fixture data', async () => {
+  it('verifies clubs.search preserves raw fields and adds regionLabel', async () => {
     const rawFixture = loadFixture<ClubSearchResponse>('clubs-search')
     const client = new ProClubsClient({
       transport: async () =>
@@ -40,10 +52,21 @@ describe('Fixtures parity and client mapping', () => {
     })
 
     const result = await client.clubs.search({ name: 'ALL STAR 237' })
+    const expected = structuredClone(rawFixture)
+    const firstSummary = expected[0]
+    if (firstSummary?.clubInfo) {
+      expected[0] = {
+        ...firstSummary,
+        clubInfo: withRegionLabel(firstSummary.clubInfo),
+      }
+    }
 
-    expect(result).toEqual(rawFixture)
+    expect(result).toEqual(expected)
     expect(result[0]?.clubId).toBe('42')
+    expect(result[0]?.clubInfo?.regionId).toBe(5457237)
+    expect(result[0]?.clubInfo?.regionLabel).toBe('Southern Europe')
     expect(result[0]?.clubInfo?.customKit?.stadName).toBe('Stade de Wembley')
+    expect(rawFixture[0]?.clubInfo).not.toHaveProperty('regionLabel')
   })
 
   it('verifies clubs.get unwraps indexed envelope without losing any fields', async () => {
@@ -54,10 +77,18 @@ describe('Fixtures parity and client mapping', () => {
     })
 
     const result = await client.clubs.get({ clubId: '42' })
+    const selected = rawFixture['42']
+    expect(selected).toBeDefined()
+    if (!selected) {
+      throw new Error('expected club 42 in clubs-get fixture')
+    }
 
-    expect(result).toEqual(rawFixture['42'])
+    expect(result).toEqual(withRegionLabel(selected))
     expect(result?.name).toBe('ALL STAR 237')
+    expect(result?.regionId).toBe(5457237)
+    expect(result?.regionLabel).toBe('Southern Europe')
     expect(result?.customKit?.crestAssetId).toBe('99140109')
+    expect(selected).not.toHaveProperty('regionLabel')
   })
 
   it('verifies clubs.overallStats unwraps matching item without losing fields', async () => {
@@ -111,7 +142,7 @@ describe('Fixtures parity and client mapping', () => {
     expect((result.positionCount as { defender?: number }).defender).toBe(4)
   })
 
-  it('verifies matches.list returns exact raw fixture data', async () => {
+  it('verifies matches.list preserves raw fields and adds regionLabel on club details', async () => {
     const rawFixture = loadFixture<ClubMatchesResponse>('matches-list')
     const client = new ProClubsClient({
       transport: async () =>
@@ -119,15 +150,33 @@ describe('Fixtures parity and client mapping', () => {
     })
 
     const result = await client.matches.list({ clubId: '42' })
+    const expected = structuredClone(rawFixture)
+    const clubs = expected[0]?.clubs
+    if (clubs) {
+      for (const [clubId, details] of Object.entries(clubs)) {
+        if (details.details) {
+          clubs[clubId] = {
+            ...details,
+            details: withRegionLabel(details.details),
+          }
+        }
+      }
+    }
 
-    expect(result).toEqual(rawFixture)
+    expect(result).toEqual(expected)
     expect(result[0]?.matchId).toBe('100000000000001')
     expect(result[0]?.timeAgo?.unit).toBe('days')
     expect(result[0]?.clubs?.['42']?.details?.name).toBe('ALL STAR 237')
+    expect(result[0]?.clubs?.['42']?.details?.regionLabel).toBe(
+      'Southern Europe',
+    )
     expect(result[0]?.players?.['42']?.['1001']?.playername).toBe(
       'mrjordan_237',
     )
     expect(result[0]?.aggregate?.['42']?.goals).toBe(4)
+    expect(rawFixture[0]?.clubs?.['42']?.details).not.toHaveProperty(
+      'regionLabel',
+    )
   })
 
   it('preserves unknown properties at multiple nesting depths', async () => {
@@ -183,6 +232,11 @@ describe('Fixtures parity and client mapping', () => {
 
     expectTypeOf<ClubInfo>().toHaveProperty('name')
     expectTypeOf<ClubInfo>().toHaveProperty('customKit')
+    expectTypeOf<ClubInfo>().toHaveProperty('regionLabel')
+    expectTypeOf<ClubSummaryInfo>().toHaveProperty('regionLabel')
+    expectTypeOf<ClubInfo['regionLabel']>().toEqualTypeOf<
+      RegionLabel | undefined
+    >()
 
     expectTypeOf<ClubOverallStats>().toHaveProperty('bestDivision')
     expectTypeOf<ClubOverallStats>().toHaveProperty('lastOpponent0')

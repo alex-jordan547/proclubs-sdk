@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { MATCH_TYPES, PLATFORMS } from './constants.js'
+import { resolveRegionLabel, type RegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
 const numberLikeSchema = z.union([z.string(), z.number(), z.null()])
@@ -47,13 +48,28 @@ export const customKitSchema = z.looseObject({
   crestAssetId: numberLikeSchema.optional(),
 })
 
-export const clubSummaryInfoSchema = z.looseObject({
+function enrichClubRegion<T extends { regionId?: string | number | null }>(
+  club: T,
+): T & { regionLabel?: RegionLabel } {
+  const regionLabel = resolveRegionLabel(club.regionId)
+  if (regionLabel === undefined) {
+    return { ...club }
+  }
+  return { ...club, regionLabel }
+}
+
+const clubInfoObjectSchema = z.looseObject({
   name: z.string().optional(),
   clubId: idSchema.optional(),
   regionId: numberLikeSchema.optional(),
   teamId: numberLikeSchema.optional(),
   customKit: customKitSchema.optional(),
 })
+
+export const clubSummaryInfoSchema =
+  clubInfoObjectSchema.transform(enrichClubRegion)
+
+export const clubInfoSchema = clubInfoObjectSchema.transform(enrichClubRegion)
 
 export const clubSummarySchema = z.looseObject({
   clubId: idSchema,
@@ -77,14 +93,6 @@ export const clubSummarySchema = z.looseObject({
 })
 
 export const clubSearchResponseSchema = z.array(clubSummarySchema)
-
-export const clubInfoSchema = z.looseObject({
-  clubId: idSchema.optional(),
-  name: z.string().optional(),
-  regionId: numberLikeSchema.optional(),
-  teamId: numberLikeSchema.optional(),
-  customKit: customKitSchema.optional(),
-})
 
 export const clubInfoResponseSchema = z.record(z.string(), clubInfoSchema)
 

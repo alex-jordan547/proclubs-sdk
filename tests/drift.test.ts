@@ -200,6 +200,55 @@ describe('Contract drift detector', () => {
     })
   })
 
+  it('reports unknown regionId values without treating them as a breaking type change', () => {
+    const fixture =
+      loadFixture<Record<string, { regionId?: string | number | null }>>(
+        'clubs-get',
+      )
+    const modified = {
+      '42': {
+        ...fixture['42'],
+        regionId: 99_999_999,
+      },
+    }
+
+    const result = detectDrift('clubsGet', modified)
+    expect(result.status).toBe('drifted')
+    expect(result.issues).toEqual([
+      {
+        kind: 'unknown_value',
+        path: '$.*.regionId',
+        message:
+          'Unknown regionId at $.*.regionId; update REGION_LABELS after confirming the EA label',
+        expected: 'known regionId',
+        actual: '99999999',
+      },
+    ])
+    expect(
+      classifyRecommendation({
+        clubsGet: result,
+      } as Record<Endpoint, EndpointDriftResult>),
+    ).toBe('minor')
+  })
+
+  it('does not report drift for a known regionId string or number', () => {
+    expect(
+      detectDrift('clubsGet', {
+        '42': { regionId: 5457237 },
+      }).status,
+    ).toBe('passed')
+    expect(
+      detectDrift('clubsGet', {
+        '42': { regionId: '5457237' },
+      }).status,
+    ).toBe('passed')
+    expect(
+      detectDrift('clubsGet', {
+        '42': { regionId: null },
+      }).status,
+    ).toBe('passed')
+  })
+
   it('accepts missing optional fields without reporting drift', () => {
     const minimalSearch = [{ clubId: '42' }]
     const result = detectDrift('clubsSearch', minimalSearch)
@@ -256,6 +305,25 @@ describe('Contract drift detector', () => {
     expect(
       classifyRecommendation(
         minorResults as Record<Endpoint, EndpointDriftResult>,
+      ),
+    ).toBe('minor')
+
+    const minorUnknownRegion: Record<string, EndpointDriftResult> = {
+      clubsSearch: {
+        endpoint: 'clubsSearch',
+        status: 'drifted',
+        issues: [
+          {
+            kind: 'unknown_value',
+            path: '$[0].clubInfo.regionId',
+            message: 'unknown region',
+          },
+        ],
+      },
+    }
+    expect(
+      classifyRecommendation(
+        minorUnknownRegion as Record<Endpoint, EndpointDriftResult>,
       ),
     ).toBe('minor')
 

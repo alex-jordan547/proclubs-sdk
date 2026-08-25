@@ -1,4 +1,5 @@
 import type { Endpoint, Platform } from './constants.js'
+import { resolveRegionLabel } from './regions.js'
 
 export type AllowedType =
   | 'string'
@@ -16,6 +17,7 @@ export type DriftIssueKind =
   | 'field_removed'
   | 'type_changed'
   | 'envelope_changed'
+  | 'unknown_value'
 
 export interface DriftIssue {
   readonly kind: DriftIssueKind
@@ -409,6 +411,16 @@ export const ENDPOINT_CONTRACTS: Record<Endpoint, ShapeContract> = {
   },
 }
 
+function isUnknownRegionId(value: unknown): boolean {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && resolveRegionLabel(value) === undefined
+  }
+  if (typeof value === 'string') {
+    return value.trim() !== '' && resolveRegionLabel(value) === undefined
+  }
+  return false
+}
+
 function getTypeCategory(value: unknown): string {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
@@ -559,6 +571,16 @@ function validateAgainstContract(
         continue
       }
 
+      if (fieldKey === 'regionId' && isUnknownRegionId(val)) {
+        issues.push({
+          kind: 'unknown_value',
+          path: fieldPath,
+          message: `Unknown regionId at ${fieldPath}; update REGION_LABELS after confirming the EA label`,
+          expected: 'known regionId',
+          actual: String(val),
+        })
+      }
+
       // If array or object, recurse
       if (Array.isArray(val) && fieldDef.elementContract) {
         for (let i = 0; i < val.length; i += 1) {
@@ -679,7 +701,9 @@ export function classifyRecommendation(
     return 'major'
   }
 
-  const onlyAdded = allIssues.every((i) => i.kind === 'field_added')
+  const onlyAdded = allIssues.every(
+    (i) => i.kind === 'field_added' || i.kind === 'unknown_value',
+  )
   if (onlyAdded) {
     return 'minor'
   }
