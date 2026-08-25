@@ -37,7 +37,7 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run pack:check",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "lint": "biome lint .",
+    "lint": "biome lint . && oxlint .",
     "pack:check": "npm pack --dry-run",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -57,7 +57,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
+    "@oxlint/plugins": "1.80.0",
     "@types/node": "^22.20.1",
+    "oxlint": "1.80.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10",
     "tsx": "^4.23.12"
