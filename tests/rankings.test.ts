@@ -15,7 +15,6 @@ function loadFixture(name: string): RankingListResponse {
     join(process.cwd(), 'tests', 'fixtures', `${name}.json`),
     'utf8',
   )
-  // SAFETY: ranking fixtures are validated by the client in every use below.
   return JSON.parse(raw) as RankingListResponse
 }
 
