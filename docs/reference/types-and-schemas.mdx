@@ -64,6 +64,7 @@ import {
   DIVISION_LABELS,
   EA_CREST_ASSET_BASE_URL,
   MATCH_TYPE_LABELS,
+  MATCH_TYPE_RESPONSE_LABELS,
   MATCH_TYPES,
   PLATFORM_LABELS,
   PLAYOFF_RESULT_LABELS,
@@ -83,6 +84,7 @@ import {
   type DivisionLabel,
   type KnownDivisionId,
   type KnownMatchTypeId,
+  type KnownMatchTypeResponseId,
   type KnownPlatformId,
   type KnownPlayoffResultId,
   type KnownPositionId,
@@ -103,6 +105,9 @@ import {
 PLATFORMS // ['common-gen5', 'common-gen4', 'nx']
 DEFAULT_PLATFORM // 'common-gen5'
 MATCH_TYPES // ['friendlyMatch', 'leagueMatch', 'playoffMatch']
+MATCH_TYPE_RESPONSE_LABELS['1'] // 'League Match'
+resolveMatchTypeLabel('leagueMatch') // 'League Match'
+resolveMatchTypeLabel('1') // 'League Match'
 PLATFORM_LABELS['common-gen5'] // 'Crossplatform Current Gen'
 REPUTATION_LABELS['3'] // 'World Renown'
 resolveReputationLabel('6') // undefined

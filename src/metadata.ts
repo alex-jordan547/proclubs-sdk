@@ -21,13 +21,25 @@ export const MATCH_TYPE_LABELS = Object.freeze({
   playoffMatch: 'Playoff Match',
 } as const)
 
+export const MATCH_TYPE_RESPONSE_LABELS = Object.freeze({
+  '1': 'League Match',
+  '3': 'Playoff Match',
+  '5': 'Friendly Match',
+} as const)
+
 export type KnownMatchTypeId = keyof typeof MATCH_TYPE_LABELS
+export type KnownMatchTypeResponseId = keyof typeof MATCH_TYPE_RESPONSE_LABELS
 export type MatchTypeLabel = (typeof MATCH_TYPE_LABELS)[KnownMatchTypeId]
 
 export function resolveMatchTypeLabel(
   matchType: string | number | null | undefined,
 ): MatchTypeLabel | undefined {
-  return lookupStringCodeLabel(MATCH_TYPE_LABELS, matchType)
+  const fromRequestCode = lookupStringCodeLabel(MATCH_TYPE_LABELS, matchType)
+  if (fromRequestCode !== undefined) {
+    return fromRequestCode
+  }
+
+  return lookupNumericIdLabel(MATCH_TYPE_RESPONSE_LABELS, matchType)
 }
 
 export const POSITION_LABELS = Object.freeze({

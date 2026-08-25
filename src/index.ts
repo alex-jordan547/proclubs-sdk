@@ -30,6 +30,7 @@ export type { KnownRegionId, RegionLabel } from './regions.js'
 export {
   DIVISION_LABELS,
   MATCH_TYPE_LABELS,
+  MATCH_TYPE_RESPONSE_LABELS,
   PLATFORM_LABELS,
   PLAYOFF_RESULT_LABELS,
   POSITION_LABELS,
@@ -45,6 +46,7 @@ export type {
   DivisionLabel,
   KnownDivisionId,
   KnownMatchTypeId,
+  KnownMatchTypeResponseId,
   KnownPlatformId,
   KnownPlayoffResultId,
   KnownPositionId,

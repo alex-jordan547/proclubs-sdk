@@ -21,11 +21,20 @@ import {
   ProClubsClient,
   resolveClubCrestUrl,
   resolveDivisionLabel,
+  resolveMatchTypeLabel,
   resolveReputationLabel,
 } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
 const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const [match] = await proclubs.matches.list({ clubId: club?.clubId ?? '42' })
+const homeClub = match?.clubs?.[club?.clubId ?? '42']
+
+console.log(homeClub?.matchType)
+// '1' — raw EA value on the match row
+
+console.log(resolveMatchTypeLabel(homeClub?.matchType))
+// 'League Match'
 
 console.log(club?.reputationtier)
 // '6' — raw EA value, still accessible
@@ -55,11 +64,24 @@ Call the helpers explicitly when you need a display label or crest URL.
 
 ### Match types
 
+Request codes for `matches.list({ type })`:
+
 | Code | Label |
 | --- | --- |
 | `friendlyMatch` | Friendly Match |
 | `leagueMatch` | League Match |
 | `playoffMatch` | Playoff Match |
+
+Numeric `matchType` values on `matches.list` club rows:
+
+| ID | Label |
+| --- | --- |
+| `1` | League Match |
+| `3` | Playoff Match |
+| `5` | Friendly Match |
+
+`resolveMatchTypeLabel` accepts both namespaces. Use the request code when
+building SDK input and the numeric id when reading a match row from EA.
 
 ### Position families
 

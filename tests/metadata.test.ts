@@ -3,6 +3,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   DIVISION_LABELS,
   MATCH_TYPE_LABELS,
+  MATCH_TYPE_RESPONSE_LABELS,
   PLATFORM_LABELS,
   PLAYOFF_RESULT_LABELS,
   POSITION_LABELS,
@@ -16,6 +17,7 @@ import {
   type DivisionLabel,
   type KnownDivisionId,
   type KnownMatchTypeId,
+  type KnownMatchTypeResponseId,
   type KnownPlatformId,
   type KnownPlayoffResultId,
   type KnownPositionId,
@@ -40,6 +42,12 @@ const EXPECTED_MATCH_TYPE_LABELS = {
   leagueMatch: 'League Match',
   playoffMatch: 'Playoff Match',
 } as const satisfies Record<KnownMatchTypeId, MatchTypeLabel>
+
+const EXPECTED_MATCH_TYPE_RESPONSE_LABELS = {
+  '1': 'League Match',
+  '3': 'Playoff Match',
+  '5': 'Friendly Match',
+} as const satisfies Record<KnownMatchTypeResponseId, MatchTypeLabel>
 
 const EXPECTED_POSITION_LABELS = {
   defender: 'Defender',
@@ -128,7 +136,15 @@ describe('MATCH_TYPE_LABELS and resolveMatchTypeLabel', () => {
     expect(MATCH_TYPES).toEqual(Object.keys(MATCH_TYPE_LABELS))
   })
 
-  it('resolves every known match type without throwing', () => {
+  it('exposes the numeric matchType ids observed on matches.list responses', () => {
+    expect(MATCH_TYPE_RESPONSE_LABELS).toEqual(
+      EXPECTED_MATCH_TYPE_RESPONSE_LABELS,
+    )
+    expect(Object.keys(MATCH_TYPE_RESPONSE_LABELS)).toHaveLength(3)
+    expect(Object.isFrozen(MATCH_TYPE_RESPONSE_LABELS)).toBe(true)
+  })
+
+  it('resolves request codes and response ids to the same labels', () => {
     for (const [matchType, label] of Object.entries(
       EXPECTED_MATCH_TYPE_LABELS,
     )) {
@@ -136,9 +152,20 @@ describe('MATCH_TYPE_LABELS and resolveMatchTypeLabel', () => {
       expect(resolveMatchTypeLabel(`  ${matchType}  `)).toBe(label)
     }
 
+    expectMappingContract(
+      MATCH_TYPE_RESPONSE_LABELS,
+      resolveMatchTypeLabel,
+      EXPECTED_MATCH_TYPE_RESPONSE_LABELS,
+    )
+    expect(resolveMatchTypeLabel('1')).toBe('League Match')
+  })
+
+  it('returns undefined for unknown match types without throwing', () => {
     expect(resolveMatchTypeLabel(null)).toBeUndefined()
     expect(resolveMatchTypeLabel('unknown-match')).toBeUndefined()
-    expect(resolveMatchTypeLabel(1)).toBeUndefined()
+    expect(resolveMatchTypeLabel('2')).toBeUndefined()
+    expect(resolveMatchTypeLabel(2)).toBeUndefined()
+    expect(() => resolveMatchTypeLabel('unknown-match')).not.toThrow()
   })
 })
 
@@ -212,6 +239,15 @@ describe('PLAYOFF_RESULT_LABELS and resolvePlayoffResultLabel', () => {
   })
 })
 
+describe('metadata prototype pollution guards', () => {
+  it('ignores inherited Object.prototype keys for numeric resolvers', () => {
+    expect(resolveReputationLabel('toString')).toBeUndefined()
+    expect(resolveDivisionLabel('constructor')).toBeUndefined()
+    expect(resolvePlayoffResultLabel('__proto__')).toBeUndefined()
+    expect(resolveMatchTypeLabel('hasOwnProperty')).toBeUndefined()
+  })
+})
+
 describe('metadata public types', () => {
   it('exports stable public types derived from the mappings', () => {
     expectTypeOf(
@@ -278,6 +314,23 @@ describe('resolveClubCrestUrl', () => {
         },
       }),
     ).toBe(`${EA_CREST_ASSET_BASE_URL}99140109.png`)
+  })
+
+  it('rejects asset ids that would alter the crest URL path', () => {
+    expect(
+      resolveClubCrestUrl({
+        teamId: '../other',
+        customKit: {
+          selectedKitType: '1',
+          crestAssetId: '99140109?x',
+        },
+      }),
+    ).toBeUndefined()
+    expect(
+      resolveClubCrestUrl({
+        teamId: '112809#fragment',
+      }),
+    ).toBeUndefined()
   })
 
   it('does not mutate the input club object', () => {

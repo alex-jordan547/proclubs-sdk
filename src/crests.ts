@@ -48,6 +48,8 @@ function isCustomCrestSelected(
   return false
 }
 
+const ASSET_ID_PATTERN = /^\d+$/
+
 function normalizeAssetId(
   value: string | number | null | undefined,
 ): string | undefined {
@@ -61,13 +63,17 @@ function normalizeAssetId(
     if (!Number.isFinite(numericId)) {
       return undefined
     }
-    return String(numericId)
+    return isAssetId(String(numericId)) ? String(numericId) : undefined
   }
 
   if (tag === '[object String]') {
     const trimmed = String(value).trim()
-    return trimmed === '' ? undefined : trimmed
+    return isAssetId(trimmed) ? trimmed : undefined
   }
 
   return undefined
+}
+
+function isAssetId(value: string): boolean {
+  return ASSET_ID_PATTERN.test(value)
 }
