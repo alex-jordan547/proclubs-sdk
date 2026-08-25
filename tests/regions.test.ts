@@ -67,7 +67,7 @@ describe('REGION_LABELS and resolveRegionLabel', () => {
     expect(resolveRegionLabel('constructor')).toBeUndefined()
     expect(resolveRegionLabel('__proto__')).toBeUndefined()
     expect(resolveRegionLabel('hasOwnProperty')).toBeUndefined()
-    expect(typeof resolveRegionLabel('toString')).toBe('undefined')
+    expect(resolveRegionLabel('toString')).toBeUndefined()
   })
 
   it('exports stable public types derived from the mapping', () => {
@@ -248,9 +248,7 @@ describe('Club regionLabel enrichment', () => {
     expect(first?.regionLabel).toBe('Southern Europe')
 
     if (first) {
-      const mutable = first as { name?: string; regionLabel?: string }
-      mutable.regionLabel = 'MUTATED'
-      mutable.name = 'MUTATED'
+      Object.assign(first, { regionLabel: 'MUTATED', name: 'MUTATED' })
     }
 
     const second = await client.clubs.get({ clubId: '42' })

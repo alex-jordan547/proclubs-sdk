@@ -30,6 +30,7 @@ function loadFixture<T>(name: string): T {
     join(process.cwd(), 'tests', 'fixtures', `${name}.json`),
     'utf8',
   )
+  // SAFETY: T matches the fixture schema verified by downstream assertions.
   return JSON.parse(raw) as T
 }
 
@@ -120,9 +121,7 @@ describe('Fixtures parity and client mapping', () => {
     expect(result).toEqual(rawFixture)
     expect(result.members[0]?.name).toBe('mrjordan_237')
     expect(result.members[0]?.proOverallStr).toBe('86')
-    expect((result.positionCount as { midfielder?: number }).midfielder).toBe(
-      11,
-    )
+    expect(result.positionCount?.['midfielder']).toBe(11)
   })
 
   it('verifies members.careerStats returns exact raw fixture data', async () => {
@@ -139,7 +138,7 @@ describe('Fixtures parity and client mapping', () => {
     expect(result).toEqual(rawFixture)
     expect(result.members[0]?.name).toBe('mrjordan237')
     expect(result.members[0]?.goals).toBe('352')
-    expect((result.positionCount as { defender?: number }).defender).toBe(4)
+    expect(result.positionCount?.['defender']).toBe(4)
   })
 
   it('verifies matches.list preserves raw fields and adds regionLabel on club details', async () => {
@@ -204,22 +203,14 @@ describe('Fixtures parity and client mapping', () => {
     })
 
     const result = await client.clubs.search({ name: 'ALL STAR 237' })
-    type ExtendedSummary = ClubSummary & {
-      unknownTopLevel?: string
-      nestedExtraObject?: { deepKey: number }
-      clubInfo?: ClubSummaryInfo & {
-        unknownClubInfoField?: boolean
-        customKit?: CustomKit & {
-          unknownKitFeature?: string
-        }
-      }
-    }
-    const first = result[0] as ExtendedSummary
+    const first = result[0]
 
-    expect(first.unknownTopLevel).toBe('preserved_value')
-    expect(first.nestedExtraObject).toEqual({ deepKey: 123 })
-    expect(first.clubInfo?.unknownClubInfoField).toBe(true)
-    expect(first.clubInfo?.customKit?.unknownKitFeature).toBe('special_collar')
+    expect(first?.['unknownTopLevel']).toBe('preserved_value')
+    expect(first?.['nestedExtraObject']).toEqual({ deepKey: 123 })
+    expect(first?.clubInfo?.['unknownClubInfoField']).toBe(true)
+    expect(first?.clubInfo?.customKit?.['unknownKitFeature']).toBe(
+      'special_collar',
+    )
   })
 
   it('verifies static TypeScript type declarations match observed shapes', () => {

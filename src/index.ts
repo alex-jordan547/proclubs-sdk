@@ -94,8 +94,10 @@ export type {
   DriftIssue,
   DriftIssueKind,
   EndpointDriftResult,
+  EndpointDriftResults,
   FieldContract,
-  ShapeContract,
+  JsonValue,
+  PayloadContract,
 } from './drift.js'
 export { runCompatibilityCheck } from './compatibility.js'
 export type {

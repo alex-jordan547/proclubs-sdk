@@ -6,16 +6,65 @@ import {
   classifyRecommendation,
   detectDrift,
   generateReport,
-  type Endpoint,
-  type EndpointDriftResult,
+  type EndpointDriftResults,
+  type JsonValue,
 } from '../src/index.js'
 
-function loadFixture<T>(name: string): T {
+function loadFixture(name: string): JsonValue {
   const raw = readFileSync(
     join(process.cwd(), 'tests', 'fixtures', `${name}.json`),
     'utf8',
   )
-  return JSON.parse(raw) as T
+  // SAFETY: fixture files are curated JSON snapshots checked into the repo.
+  return JSON.parse(raw) as JsonValue
+}
+
+function jsonTag(value: JsonValue): string {
+  return Object.prototype.toString.call(value)
+}
+
+function isJsonObject(
+  value: JsonValue,
+): value is { readonly [key: string]: JsonValue } {
+  return (
+    value !== null &&
+    !Array.isArray(value) &&
+    jsonTag(value) === '[object Object]'
+  )
+}
+
+function driftResults(
+  overrides: Partial<EndpointDriftResults>,
+): EndpointDriftResults {
+  return {
+    clubsSearch: {
+      endpoint: 'clubsSearch',
+      status: 'unverified',
+      issues: [],
+    },
+    clubsGet: { endpoint: 'clubsGet', status: 'unverified', issues: [] },
+    clubsOverallStats: {
+      endpoint: 'clubsOverallStats',
+      status: 'unverified',
+      issues: [],
+    },
+    membersStats: {
+      endpoint: 'membersStats',
+      status: 'unverified',
+      issues: [],
+    },
+    membersCareerStats: {
+      endpoint: 'membersCareerStats',
+      status: 'unverified',
+      issues: [],
+    },
+    matchesList: {
+      endpoint: 'matchesList',
+      status: 'unverified',
+      issues: [],
+    },
+    ...overrides,
+  }
 }
 
 describe('Contract drift detector', () => {
@@ -71,10 +120,17 @@ describe('Contract drift detector', () => {
   })
 
   it('detects field_added when an unexpected field appears upstream', () => {
-    const fixture = loadFixture<Array<Record<string, unknown>>>('clubs-search')
+    const fixture = loadFixture('clubs-search')
+    if (!Array.isArray(fixture)) {
+      throw new Error('expected clubs-search fixture to be an array')
+    }
+    const first = fixture[0]
+    if (!isJsonObject(first)) {
+      throw new Error('expected clubs-search item to be an object')
+    }
     const modified = [
       {
-        ...fixture[0],
+        ...first,
         newSeasonalRank: 42,
       },
     ]
@@ -92,15 +148,23 @@ describe('Contract drift detector', () => {
   })
 
   it('detects nested field_added in custom kit or club details', () => {
-    const fixture =
-      loadFixture<Record<string, { customKit: Record<string, unknown> }>>(
-        'clubs-get',
-      )
+    const fixture = loadFixture('clubs-get')
+    if (!isJsonObject(fixture)) {
+      throw new Error('expected clubs-get fixture to be an object')
+    }
+    const club = fixture['42']
+    if (club === undefined || !isJsonObject(club)) {
+      throw new Error('expected club 42 in clubs-get fixture')
+    }
+    const customKit = club['customKit']
+    if (customKit === undefined || !isJsonObject(customKit)) {
+      throw new Error('expected customKit on club 42')
+    }
     const modified = {
       '42': {
-        ...fixture['42'],
+        ...club,
         customKit: {
-          ...fixture['42']?.customKit,
+          ...customKit,
           sponsorLogoUrl: 'https://example.com/logo.png',
         },
       },
@@ -115,16 +179,38 @@ describe('Contract drift detector', () => {
   })
 
   it('redacts dynamic club and player ids from drift paths', () => {
-    const fixture = loadFixture<Array<Record<string, unknown>>>('matches-list')
-    const match = fixture[0] as Record<string, unknown>
-    const clubs = match['clubs'] as Record<string, Record<string, unknown>>
-    const firstClub = Object.values(clubs)[0]
-    if (!firstClub) {
+    const fixture = loadFixture('matches-list')
+    if (!Array.isArray(fixture)) {
+      throw new Error('expected matches-list fixture to be an array')
+    }
+    const match = structuredClone(fixture[0])
+    if (!isJsonObject(match)) {
+      throw new Error('expected first match to be an object')
+    }
+    const clubs = match['clubs']
+    if (clubs === undefined || !isJsonObject(clubs)) {
+      throw new Error('expected match clubs map')
+    }
+    const firstClubEntry = Object.entries(clubs)[0]
+    if (!firstClubEntry) {
       throw new Error('expected a club map entry')
     }
-    firstClub['unexpectedClubField'] = true
+    const [clubId, firstClub] = firstClubEntry
+    if (!isJsonObject(firstClub)) {
+      throw new Error('expected a club map entry')
+    }
+    const modifiedMatch = {
+      ...match,
+      clubs: {
+        ...clubs,
+        [clubId]: {
+          ...firstClub,
+          unexpectedClubField: true,
+        },
+      },
+    }
 
-    const result = detectDrift('matchesList', [match])
+    const result = detectDrift('matchesList', [modifiedMatch])
     expect(result.status).toBe('drifted')
     expect(result.issues[0]).toMatchObject({
       kind: 'field_added',
@@ -135,9 +221,15 @@ describe('Contract drift detector', () => {
   })
 
   it('detects field_removed when a required field is missing', () => {
-    const fixture = loadFixture<Array<Record<string, unknown>>>('clubs-search')
-    const item = { ...fixture[0] }
-    delete (item as { clubId?: unknown }).clubId
+    const fixture = loadFixture('clubs-search')
+    if (!Array.isArray(fixture)) {
+      throw new Error('expected clubs-search fixture to be an array')
+    }
+    const first = fixture[0]
+    if (!isJsonObject(first)) {
+      throw new Error('expected clubs-search item to be an object')
+    }
+    const { clubId: _removed, ...item } = first
 
     const result = detectDrift('clubsSearch', [item])
     expect(result.status).toBe('drifted')
@@ -153,10 +245,15 @@ describe('Contract drift detector', () => {
   })
 
   it('detects type_changed when a field data type is altered', () => {
-    const fixture = loadFixture<Array<Record<string, unknown>>>(
-      'clubs-overall-stats',
-    )
-    const item = { ...fixture[0], wins: true } // boolean instead of numberLike
+    const fixture = loadFixture('clubs-overall-stats')
+    if (!Array.isArray(fixture)) {
+      throw new Error('expected clubs-overall-stats fixture to be an array')
+    }
+    const first = fixture[0]
+    if (!isJsonObject(first)) {
+      throw new Error('expected clubs-overall-stats item to be an object')
+    }
+    const item = { ...first, wins: true }
 
     const result = detectDrift('clubsOverallStats', [item])
     expect(result.status).toBe('drifted')
@@ -201,13 +298,17 @@ describe('Contract drift detector', () => {
   })
 
   it('reports unknown regionId values without treating them as a breaking type change', () => {
-    const fixture =
-      loadFixture<Record<string, { regionId?: string | number | null }>>(
-        'clubs-get',
-      )
+    const fixture = loadFixture('clubs-get')
+    if (!isJsonObject(fixture)) {
+      throw new Error('expected clubs-get fixture to be an object')
+    }
+    const club = fixture['42']
+    if (club === undefined || !isJsonObject(club)) {
+      throw new Error('expected club 42 in clubs-get fixture')
+    }
     const modified = {
       '42': {
-        ...fixture['42'],
+        ...club,
         regionId: 99_999_999,
       },
     }
@@ -224,11 +325,9 @@ describe('Contract drift detector', () => {
         actual: '99999999',
       },
     ])
-    expect(
-      classifyRecommendation({
-        clubsGet: result,
-      } as Record<Endpoint, EndpointDriftResult>),
-    ).toBe('minor')
+    expect(classifyRecommendation(driftResults({ clubsGet: result }))).toBe(
+      'minor',
+    )
   })
 
   it('does not report drift for a known regionId string or number', () => {
@@ -279,89 +378,108 @@ describe('Contract drift detector', () => {
   })
 
   it('correctly classifies recommendation based on issue severity', () => {
-    const passedResults: Record<string, EndpointDriftResult> = {
-      clubsSearch: { endpoint: 'clubsSearch', status: 'passed', issues: [] },
-      clubsGet: { endpoint: 'clubsGet', status: 'passed', issues: [] },
-    }
     expect(
       classifyRecommendation(
-        passedResults as Record<Endpoint, EndpointDriftResult>,
+        driftResults({
+          clubsSearch: {
+            endpoint: 'clubsSearch',
+            status: 'passed',
+            issues: [],
+          },
+          clubsGet: { endpoint: 'clubsGet', status: 'passed', issues: [] },
+          clubsOverallStats: {
+            endpoint: 'clubsOverallStats',
+            status: 'passed',
+            issues: [],
+          },
+          membersStats: {
+            endpoint: 'membersStats',
+            status: 'passed',
+            issues: [],
+          },
+          membersCareerStats: {
+            endpoint: 'membersCareerStats',
+            status: 'passed',
+            issues: [],
+          },
+          matchesList: {
+            endpoint: 'matchesList',
+            status: 'passed',
+            issues: [],
+          },
+        }),
       ),
     ).toBe('patch')
 
-    const minorResults: Record<string, EndpointDriftResult> = {
-      clubsSearch: {
-        endpoint: 'clubsSearch',
-        status: 'drifted',
-        issues: [
-          {
-            kind: 'field_added',
-            path: '$[0].newField',
-            message: 'added',
-          },
-        ],
-      },
-    }
     expect(
       classifyRecommendation(
-        minorResults as Record<Endpoint, EndpointDriftResult>,
+        driftResults({
+          clubsSearch: {
+            endpoint: 'clubsSearch',
+            status: 'drifted',
+            issues: [
+              {
+                kind: 'field_added',
+                path: '$[0].newField',
+                message: 'added',
+              },
+            ],
+          },
+        }),
       ),
     ).toBe('minor')
 
-    const minorUnknownRegion: Record<string, EndpointDriftResult> = {
-      clubsSearch: {
-        endpoint: 'clubsSearch',
-        status: 'drifted',
-        issues: [
-          {
-            kind: 'unknown_value',
-            path: '$[0].clubInfo.regionId',
-            message: 'unknown region',
-          },
-        ],
-      },
-    }
     expect(
       classifyRecommendation(
-        minorUnknownRegion as Record<Endpoint, EndpointDriftResult>,
+        driftResults({
+          clubsSearch: {
+            endpoint: 'clubsSearch',
+            status: 'drifted',
+            issues: [
+              {
+                kind: 'unknown_value',
+                path: '$[0].clubInfo.regionId',
+                message: 'unknown region',
+              },
+            ],
+          },
+        }),
       ),
     ).toBe('minor')
 
-    const majorResults: Record<string, EndpointDriftResult> = {
-      clubsSearch: {
-        endpoint: 'clubsSearch',
-        status: 'drifted',
-        issues: [
-          {
-            kind: 'type_changed',
-            path: '$[0].wins',
-            message: 'changed',
-          },
-        ],
-      },
-    }
     expect(
       classifyRecommendation(
-        majorResults as Record<Endpoint, EndpointDriftResult>,
+        driftResults({
+          clubsSearch: {
+            endpoint: 'clubsSearch',
+            status: 'drifted',
+            issues: [
+              {
+                kind: 'type_changed',
+                path: '$[0].wins',
+                message: 'changed',
+              },
+            ],
+          },
+        }),
       ),
     ).toBe('major')
 
-    const unverifiedResults: Record<string, EndpointDriftResult> = {
-      clubsSearch: {
-        endpoint: 'clubsSearch',
-        status: 'unverified',
-        issues: [],
-      },
-    }
     expect(
       classifyRecommendation(
-        unverifiedResults as Record<Endpoint, EndpointDriftResult>,
+        driftResults({
+          clubsSearch: {
+            endpoint: 'clubsSearch',
+            status: 'unverified',
+            issues: [],
+          },
+        }),
       ),
     ).toBe('manual_review')
   })
 
   it('generates a complete sanitized compatibility report', () => {
-    const results: Record<string, EndpointDriftResult> = {
+    const results = driftResults({
       clubsSearch: { endpoint: 'clubsSearch', status: 'passed', issues: [] },
       clubsGet: { endpoint: 'clubsGet', status: 'passed', issues: [] },
       clubsOverallStats: {
@@ -376,12 +494,9 @@ describe('Contract drift detector', () => {
         issues: [],
       },
       matchesList: { endpoint: 'matchesList', status: 'passed', issues: [] },
-    }
+    })
 
-    const report = generateReport(
-      'common-gen5',
-      results as Record<Endpoint, EndpointDriftResult>,
-    )
+    const report = generateReport('common-gen5', results)
 
     expect(report.platform).toBe('common-gen5')
     expect(report.summary.status).toBe('supported')

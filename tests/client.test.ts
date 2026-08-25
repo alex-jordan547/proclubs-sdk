@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ProClubsAbortError,
   ProClubsClient,
+  type JsonValue,
   type ProClubsHttpError,
   ProClubsNetworkError,
   type ProClubsResponseError,
@@ -41,7 +42,7 @@ describe('ProClubsClient', () => {
         const parsedUrl = new URL(url)
         requestedUrls.push(`${parsedUrl.pathname}${parsedUrl.search}`)
 
-        const bodies: Record<string, unknown> = {
+        const bodies = {
           '/api/fc/clubs/info': {
             '42': { clubId: 42, name: 'ALL STAR 237' },
           },
@@ -55,9 +56,27 @@ describe('ProClubsClient', () => {
             positionCount: { midfield: 1 },
           },
           '/api/fc/clubs/matches': [],
-        }
+        } satisfies Record<string, JsonValue>
 
-        return new Response(JSON.stringify(bodies[parsedUrl.pathname]), {
+        let body: JsonValue | undefined
+        switch (parsedUrl.pathname) {
+          case '/api/fc/clubs/info':
+            body = bodies['/api/fc/clubs/info']
+            break
+          case '/api/fc/clubs/overallStats':
+            body = bodies['/api/fc/clubs/overallStats']
+            break
+          case '/api/fc/members/stats':
+            body = bodies['/api/fc/members/stats']
+            break
+          case '/api/fc/members/career/stats':
+            body = bodies['/api/fc/members/career/stats']
+            break
+          case '/api/fc/clubs/matches':
+            body = bodies['/api/fc/clubs/matches']
+            break
+        }
+        return new Response(JSON.stringify(body), {
           status: 200,
         })
       },
