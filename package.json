@@ -5,7 +5,7 @@
   "author": "Alex Jordan",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18.0"
   },
   "packageManager": "npm@10.9.8",
   "repository": {
