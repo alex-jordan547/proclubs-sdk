@@ -62,6 +62,14 @@ describe('REGION_LABELS and resolveRegionLabel', () => {
     expect(() => resolveRegionLabel(undefined)).not.toThrow()
   })
 
+  it('ignores inherited Object.prototype keys instead of treating them as region ids', () => {
+    expect(resolveRegionLabel('toString')).toBeUndefined()
+    expect(resolveRegionLabel('constructor')).toBeUndefined()
+    expect(resolveRegionLabel('__proto__')).toBeUndefined()
+    expect(resolveRegionLabel('hasOwnProperty')).toBeUndefined()
+    expect(typeof resolveRegionLabel('toString')).toBe('undefined')
+  })
+
   it('exports stable public types derived from the mapping', () => {
     expectTypeOf(REGION_LABELS['5457237']).toEqualTypeOf<'Southern Europe'>()
     expectTypeOf<KnownRegionId>().toEqualTypeOf<keyof typeof REGION_LABELS>()
@@ -155,6 +163,48 @@ describe('Club regionLabel enrichment', () => {
       regionId: 99_999_999,
     })
     expect(club).not.toHaveProperty('regionLabel')
+  })
+
+  it('drops an upstream regionLabel when the regionId is unknown', async () => {
+    const client = new ProClubsClient({
+      transport: async () =>
+        new Response(
+          JSON.stringify({
+            '42': {
+              clubId: 42,
+              name: 'HEMLE FC',
+              regionId: 99_999_999,
+              regionLabel: 'Not A Real Region',
+            },
+          }),
+          { status: 200 },
+        ),
+    })
+
+    const club = await client.clubs.get({ clubId: 42 })
+
+    expect(club).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 99_999_999,
+    })
+    expect(club).not.toHaveProperty('regionLabel')
+  })
+
+  it('replaces an upstream regionLabel with the SDK-derived value for known ids', () => {
+    const parsed = clubInfoSchema.parse({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 'Wrong Upstream Label',
+    })
+
+    expect(parsed).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 'Southern Europe',
+    })
   })
 
   it('does not mutate schema input objects when deriving regionLabel', () => {

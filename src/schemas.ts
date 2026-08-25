@@ -57,25 +57,18 @@ const clubInfoObjectSchema = z.looseObject({
 })
 
 type ClubInfoObject = z.output<typeof clubInfoObjectSchema>
+type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: RegionLabel }
 
-function toRegionIdInput(value: unknown): string | number | null | undefined {
-  if (typeof value === 'string' || typeof value === 'number') {
-    return value
-  }
-  if (value === null || value === undefined) {
-    return value
-  }
-  return undefined
-}
+function enrichClubRegion(club: ClubInfoObject): ClubInfoWithRegionLabel {
+  const enriched: ClubInfoWithRegionLabel = { ...club }
+  delete enriched.regionLabel
 
-function enrichClubRegion(
-  club: ClubInfoObject,
-): ClubInfoObject & { regionLabel?: RegionLabel } {
-  const regionLabel = resolveRegionLabel(toRegionIdInput(club.regionId))
+  const regionLabel = resolveRegionLabel(enriched.regionId)
   if (regionLabel === undefined) {
-    return { ...club }
+    return enriched
   }
-  return { ...club, regionLabel }
+  enriched.regionLabel = regionLabel
+  return enriched
 }
 
 export const clubInfoSchema = clubInfoObjectSchema.transform(enrichClubRegion)

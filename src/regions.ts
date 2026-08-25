@@ -33,8 +33,8 @@ export function resolveRegionLabel(
 }
 
 function lookupRegionLabel(regionId: string): RegionLabel | undefined {
-  if (regionId in REGION_LABELS) {
-    return REGION_LABELS[regionId as KnownRegionId]
+  if (!Object.hasOwn(REGION_LABELS, regionId)) {
+    return undefined
   }
-  return undefined
+  return REGION_LABELS[regionId as KnownRegionId]
 }
