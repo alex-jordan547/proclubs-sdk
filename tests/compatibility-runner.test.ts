@@ -212,6 +212,7 @@ describe('Compatibility runner', () => {
 
   it('stops gracefully when search returns an empty array', async () => {
     const executedCalls: string[] = []
+    const progressEvents: Array<{ endpoint: Endpoint; status: string }> = []
 
     const transport = async (url: string | URL) => {
       const parsed = new URL(url)
@@ -219,7 +220,12 @@ describe('Compatibility runner', () => {
       return new Response('[]', { status: 200 })
     }
 
-    const result = await runCompatibilityCheck({ transport })
+    const result = await runCompatibilityCheck({
+      transport,
+      onProgress: (endpoint, status) => {
+        progressEvents.push({ endpoint, status })
+      },
+    })
 
     expect(executedCalls).toEqual([
       '/api/fc/allTimeLeaderboard/search',
@@ -236,6 +242,12 @@ describe('Compatibility runner', () => {
       'rankingsCurrentSeason',
       'rankingsSearchAllTime',
       'rankingsSearchCurrentSeason',
+    ])
+    expect(
+      progressEvents.filter((event) => event.endpoint === 'clubsSearch'),
+    ).toEqual([
+      { endpoint: 'clubsSearch', status: 'running' },
+      { endpoint: 'clubsSearch', status: 'unverified' },
     ])
   })
 })

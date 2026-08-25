@@ -330,7 +330,6 @@ export async function runCompatibilityCheck(
     stoppedEarly = true
     stopReason =
       'No clubs returned in search to verify club, member, and match endpoints'
-    options.onProgress?.('clubsSearch', 'stopped')
   }
 
   const rankingSteps: ReadonlyArray<{
