@@ -228,7 +228,7 @@ Each report ends with a summary status and a release recommendation:
 | Recommendation | Meaning | Suggested action |
 | --- | --- | --- |
 | `patch` | All endpoints match the known contract. | Safe to release; no contract change. |
-| `minor` | EA added fields only (`field_added`), or a `regionId` is not yet in `REGION_LABELS` (`unknown_value`). Existing fields are intact. | Type and document the new fields or region, then release a minor version. |
+| `minor` | EA added fields only (`field_added`), or an enum/region value is not yet mapped (`unknown_value`). Existing fields are intact. | Type and document the new fields or value, then release a minor version. |
 | `major` | Fields were removed or renamed, types changed, or envelopes shifted. | Assess consumer impact before releasing a major version. |
 | `manual_review` | The run stopped early or produced mixed signals (for example, a Zod rejection on top of structural drift). | Inspect the per-endpoint issues before deciding. |
 

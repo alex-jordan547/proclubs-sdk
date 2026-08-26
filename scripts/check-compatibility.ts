@@ -59,7 +59,7 @@ async function main() {
     console.log(`\nSaved sanitized JSON report to ${outputPath}`)
   }
 
-  if (result.report.summary.status === 'drifted' || result.stoppedEarly) {
+  if (result.report.summary.status !== 'supported' || result.stoppedEarly) {
     process.exit(1)
   }
 }

@@ -271,6 +271,7 @@ describe('Compatibility runner', () => {
     ])
     expect(result.stoppedEarly).toBe(true)
     expect(result.stopReason).toContain('No clubs returned in search')
+    expect(result.report.summary.status).toBe('unverified')
     expect(result.executedEndpoints).toEqual([
       'clubsSearch',
       'rankingsAllTime',
