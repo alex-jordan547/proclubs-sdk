@@ -382,9 +382,7 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<ClubInfo>().toHaveProperty('customKit')
     expectTypeOf<ClubInfo>().toHaveProperty('regionLabel')
     expectTypeOf<ClubSummaryInfo>().toHaveProperty('regionLabel')
-    expectTypeOf<ClubInfo['regionLabel']>().toEqualTypeOf<
-      RegionLabel | undefined
-    >()
+    expectTypeOf<ClubInfo['regionLabel']>().toEqualTypeOf<string | undefined>()
 
     expectTypeOf<ClubOverallStats>().toHaveProperty('bestDivision')
     expectTypeOf<ClubOverallStats>().toHaveProperty('lastOpponent0')
@@ -418,6 +416,12 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<PlayoffAchievement>().toHaveProperty('divisionLabel')
     expectTypeOf<PlayoffAchievement>().toHaveProperty('finishLabel')
     expectTypeOf<PlayoffAchievement>().toHaveProperty('seasonLabel')
+    expectTypeOf<PlayoffAchievement['divisionLabel']>().toEqualTypeOf<
+      string | undefined
+    >()
+    expectTypeOf<PlayoffAchievement['finishLabel']>().toEqualTypeOf<
+      string | undefined
+    >()
     expectTypeOf<PlayoffAchievement>().toHaveProperty('derivedLabels')
     expectTypeOf<PlayoffAchievement['derivedLabels']>().toEqualTypeOf<
       PlayoffAchievementDerivedLabels | undefined

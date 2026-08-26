@@ -62,7 +62,9 @@ const achievements = await proclubs.clubs.playoffAchievements({
 <Note>
   A club without playoff history returns `[]`, not an error. Unknown season,
   division, and result IDs remain available in the raw fields. Season labels
-  fall back to `Season {seasonId}` when EA introduces a new internal season key.
+  fall back to `Season {seasonId}` when EA introduces a new internal season key
+  and `seasonId` is a finite number or digits-only string. Otherwise, the SDK
+  returns the normalized `seasonName` when available, or `undefined`.
 </Note>
 
 ## `clubs.get`

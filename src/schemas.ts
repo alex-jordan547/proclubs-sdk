@@ -8,7 +8,7 @@ import {
   type DivisionLabel,
   type PlayoffResultLabel,
 } from './metadata.js'
-import { resolveRegionLabel, type RegionLabel } from './regions.js'
+import { resolveRegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
 const numberLikeSchema = z.union([z.string(), z.number(), z.null()])
@@ -72,7 +72,7 @@ const clubInfoObjectSchema = z.looseObject({
 })
 
 type ClubInfoObject = z.output<typeof clubInfoObjectSchema>
-type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: RegionLabel }
+type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: string }
 
 function enrichClubRegion(club: ClubInfoObject): ClubInfoWithRegionLabel {
   const enriched: ClubInfoWithRegionLabel = { ...club }
@@ -137,8 +137,8 @@ export type PlayoffAchievementDerivedLabels = {
   seasonLabel?: string
 }
 type PlayoffAchievementWithLabels = PlayoffAchievementObject & {
-  divisionLabel?: DivisionLabel
-  finishLabel?: PlayoffResultLabel
+  divisionLabel?: string
+  finishLabel?: string
   seasonLabel?: string
   derivedLabels?: PlayoffAchievementDerivedLabels
 }
