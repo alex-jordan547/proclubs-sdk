@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
 import { MATCH_TYPES, PLATFORMS } from './constants.js'
+import type { JsonValue } from './drift.js'
+import {
+  resolveDivisionLabel,
+  resolvePlayoffResultLabel,
+  resolveSeasonLabel,
+  type DivisionLabel,
+  type PlayoffResultLabel,
+} from './metadata.js'
 import { resolveRegionLabel, type RegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
@@ -21,6 +29,8 @@ export const clubRequestSchema = z.object({
   clubId: z.union([z.string().trim().min(1), z.number().int()]),
   platform: z.enum(PLATFORMS).optional(),
 })
+
+export const playoffAchievementsInputSchema = clubRequestSchema
 
 export const listMatchesInputSchema = clubRequestSchema.extend({
   type: z.enum(MATCH_TYPES).optional(),
@@ -63,17 +73,39 @@ const clubInfoObjectSchema = z.looseObject({
 })
 
 type ClubInfoObject = z.output<typeof clubInfoObjectSchema>
-type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: RegionLabel }
+export type ClubInfoDerivedLabels = {
+  [key: string]: JsonValue
+  regionLabel?: RegionLabel
+}
+type ClubInfoWithRegionLabel = ClubInfoObject & {
+  regionLabel?: JsonValue
+  derivedLabels?: ClubInfoDerivedLabels
+}
+
+function isJsonObject(value: JsonValue): value is Record<string, JsonValue> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
 
 function enrichClubRegion(club: ClubInfoObject): ClubInfoWithRegionLabel {
   const enriched: ClubInfoWithRegionLabel = { ...club }
-  delete enriched.regionLabel
 
   const regionLabel = resolveRegionLabel(enriched.regionId)
   if (regionLabel === undefined) {
     return enriched
   }
-  enriched.regionLabel = regionLabel
+
+  if (enriched.regionLabel === undefined) {
+    enriched.regionLabel = regionLabel
+    return enriched
+  }
+
+  const derivedLabels = { regionLabel } satisfies ClubInfoDerivedLabels
+  if (enriched.derivedLabels === undefined) {
+    enriched.derivedLabels = derivedLabels
+  } else if (isJsonObject(enriched.derivedLabels)) {
+    enriched.derivedLabels = { ...enriched.derivedLabels, ...derivedLabels }
+  }
+
   return enriched
 }
 
@@ -113,6 +145,81 @@ export const rankingEntrySchema = clubSummarySchema.extend({
 })
 
 export const rankingListResponseSchema = z.array(rankingEntrySchema)
+
+const playoffAchievementObjectSchema = z.looseObject({
+  seasonId: numberLikeSchema,
+  seasonName: z.string(),
+  bestDivision: numberLikeSchema,
+  bestFinishGroup: numberLikeSchema,
+  clubInfo: clubSummaryInfoSchema.optional(),
+})
+
+type PlayoffAchievementObject = z.output<typeof playoffAchievementObjectSchema>
+export type PlayoffAchievementDerivedLabels = {
+  [key: string]: JsonValue
+  divisionLabel?: DivisionLabel
+  finishLabel?: PlayoffResultLabel
+  seasonLabel?: string
+}
+type PlayoffAchievementWithLabels = PlayoffAchievementObject & {
+  divisionLabel?: string
+  finishLabel?: string
+  seasonLabel?: string
+  derivedLabels?: PlayoffAchievementDerivedLabels
+}
+
+function enrichPlayoffAchievement(
+  achievement: PlayoffAchievementObject,
+): PlayoffAchievementWithLabels {
+  const enriched: PlayoffAchievementWithLabels = { ...achievement }
+  const derivedLabels: PlayoffAchievementDerivedLabels = {}
+
+  const divisionLabel = resolveDivisionLabel(enriched.bestDivision)
+  if (divisionLabel !== undefined) {
+    if (enriched.divisionLabel === undefined) {
+      enriched.divisionLabel = divisionLabel
+    } else {
+      derivedLabels.divisionLabel = divisionLabel
+    }
+  }
+
+  const finishLabel = resolvePlayoffResultLabel(enriched.bestFinishGroup)
+  if (finishLabel !== undefined) {
+    if (enriched.finishLabel === undefined) {
+      enriched.finishLabel = finishLabel
+    } else {
+      derivedLabels.finishLabel = finishLabel
+    }
+  }
+
+  const seasonLabel = resolveSeasonLabel(enriched.seasonName, enriched.seasonId)
+  if (seasonLabel !== undefined) {
+    if (enriched.seasonLabel === undefined) {
+      enriched.seasonLabel = seasonLabel
+    } else {
+      derivedLabels.seasonLabel = seasonLabel
+    }
+  }
+
+  if (Object.keys(derivedLabels).length > 0) {
+    if (enriched.derivedLabels === undefined) {
+      enriched.derivedLabels = derivedLabels
+    } else if (isJsonObject(enriched.derivedLabels)) {
+      enriched.derivedLabels = {
+        ...enriched.derivedLabels,
+        ...derivedLabels,
+      }
+    }
+  }
+
+  return enriched
+}
+
+export const playoffAchievementSchema =
+  playoffAchievementObjectSchema.transform(enrichPlayoffAchievement)
+export const playoffAchievementsResponseSchema = z.array(
+  playoffAchievementSchema,
+)
 
 export const clubInfoResponseSchema = z.record(z.string(), clubInfoSchema)
 
@@ -335,6 +442,13 @@ export type ClubSummary = z.output<typeof clubSummarySchema>
 export type ClubSearchResponse = z.output<typeof clubSearchResponseSchema>
 export type RankingEntry = z.output<typeof rankingEntrySchema>
 export type RankingListResponse = z.output<typeof rankingListResponseSchema>
+export type PlayoffAchievementsInput = z.input<
+  typeof playoffAchievementsInputSchema
+>
+export type PlayoffAchievement = z.output<typeof playoffAchievementSchema>
+export type PlayoffAchievementsResponse = z.output<
+  typeof playoffAchievementsResponseSchema
+>
 export type ClubInfo = z.output<typeof clubInfoSchema>
 export type ClubInfoResponse = z.output<typeof clubInfoResponseSchema>
 export type ClubOverallStats = z.output<typeof clubOverallStatsSchema>

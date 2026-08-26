@@ -171,7 +171,7 @@ describe('Club regionLabel enrichment', () => {
     expect(club).not.toHaveProperty('regionLabel')
   })
 
-  it('drops an upstream regionLabel when the regionId is unknown', async () => {
+  it('preserves an upstream regionLabel when the regionId is unknown', async () => {
     const client = new ProClubsClient({
       transport: async () =>
         new Response(
@@ -193,11 +193,12 @@ describe('Club regionLabel enrichment', () => {
       clubId: 42,
       name: 'HEMLE FC',
       regionId: 99_999_999,
+      regionLabel: 'Not A Real Region',
     })
-    expect(club).not.toHaveProperty('regionLabel')
+    expect(club?.regionLabel).toBe('Not A Real Region')
   })
 
-  it('replaces an upstream regionLabel with the SDK-derived value for known ids', () => {
+  it('preserves an upstream regionLabel for known ids', () => {
     const parsed = clubInfoSchema.parse({
       clubId: 42,
       name: 'HEMLE FC',
@@ -209,7 +210,53 @@ describe('Club regionLabel enrichment', () => {
       clubId: 42,
       name: 'HEMLE FC',
       regionId: 5457237,
-      regionLabel: 'Southern Europe',
+      regionLabel: 'Wrong Upstream Label',
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+      },
+    })
+  })
+
+  it('preserves a null upstream regionLabel and adds the derived label', () => {
+    const parsed = clubInfoSchema.parse({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: null,
+    })
+
+    expect(parsed).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: null,
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+      },
+    })
+  })
+
+  it('preserves a non-textual upstream regionLabel and derived-label precedence', () => {
+    const parsed = clubInfoSchema.parse({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 123,
+      derivedLabels: {
+        regionLabel: 'EA nested region label',
+        existingLabel: 'preserved',
+      },
+    })
+
+    expect(parsed).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 123,
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+        existingLabel: 'preserved',
+      },
     })
   })
 

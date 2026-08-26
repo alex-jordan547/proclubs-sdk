@@ -23,6 +23,7 @@ import {
   resolveDivisionLabel,
   resolveMatchTypeLabel,
   resolveReputationLabel,
+  resolveSeasonLabel,
 } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
@@ -51,6 +52,22 @@ console.log(resolveClubCrestUrl(club?.clubInfo))
 
 The SDK does not rewrite `reputationtier`, `currentDivision`, or `customKit`.
 Call the helpers explicitly when you need a display label or crest URL.
+
+Playoff season names are not a closed enum because EA can add new keys:
+
+```ts
+import { resolveSeasonLabel } from 'proclubs-sdk'
+
+resolveSeasonLabel('CLUBS_LEAGUE_SEASON_07', '7')
+// 'Season 7'
+```
+
+```ts
+import { resolveSeasonLabel } from 'proclubs-sdk'
+
+resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')
+// 'Season 9' — fallback based on the raw seasonId
+```
 
 ## Known mappings
 

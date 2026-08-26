@@ -31,6 +31,43 @@ const clubs = await proclubs.clubs.search({
   known regions. See [Regions](/docs/reference/regions).
 </ResponseField>
 
+## `clubs.playoffAchievements`
+
+Get a club's playoff performance history.
+
+```ts
+const achievements = await proclubs.clubs.playoffAchievements({
+  clubId: '12345',
+})
+```
+
+<ParamField path="clubId" type="string | number" required>
+  Non-empty club identifier.
+</ParamField>
+
+<ParamField path="platform" type="Platform">
+  Optional per-request platform override.
+</ParamField>
+
+<ResponseField name="result" type="Promise<PlayoffAchievement[]>">
+  One entry per season, in EA response order. The raw `seasonId`,
+  `seasonName`, `bestDivision`, and `bestFinishGroup` values are preserved.
+  The SDK also adds `seasonLabel`, `divisionLabel`, and `finishLabel` when it
+  can resolve them. Nested `clubInfo` uses the same fields and region-label
+  enrichment as the other club responses. If EA supplies a field with the same
+  name as a derived label, the raw field is preserved and the resolved value is
+  available under `derivedLabels`. For a raw `clubInfo.regionLabel`, the
+  calculated region label is available under `clubInfo.derivedLabels.regionLabel`.
+</ResponseField>
+
+<Note>
+  A club without playoff history returns `[]`, not an error. Unknown season,
+  division, and result IDs remain available in the raw fields. Season labels
+  fall back to `Season {seasonId}` when EA introduces a new internal season key
+  and `seasonId` is a finite number or digits-only string. Otherwise, the SDK
+  returns the normalized `seasonName` when available, or `undefined`.
+</Note>
+
 ## `clubs.get`
 
 Get information for one club.

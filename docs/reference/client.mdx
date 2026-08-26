@@ -30,7 +30,7 @@ for defaults, constraints, and custom transport behavior.
 
 <CardGroup cols={2}>
   <Card title="clubs" icon="shield" href="/docs/reference/clubs">
-    Search, information, and overall statistics.
+    Search, information, statistics, and playoff history.
   </Card>
   <Card title="rankings" icon="trophy" href="/docs/reference/rankings">
     All-time and current-season leaderboards.
@@ -61,6 +61,8 @@ interface ProClubsRequestOptions {
   present in a valid response.
 - Member methods return an object containing both `members` and
   `positionCount`.
+- `clubs.playoffAchievements` returns an empty array when a club has no playoff
+  history.
 - Known response fields are typed, while additional EA fields are preserved.
 - Club objects that include a `regionId` may also include a derived `regionLabel`.
 

@@ -48,6 +48,11 @@ function driftResults(
       status: 'unverified',
       issues: [],
     },
+    clubsPlayoffAchievements: {
+      endpoint: 'clubsPlayoffAchievements',
+      status: 'unverified',
+      issues: [],
+    },
     membersStats: {
       endpoint: 'membersStats',
       status: 'unverified',
@@ -95,6 +100,10 @@ describe('Contract drift detector', () => {
       'clubsOverallStats',
       loadFixture('clubs-overall-stats'),
     )
+    const playoffs = detectDrift(
+      'clubsPlayoffAchievements',
+      loadFixture('playoff-achievements'),
+    )
     const members = detectDrift('membersStats', loadFixture('members-stats'))
     const career = detectDrift(
       'membersCareerStats',
@@ -118,6 +127,12 @@ describe('Contract drift detector', () => {
       status: 'passed',
       issues: [],
       itemCount: 1,
+    })
+    expect(playoffs).toEqual({
+      endpoint: 'clubsPlayoffAchievements',
+      status: 'passed',
+      issues: [],
+      itemCount: 2,
     })
     expect(members).toEqual({
       endpoint: 'membersStats',
@@ -183,6 +198,7 @@ describe('Contract drift detector', () => {
       kind: 'field_added',
       path: '$[0].unexpectedRankBand',
     })
+
     expect(
       detectDrift('rankingsAllTime', [{ rank: 1 }]).issues[0],
     ).toMatchObject({
@@ -206,6 +222,70 @@ describe('Contract drift detector', () => {
       status: 'passed',
       issues: [],
       itemCount: 1,
+    })
+  })
+
+  it('detects unknown playoff IDs without rejecting the raw response shape', () => {
+    const result = detectDrift('clubsPlayoffAchievements', [
+      {
+        seasonId: '9',
+        seasonName: 'EA_NEW_SEASON_FORMAT',
+        bestDivision: '99',
+        bestFinishGroup: '99',
+      },
+    ])
+
+    expect(result.status).toBe('drifted')
+    expect(result.issues).toEqual([
+      {
+        kind: 'unknown_value',
+        path: '$[0].bestDivision',
+        message:
+          'Unknown bestDivision at $[0].bestDivision; update DIVISION_LABELS after confirming the EA label',
+        expected: 'known division id',
+        actual: '99',
+      },
+      {
+        kind: 'unknown_value',
+        path: '$[0].bestFinishGroup',
+        message:
+          'Unknown bestFinishGroup at $[0].bestFinishGroup; update PLAYOFF_RESULT_LABELS after confirming the EA label',
+        expected: 'known playoff result id',
+        actual: '99',
+      },
+    ])
+  })
+
+  it('detects playoff fields added, removed, or changed upstream', () => {
+    const valid = {
+      seasonId: '7',
+      seasonName: 'CLUBS_LEAGUE_SEASON_07',
+      bestDivision: '3',
+      bestFinishGroup: '1',
+    }
+
+    expect(
+      detectDrift('clubsPlayoffAchievements', [
+        { seasonId: '7', seasonName: valid.seasonName, bestDivision: '3' },
+      ]).issues[0],
+    ).toMatchObject({
+      kind: 'field_removed',
+      path: '$[0].bestFinishGroup',
+    })
+    expect(
+      detectDrift('clubsPlayoffAchievements', [{ ...valid, seasonId: [] }])
+        .issues[0],
+    ).toMatchObject({
+      kind: 'type_changed',
+      path: '$[0].seasonId',
+    })
+    expect(
+      detectDrift('clubsPlayoffAchievements', [
+        { ...valid, unexpectedField: true },
+      ]).issues[0],
+    ).toMatchObject({
+      kind: 'field_added',
+      path: '$[0].unexpectedField',
     })
   })
 
@@ -482,6 +562,11 @@ describe('Contract drift detector', () => {
             status: 'passed',
             issues: [],
           },
+          clubsPlayoffAchievements: {
+            endpoint: 'clubsPlayoffAchievements',
+            status: 'passed',
+            issues: [],
+          },
           membersStats: {
             endpoint: 'membersStats',
             status: 'passed',
@@ -594,6 +679,11 @@ describe('Contract drift detector', () => {
       clubsGet: { endpoint: 'clubsGet', status: 'passed', issues: [] },
       clubsOverallStats: {
         endpoint: 'clubsOverallStats',
+        status: 'passed',
+        issues: [],
+      },
+      clubsPlayoffAchievements: {
+        endpoint: 'clubsPlayoffAchievements',
         status: 'passed',
         issues: [],
       },

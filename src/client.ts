@@ -32,6 +32,8 @@ import {
   clubMatchesResponseSchema,
   clubMemberStatsSchema,
   clubOverallStatsResponseSchema,
+  playoffAchievementsInputSchema,
+  playoffAchievementsResponseSchema,
   clubSearchResponseSchema,
   clubRequestSchema,
   listMatchesInputSchema,
@@ -47,6 +49,9 @@ import {
   type ClubRequest,
   type ClubSummary,
   type ListMatchesInput,
+  type PlayoffAchievementsInput,
+  type PlayoffAchievement,
+  type PlayoffAchievementsResponse,
   type RankingEntry,
   type RankingListInput,
   type RankingSearchInput,
@@ -123,6 +128,11 @@ export class ProClubsClient {
       options?: ProClubsRequestOptions,
     ): Promise<ClubOverallStats | null> =>
       this.getClubOverallStats(input, options),
+    playoffAchievements: (
+      input: PlayoffAchievementsInput,
+      options?: ProClubsRequestOptions,
+    ): Promise<PlayoffAchievement[]> =>
+      this.getPlayoffAchievements(input, options),
   }
 
   readonly rankings = {
@@ -299,6 +309,22 @@ export class ProClubsClient {
       options,
     )
     return data.find((item) => String(item.clubId) === clubId) ?? null
+  }
+
+  private async getPlayoffAchievements(
+    input: PlayoffAchievementsInput,
+    options?: ProClubsRequestOptions,
+  ): Promise<PlayoffAchievementsResponse> {
+    const parsed = this.parseInput(playoffAchievementsInputSchema, input)
+    return this.request(
+      'clubsPlayoffAchievements',
+      new URLSearchParams({
+        platform: parsed.platform ?? this.#platform,
+        clubId: String(parsed.clubId),
+      }),
+      playoffAchievementsResponseSchema,
+      options,
+    )
   }
 
   private async getMemberStats(
@@ -693,6 +719,7 @@ export class ProClubsClient {
       | RankingListInput
       | RankingSearchInput
       | ClubRequest
+      | PlayoffAchievementsInput
       | ListMatchesInput,
   ): T {
     const parsed = schema.safeParse(input)

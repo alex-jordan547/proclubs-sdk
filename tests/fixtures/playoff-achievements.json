@@ -1,0 +1,31 @@
+[
+  {
+    "seasonId": "7",
+    "seasonName": "CLUBS_LEAGUE_SEASON_07",
+    "bestDivision": "3",
+    "bestFinishGroup": "1",
+    "clubInfo": {
+      "name": "ALL STAR 237",
+      "clubId": 42,
+      "regionId": 5457237,
+      "teamId": 112809,
+      "customKit": {
+        "stadName": "Stade de Wembley",
+        "selectedKitType": "1",
+        "crestAssetId": "99140109"
+      }
+    }
+  },
+  {
+    "seasonId": "6",
+    "seasonName": "CLUBS_LEAGUE_SEASON_06",
+    "bestDivision": "4",
+    "bestFinishGroup": "2",
+    "clubInfo": {
+      "name": "ALL STAR 237",
+      "clubId": 42,
+      "regionId": 5457237,
+      "teamId": 112809
+    }
+  }
+]
