@@ -4,25 +4,35 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify or publish
+        required: true
+        type: string
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: npm-publish-${{ github.event.release.tag_name }}
+  group: npm-publish-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish to npm
-    if: ${{ github.event.release.prerelease == false }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -35,8 +45,6 @@ jobs:
         run: npm install --global npm@11.19.0
 
       - name: Verify release version
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           node -e "const version = require('./package.json').version; const expected = 'v' + version; if (process.env.RELEASE_TAG !== expected) { console.error('Expected release tag ' + expected + ', received ' + process.env.RELEASE_TAG); process.exit(1) }"
 
@@ -47,19 +55,30 @@ jobs:
         run: npm run check
 
       - name: Publish package
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           release_version="${RELEASE_TAG#v}"
           if npm view "proclubs-sdk@${release_version}" version >/dev/null 2>&1; then
             echo "proclubs-sdk@${release_version} is already published; continuing with verification"
-          else
-            npm publish --access public
+            exit 0
           fi
 
+          set +e
+          npm publish --access public
+          publish_exit=$?
+          set -e
+
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            if npm view "proclubs-sdk@${release_version}" version; then
+              exit 0
+            fi
+            echo "Publication is not visible yet (attempt ${attempt}/12); retrying in 10s"
+            if [ "${attempt}" -lt 12 ]; then
+              sleep 10
+            fi
+          done
+          exit "${publish_exit}"
+
       - name: Verify publication
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           release_version="${RELEASE_TAG#v}"
           for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
@@ -67,7 +86,9 @@ jobs:
               exit 0
             fi
             echo "Publication is not visible yet (attempt ${attempt}/12); retrying in 10s"
-            sleep 10
+            if [ "${attempt}" -lt 12 ]; then
+              sleep 10
+            fi
           done
           echo "Timed out waiting for npm to expose proclubs-sdk@${release_version}"
           exit 1
