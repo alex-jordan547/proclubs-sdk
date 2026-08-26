@@ -1,71 +1,72 @@
 ---
 title: "Roadmap"
-description: "Track what is released, in progress, and planned for proclubs-sdk."
+description: "See what changed in each release and what is still only planned."
 ---
 
-The roadmap describes product direction, not guaranteed delivery dates. Statuses
-are maintained manually when a milestone changes.
+<CardGroup cols={3}>
+  <Card
+    title="Current release"
+    icon="tag"
+    href="https://www.npmjs.com/package/proclubs-sdk/v/0.2.1"
+  >
+    `0.2.1` is the current npm release.
+  </Card>
+  <Card title="Public API" icon="code" href="/docs/reference/client">
+    11 typed methods across clubs, rankings, members, matches, and playoffs.
+  </Card>
+  <Card title="Next target" icon="map">
+    `0.3` is planned. No milestone is marked in progress.
+  </Card>
+</CardGroup>
 
-## Status legend
+<Note>
+  **Released** means the package is available on npm. EA can still change its
+  upstream responses. The compatibility runner detects those changes; it does
+  not guarantee upstream stability. The SDK does not use authentication: never
+  send EA credentials, cookies, or session tokens. Keep live probes explicit,
+  sequential, and low volume. See [Support and
+  limitations](/docs/project/limitations) for the full operating guidance.
+</Note>
+
+## Release diff
+
+| Release | What changed from the previous release | Typed methods |
+| --- | --- | ---: |
+| [`0.1.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.1.0) | First public SDK with Zod validation, bounded retries, typed errors, cancellation, and documentation. | 6 |
+| [`0.2.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.0) | Added the opt-in memory cache, bounded LRU capacity, request deduplication, and local observability. The endpoint surface stayed the same. | 6 |
+| [`0.2.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.1) (current) | Added rankings, playoff history, exhaustive endpoint contracts, metadata helpers, and configurable live compatibility probes. | 11 |
+
+## What shipped in 0.2.1
+
+- Added four ranking methods and `clubs.playoffAchievements`. The public client
+  grew from 6 to 11 typed methods.
+- Added exhaustive contracts for all 11 endpoints and sanitized drift reports.
+- Kept unknown EA enum and region values visible without treating them as
+  structural drift. Removed fields, changed types, rejected schemas, and empty
+  responses still block a release gate.
+- Added region, platform, match, division, reputation, playoff, and crest
+  helpers.
+- Added configurable live probes for `common-gen5`, `common-gen4`, and `nx`.
+
+Read the [rankings reference](/docs/reference/rankings), [metadata
+reference](/docs/reference/metadata), and [compatibility
+reference](/docs/reference/types-and-schemas) for the full API details.
+
+## Planned work
+
+Planned items are approved for the roadmap, but have no delivery date. None is
+currently in progress.
+
+| Target | Scope | Boundary |
+| --- | --- | --- |
+| `0.3` | Optional relay CLI, healthcheck, route allowlist, shared-secret authentication, and Docker packaging. | The relay stays optional. The SDK continues to make direct server-side requests without it. |
+| `0.4` | Circuit breaker, client-side rate limiting, stable-IP proxy support, and framework adapters. | Adds request handling and integration options around the SDK. |
+| `1.0` | Stabilized public API, maintained EA compatibility matrix, and a single release and compatibility workflow. | The current on-demand probes become a maintained platform support policy. |
+
+## Status rules
 
 | Status | Meaning |
 | --- | --- |
-| Released | Available in the current public release |
-| In progress | Being implemented or prepared for release |
-| Planned | Accepted direction, not currently being implemented |
-
-## Version progress
-
-### 0.1 — Released
-
-- Six typed Pro Clubs methods
-- Zod input and response validation
-- Bounded retries and `Retry-After`
-- Typed errors and cancellation
-- Public npm package and Mintlify documentation
-
-### 0.2 — Released
-
-- [x] Beginner-friendly opt-in memory cache with 60-second defaults
-- [x] Configurable TTL and bounded LRU capacity
-- [x] Concurrent request deduplication
-- [x] Typed local observability hook
-- [x] Cache, deduplication, and event regression tests
-- [x] Documentation and `0.2.0` release
-
-### 0.2.1 — Released
-
-- Exhaustive FC26 endpoint contracts and sanitized compatibility reports
-- Region, platform, match, division, reputation, playoff, and crest helpers
-- All-time and current-season rankings
-- Playoff achievement history
-- README and Mintlify reference updates
-
-### 0.3 — Planned
-
-- Optional relay CLI
-- Healthcheck endpoint
-- Route allowlist and shared-secret authentication
-- Optional Docker packaging
-
-The relay remains optional. The SDK itself will continue to work without a
-hosted service.
-
-### 0.4 — Planned
-
-- Circuit breaker
-- Client-side rate limiting
-- Optional stable-IP proxy support
-- Optional framework adapters
-
-### 1.0 — Planned
-
-- Stabilized public API contract
-- EA compatibility matrix and live compatibility checks
-- Consolidated release and compatibility workflow
-
-## How progress is updated
-
-The status and checklist are updated with each milestone release. No percentage
-is shown because feature completion and upstream EA compatibility are not
-meaningfully measured by one number.
+| Released | Published on npm with release notes. |
+| In progress | Implementation or release preparation has started. |
+| Planned | Accepted direction with no active implementation or delivery date. |
