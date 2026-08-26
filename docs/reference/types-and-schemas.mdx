@@ -33,6 +33,7 @@ import type {
 ```ts
 import type {
   ClubInfo,
+  ClubInfoDerivedLabels,
   ClubInfoResponse,
   ClubMatch,
   ClubMatchesResponse,
@@ -62,12 +63,14 @@ observed FC26 shapes described on the namespace reference pages.
 
 `PlayoffAchievementDerivedLabels` contains the typed resolved labels used when
 EA already supplies a field with one of the derived label names.
+`ClubInfoDerivedLabels` contains the resolved `regionLabel` when EA already
+supplies a raw region label.
 
 ## Runtime fidelity and normalizations
 
 - **Runtime fidelity:** All object schemas use loose object validation, meaning any additional fields sent by EA are preserved and accessible on returned objects.
 - **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`). Nested field values stay in their upstream representation.
-- **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on club searches and ranking entries, and match club `details`. See [Regions](/docs/reference/regions).
+- **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. If EA already supplies `regionLabel`, that raw value is preserved and the calculated value is exposed under `derivedLabels.regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on club searches and ranking entries, and match club `details`. See [Regions](/docs/reference/regions).
 - The other nine endpoints (`clubs.search`, `clubs.playoffAchievements`, the four ranking methods, `members.stats`, `members.careerStats`, and `matches.list`) return their full response data directly, aside from region-label and playoff-label enrichment.
 - Full leaderboards preserve EA response order and have no server pagination. Numeric strings remain strings.
 

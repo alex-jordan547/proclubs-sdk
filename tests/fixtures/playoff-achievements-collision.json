@@ -1,0 +1,13 @@
+[
+  {
+    "seasonId": "7",
+    "seasonName": "CLUBS_LEAGUE_SEASON_07",
+    "bestDivision": "3",
+    "bestFinishGroup": "1",
+    "divisionLabel": "EA raw division label",
+    "derivedLabels": {
+      "divisionLabel": "EA raw derived division label",
+      "existingLabel": "preserved"
+    }
+  }
+]

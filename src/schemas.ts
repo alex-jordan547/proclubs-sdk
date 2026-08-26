@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { MATCH_TYPES, PLATFORMS } from './constants.js'
+import type { JsonValue } from './drift.js'
 import {
   resolveDivisionLabel,
   resolvePlayoffResultLabel,
@@ -8,7 +9,7 @@ import {
   type DivisionLabel,
   type PlayoffResultLabel,
 } from './metadata.js'
-import { resolveRegionLabel } from './regions.js'
+import { resolveRegionLabel, type RegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
 const numberLikeSchema = z.union([z.string(), z.number(), z.null()])
@@ -72,16 +73,39 @@ const clubInfoObjectSchema = z.looseObject({
 })
 
 type ClubInfoObject = z.output<typeof clubInfoObjectSchema>
-type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: string }
+export type ClubInfoDerivedLabels = {
+  [key: string]: JsonValue
+  regionLabel?: RegionLabel
+}
+type ClubInfoWithRegionLabel = ClubInfoObject & {
+  regionLabel?: JsonValue
+  derivedLabels?: ClubInfoDerivedLabels
+}
+
+function isJsonObject(value: JsonValue): value is Record<string, JsonValue> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
 
 function enrichClubRegion(club: ClubInfoObject): ClubInfoWithRegionLabel {
   const enriched: ClubInfoWithRegionLabel = { ...club }
 
   const regionLabel = resolveRegionLabel(enriched.regionId)
-  if (regionLabel === undefined || enriched.regionLabel !== undefined) {
+  if (regionLabel === undefined) {
     return enriched
   }
-  enriched.regionLabel = regionLabel
+
+  if (enriched.regionLabel === undefined) {
+    enriched.regionLabel = regionLabel
+    return enriched
+  }
+
+  const derivedLabels = { regionLabel } satisfies ClubInfoDerivedLabels
+  if (enriched.derivedLabels === undefined) {
+    enriched.derivedLabels = derivedLabels
+  } else if (isJsonObject(enriched.derivedLabels)) {
+    enriched.derivedLabels = { ...enriched.derivedLabels, ...derivedLabels }
+  }
+
   return enriched
 }
 
@@ -132,6 +156,7 @@ const playoffAchievementObjectSchema = z.looseObject({
 
 type PlayoffAchievementObject = z.output<typeof playoffAchievementObjectSchema>
 export type PlayoffAchievementDerivedLabels = {
+  [key: string]: JsonValue
   divisionLabel?: DivisionLabel
   finishLabel?: PlayoffResultLabel
   seasonLabel?: string
@@ -176,11 +201,15 @@ function enrichPlayoffAchievement(
     }
   }
 
-  if (
-    Object.keys(derivedLabels).length > 0 &&
-    enriched.derivedLabels === undefined
-  ) {
-    enriched.derivedLabels = derivedLabels
+  if (Object.keys(derivedLabels).length > 0) {
+    if (enriched.derivedLabels === undefined) {
+      enriched.derivedLabels = derivedLabels
+    } else if (isJsonObject(enriched.derivedLabels)) {
+      enriched.derivedLabels = {
+        ...enriched.derivedLabels,
+        ...derivedLabels,
+      }
+    }
   }
 
   return enriched

@@ -211,6 +211,52 @@ describe('Club regionLabel enrichment', () => {
       name: 'HEMLE FC',
       regionId: 5457237,
       regionLabel: 'Wrong Upstream Label',
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+      },
+    })
+  })
+
+  it('preserves a null upstream regionLabel and adds the derived label', () => {
+    const parsed = clubInfoSchema.parse({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: null,
+    })
+
+    expect(parsed).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: null,
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+      },
+    })
+  })
+
+  it('preserves a non-textual upstream regionLabel and derived-label precedence', () => {
+    const parsed = clubInfoSchema.parse({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 123,
+      derivedLabels: {
+        regionLabel: 'EA nested region label',
+        existingLabel: 'preserved',
+      },
+    })
+
+    expect(parsed).toEqual({
+      clubId: 42,
+      name: 'HEMLE FC',
+      regionId: 5457237,
+      regionLabel: 123,
+      derivedLabels: {
+        regionLabel: 'Southern Europe',
+        existingLabel: 'preserved',
+      },
     })
   })
 

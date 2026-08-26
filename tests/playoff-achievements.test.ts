@@ -117,32 +117,20 @@ describe('ProClubsClient playoff achievements', () => {
   })
 
   it('preserves upstream fields that collide with derived label names', async () => {
-    const payload = [
-      {
-        seasonId: '7',
-        seasonName: 'CLUBS_LEAGUE_SEASON_07',
-        bestDivision: '3',
-        bestFinishGroup: '1',
-        divisionLabel: 'EA raw division label',
-        finishLabel: 'EA raw finish label',
-        seasonLabel: 'EA raw season label',
-      },
-    ]
+    const rawFixture = loadFixture('playoff-achievements-collision')
     const client = new ProClubsClient({
-      transport: async () =>
-        new Response(JSON.stringify(payload), { status: 200 }),
+      transport: async () => new Response(rawFixture, { status: 200 }),
     })
 
     const [result] = await client.clubs.playoffAchievements({ clubId: '42' })
 
     expect(result).toMatchObject({
       divisionLabel: 'EA raw division label',
-      finishLabel: 'EA raw finish label',
-      seasonLabel: 'EA raw season label',
+      finishLabel: 'Champion',
+      seasonLabel: 'Season 7',
       derivedLabels: {
         divisionLabel: 'Division 2',
-        finishLabel: 'Champion',
-        seasonLabel: 'Season 7',
+        existingLabel: 'preserved',
       },
     })
   })

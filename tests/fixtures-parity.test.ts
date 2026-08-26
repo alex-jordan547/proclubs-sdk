@@ -4,6 +4,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   type ClubInfo,
+  type ClubInfoDerivedLabels,
   type ClubInfoResponse,
   type ClubMatch,
   type ClubMatchesResponse,
@@ -26,6 +27,7 @@ import {
   type PlayoffAchievementDerivedLabels,
   type PlayoffAchievement,
   type PlayoffAchievementsResponse,
+  type JsonValue,
   type RegionLabel,
   resolveRegionLabel,
 } from '../src/index.js'
@@ -382,7 +384,13 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<ClubInfo>().toHaveProperty('customKit')
     expectTypeOf<ClubInfo>().toHaveProperty('regionLabel')
     expectTypeOf<ClubSummaryInfo>().toHaveProperty('regionLabel')
-    expectTypeOf<ClubInfo['regionLabel']>().toEqualTypeOf<string | undefined>()
+    expectTypeOf<ClubInfo['regionLabel']>().toEqualTypeOf<
+      JsonValue | undefined
+    >()
+    expectTypeOf<ClubInfo>().toHaveProperty('derivedLabels')
+    expectTypeOf<ClubInfo['derivedLabels']>().toEqualTypeOf<
+      ClubInfoDerivedLabels | undefined
+    >()
 
     expectTypeOf<ClubOverallStats>().toHaveProperty('bestDivision')
     expectTypeOf<ClubOverallStats>().toHaveProperty('lastOpponent0')

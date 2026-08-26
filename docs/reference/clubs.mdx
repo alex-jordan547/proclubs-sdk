@@ -56,7 +56,8 @@ const achievements = await proclubs.clubs.playoffAchievements({
   can resolve them. Nested `clubInfo` uses the same fields and region-label
   enrichment as the other club responses. If EA supplies a field with the same
   name as a derived label, the raw field is preserved and the resolved value is
-  available under `derivedLabels`.
+  available under `derivedLabels`. For a raw `clubInfo.regionLabel`, the
+  calculated region label is available under `clubInfo.derivedLabels.regionLabel`.
 </ResponseField>
 
 <Note>

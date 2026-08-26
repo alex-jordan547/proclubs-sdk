@@ -103,6 +103,7 @@ export {
 } from './schemas.js'
 export type {
   ClubInfo,
+  ClubInfoDerivedLabels,
   ClubInfoResponse,
   ClubMatch,
   ClubMatchesResponse,
