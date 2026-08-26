@@ -209,6 +209,12 @@ if (drift.status === 'drifted') {
 Run drift detection on **raw EA payloads**, not on SDK output. `regionLabel` is
 a derived SDK field and would otherwise appear as `field_added`.
 
+An endpoint with only `unknown_value` diagnostics remains `passed`: the raw EA
+value is usable, while the diagnostic tells maintainers that a label mapping
+may need to be extended. Structural changes, rejected payloads, and invalid
+envelopes are `drifted`. Empty arrays are `unverified` because their shape
+cannot be confirmed from an empty response.
+
 An unknown `regionId` does not fail club requests. The same ID can appear in a
 compatibility report as `unknown_value` so maintainers can extend
 `REGION_LABELS` after confirming the EA label. That signal is additive (`minor`)

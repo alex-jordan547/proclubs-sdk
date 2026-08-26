@@ -1,5 +1,8 @@
 import { writeFileSync } from 'node:fs'
-import { runCompatibilityCheck } from '../src/compatibility.js'
+import {
+  runCompatibilityCheck,
+  type CompatibilityRunnerOptions,
+} from '../src/compatibility.js'
 import { PLATFORMS } from '../src/constants.js'
 
 async function main() {
@@ -14,17 +17,23 @@ async function main() {
     process.exit(1)
   }
   const outputPath = process.env.COMPATIBILITY_REPORT_PATH
+  const searchQuery = process.env.COMPATIBILITY_SEARCH_QUERY?.trim()
 
   console.log('--- Pro Clubs SDK Compatibility & Drift Check ---')
   console.log(`Platform: ${targetPlatform}`)
   console.log('Running sequential compatibility probes...\n')
 
-  const result = await runCompatibilityCheck({
+  let compatibilityOptions: CompatibilityRunnerOptions = {
     platform: targetPlatform,
     onProgress: (endpoint, status) => {
       console.log(`  - ${endpoint.padEnd(20)} : ${status}`)
     },
-  })
+  }
+  if (searchQuery) {
+    compatibilityOptions = { ...compatibilityOptions, searchQuery }
+  }
+
+  const result = await runCompatibilityCheck(compatibilityOptions)
 
   console.log('\n--- Summary Report ---')
   console.log(`Status:         ${result.report.summary.status.toUpperCase()}`)

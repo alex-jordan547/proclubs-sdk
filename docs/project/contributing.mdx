@@ -26,7 +26,15 @@ To verify structural compatibility and contract drift against live EA FC endpoin
 npm run check:compatibility
 ```
 
-Probes run sequentially, stop at the first access control error, and produce a sanitized drift report without logging sensitive identifiers or raw response bodies.
+To choose a club that exists on the target platform, pass a search query:
+
+```bash
+TARGET_PLATFORM=common-gen4 \
+COMPATIBILITY_SEARCH_QUERY="Master Fut G B" \
+npm run check:compatibility
+```
+
+Probes run sequentially, stop at the first access control error, and produce a sanitized drift report without logging sensitive identifiers or raw response bodies. Unknown EA enum values are reported as `unknown_value` while remaining compatible; structural changes, rejected payloads, and empty responses require review.
 
 ## Documentation preview
 

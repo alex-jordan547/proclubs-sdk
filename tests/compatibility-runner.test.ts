@@ -95,6 +95,29 @@ describe('Compatibility runner', () => {
     expect(reportString).not.toContain('Wembley')
   })
 
+  it('uses the configured search query for each live search endpoint', async () => {
+    const searchQueries: string[] = []
+    const transport = async (url: string | URL) => {
+      const parsed = new URL(url)
+      if (parsed.pathname.includes('/search')) {
+        searchQueries.push(parsed.searchParams.get('clubName') ?? '')
+      }
+      return new Response(fixtureBodyForPath(parsed.pathname), { status: 200 })
+    }
+
+    const result = await runCompatibilityCheck({
+      transport,
+      searchQuery: 'Master Fut G B',
+    })
+
+    expect(result.stoppedEarly).toBe(false)
+    expect(searchQueries).toEqual([
+      'Master Fut G B',
+      'Master Fut G B',
+      'Master Fut G B',
+    ])
+  })
+
   it('stops immediately at the first access control or HTTP error without calling remaining endpoints', async () => {
     const executedCalls: string[] = []
 
@@ -188,7 +211,7 @@ describe('Compatibility runner', () => {
     expect(result.stopReason).toContain('drifted')
   })
 
-  it('never marks a Zod rejection as passed, even if the structural contract matches', async () => {
+  it('always records a Zod rejection diagnostic when the response is rejected', async () => {
     const executedCalls: string[] = []
     const transport = async (url: string | URL) => {
       const parsed = new URL(url)
@@ -210,6 +233,14 @@ describe('Compatibility runner', () => {
     expect(result.stoppedEarly).toBe(true)
     expect(result.report.endpoints.clubsGet.status).toBe('drifted')
     expect(result.report.endpoints.clubsGet.status).not.toBe('passed')
+    expect(result.report.endpoints.clubsGet.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'envelope_changed',
+          actual: 'schema_rejected',
+        }),
+      ]),
+    )
     expect(result.stopReason).toBe('Response drifted from the known contract')
     expect(result.stopReason).not.toContain('non-JSON')
   })

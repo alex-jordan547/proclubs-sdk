@@ -235,7 +235,7 @@ describe('Contract drift detector', () => {
       },
     ])
 
-    expect(result.status).toBe('drifted')
+    expect(result.status).toBe('passed')
     expect(result.issues).toEqual([
       {
         kind: 'unknown_value',
@@ -484,7 +484,7 @@ describe('Contract drift detector', () => {
     }
 
     const result = detectDrift('clubsGet', modified)
-    expect(result.status).toBe('drifted')
+    expect(result.status).toBe('passed')
     expect(result.issues).toEqual([
       {
         kind: 'unknown_value',
@@ -516,6 +516,79 @@ describe('Contract drift detector', () => {
         '42': { regionId: null },
       }).status,
     ).toBe('passed')
+  })
+
+  it('reports unknown values while keeping an otherwise compatible endpoint passed', () => {
+    const result = detectDrift('clubsPlayoffAchievements', [
+      {
+        seasonId: '9',
+        seasonName: 'EA_NEW_SEASON_FORMAT',
+        bestDivision: '99',
+        bestFinishGroup: '99',
+      },
+    ])
+
+    expect(result.status).toBe('passed')
+    expect(result.issues).toHaveLength(2)
+
+    const results = driftResults({ clubsPlayoffAchievements: result })
+    const report = generateReport('common-gen5', {
+      ...results,
+      clubsSearch: { endpoint: 'clubsSearch', status: 'passed', issues: [] },
+      clubsGet: { endpoint: 'clubsGet', status: 'passed', issues: [] },
+      clubsOverallStats: {
+        endpoint: 'clubsOverallStats',
+        status: 'passed',
+        issues: [],
+      },
+      membersStats: { endpoint: 'membersStats', status: 'passed', issues: [] },
+      membersCareerStats: {
+        endpoint: 'membersCareerStats',
+        status: 'passed',
+        issues: [],
+      },
+      matchesList: { endpoint: 'matchesList', status: 'passed', issues: [] },
+      rankingsAllTime: {
+        endpoint: 'rankingsAllTime',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsSearchAllTime: {
+        endpoint: 'rankingsSearchAllTime',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsCurrentSeason: {
+        endpoint: 'rankingsCurrentSeason',
+        status: 'passed',
+        issues: [],
+      },
+      rankingsSearchCurrentSeason: {
+        endpoint: 'rankingsSearchCurrentSeason',
+        status: 'passed',
+        issues: [],
+      },
+    })
+
+    expect(report.summary.status).toBe('supported')
+    expect(report.summary.recommendation).toBe('minor')
+  })
+
+  it('keeps unknown values non-blocking but marks mixed structural drift', () => {
+    const result = detectDrift('clubsPlayoffAchievements', [
+      {
+        seasonId: '9',
+        seasonName: 'EA_NEW_SEASON_FORMAT',
+        bestDivision: '99',
+        bestFinishGroup: [],
+      },
+    ])
+
+    expect(result.status).toBe('drifted')
+    expect(result.issues.map((issue) => issue.kind)).toEqual([
+      'unknown_value',
+      'type_changed',
+    ])
   })
 
   it('accepts missing optional fields without reporting drift', () => {
