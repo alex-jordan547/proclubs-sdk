@@ -12,6 +12,7 @@ export.
 import type {
   ClubRequest,
   ListMatchesInput,
+  PlayoffAchievementsInput,
   RankingListInput,
   RankingSearchInput,
   SearchClubsInput,
@@ -24,6 +25,7 @@ import type {
 | `RankingListInput` | optional `platform` |
 | `RankingSearchInput` | `name`, optional `platform` |
 | `ClubRequest` | `clubId`, optional `platform` |
+| `PlayoffAchievementsInput` | `clubId`, optional `platform` |
 | `ListMatchesInput` | `clubId`, optional `platform`, `type`, and `limit` |
 
 ## Response types
@@ -39,6 +41,8 @@ import type {
   ClubMemberStats,
   ClubOverallStats,
   ClubOverallStatsResponse,
+  PlayoffAchievement,
+  PlayoffAchievementsResponse,
   ClubSearchResponse,
   ClubSummary,
   ClubSummaryInfo,
@@ -60,7 +64,7 @@ observed FC26 shapes described on the namespace reference pages.
 - **Runtime fidelity:** All object schemas use loose object validation, meaning any additional fields sent by EA are preserved and accessible on returned objects.
 - **Envelope unwrapping:** `clubs.get` and `clubs.overallStats` unwrap the upstream envelope to return the requested resource directly (`ClubInfo | null` and `ClubOverallStats | null`). Nested field values stay in their upstream representation.
 - **Region labels:** When public club information contains a `regionId`, the SDK copies the object and may add a derived `regionLabel`. The raw `regionId` is never rewritten. This applies to `clubs.get`, nested `clubInfo` on club searches and ranking entries, and match club `details`. See [Regions](/docs/reference/regions).
-- The other eight endpoints (`clubs.search`, the four ranking methods, `members.stats`, `members.careerStats`, and `matches.list`) return their full response data directly, aside from the region-label enrichment above.
+- The other nine endpoints (`clubs.search`, `clubs.playoffAchievements`, the four ranking methods, `members.stats`, `members.careerStats`, and `matches.list`) return their full response data directly, aside from region-label and playoff-label enrichment.
 - Full leaderboards preserve EA response order and have no server pagination. Numeric strings remain strings.
 
 ## Constants
@@ -156,6 +160,9 @@ import {
   rankingListInputSchema,
   rankingListResponseSchema,
   rankingSearchInputSchema,
+  playoffAchievementSchema,
+  playoffAchievementsInputSchema,
+  playoffAchievementsResponseSchema,
   clubRequestSchema,
   searchClubsInputSchema,
 } from 'proclubs-sdk'

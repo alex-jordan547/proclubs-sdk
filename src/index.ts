@@ -41,6 +41,7 @@ export {
   resolvePlayoffResultLabel,
   resolvePositionLabel,
   resolveReputationLabel,
+  resolveSeasonLabel,
 } from './metadata.js'
 export type {
   DivisionLabel,
@@ -94,6 +95,9 @@ export {
   rankingListInputSchema,
   rankingListResponseSchema,
   rankingSearchInputSchema,
+  playoffAchievementSchema,
+  playoffAchievementsInputSchema,
+  playoffAchievementsResponseSchema,
   clubRequestSchema,
   searchClubsInputSchema,
 } from './schemas.js'
@@ -121,6 +125,9 @@ export type {
   RankingListInput,
   RankingListResponse,
   RankingSearchInput,
+  PlayoffAchievement,
+  PlayoffAchievementsInput,
+  PlayoffAchievementsResponse,
   SearchClubsInput,
 } from './schemas.js'
 export {

@@ -16,6 +16,7 @@ export const EA_ROUTES = {
   clubsSearch: 'allTimeLeaderboard/search',
   clubsGet: 'clubs/info',
   clubsOverallStats: 'clubs/overallStats',
+  clubsPlayoffAchievements: 'club/playoffAchievements',
   rankingsAllTime: 'allTimeLeaderboard',
   rankingsSearchAllTime: 'allTimeLeaderboard/search',
   rankingsCurrentSeason: 'currentSeasonLeaderboard',

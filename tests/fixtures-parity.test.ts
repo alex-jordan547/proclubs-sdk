@@ -23,6 +23,8 @@ import {
   ProClubsClient,
   type RankingEntry,
   type RankingListResponse,
+  type PlayoffAchievement,
+  type PlayoffAchievementsResponse,
   type RegionLabel,
   resolveRegionLabel,
 } from '../src/index.js'
@@ -236,6 +238,40 @@ describe('Fixtures parity and client mapping', () => {
     }
   })
 
+  it('verifies playoff achievements preserve raw fields and add labels', async () => {
+    const rawFixture = loadFixture<PlayoffAchievementsResponse>(
+      'playoff-achievements',
+    )
+    const client = new ProClubsClient({
+      transport: async () =>
+        new Response(JSON.stringify(rawFixture), { status: 200 }),
+    })
+
+    const result = await client.clubs.playoffAchievements({ clubId: '42' })
+    const expected = rawFixture.map((achievement) => ({
+      ...achievement,
+      divisionLabel:
+        achievement.bestDivision === '3' ? 'Division 2' : 'Division 3',
+      finishLabel:
+        achievement.bestFinishGroup === '1' ? 'Champion' : 'Runner-Up',
+      seasonLabel: achievement.seasonId === '7' ? 'Season 7' : 'Season 6',
+      clubInfo: achievement.clubInfo
+        ? withRegionLabel(achievement.clubInfo)
+        : undefined,
+    }))
+
+    expect(result).toEqual(expected)
+    expect(result[0]).toMatchObject<Partial<PlayoffAchievement>>({
+      seasonId: '7',
+      bestDivision: '3',
+      bestFinishGroup: '1',
+      divisionLabel: 'Division 2',
+      finishLabel: 'Champion',
+      seasonLabel: 'Season 7',
+    })
+    expect(rawFixture[0]).not.toHaveProperty('seasonLabel')
+  })
+
   it('preserves unknown properties at multiple nesting depths', async () => {
     const payloadWithExtras = [
       {
@@ -312,6 +348,13 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<RankingEntry>().toHaveProperty('rank')
     expectTypeOf<RankingEntry>().toHaveProperty('goalsPerGame')
     expectTypeOf<RankingEntry>().toHaveProperty('clubId')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('seasonId')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('seasonName')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('bestDivision')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('bestFinishGroup')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('divisionLabel')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('finishLabel')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('seasonLabel')
   })
 
   it('declares precise union types for string | number | null and id fields', () => {
@@ -342,6 +385,17 @@ describe('Fixtures parity and client mapping', () => {
       string | number | null | undefined
     >()
     expectTypeOf<RankingEntry['clubId']>().toEqualTypeOf<string | number>()
+
+    expectTypeOf<PlayoffAchievement['seasonId']>().toEqualTypeOf<
+      string | number | null
+    >()
+    expectTypeOf<PlayoffAchievement['seasonName']>().toEqualTypeOf<string>()
+    expectTypeOf<PlayoffAchievement['bestDivision']>().toEqualTypeOf<
+      string | number | null
+    >()
+    expectTypeOf<PlayoffAchievement['bestFinishGroup']>().toEqualTypeOf<
+      string | number | null
+    >()
 
     // Nested resource references keep their precise optional shape.
     expectTypeOf<ClubSummaryInfo['customKit']>().toEqualTypeOf<

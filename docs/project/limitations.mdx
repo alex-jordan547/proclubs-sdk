@@ -36,6 +36,10 @@ the same rule: raw EA codes stay on the response object and helpers return
 `undefined` for unknown values until the SDK mapping is updated. Crest URLs are
 built from EA CDN paths that can change between FC releases.
 
+Playoff season keys are intentionally not an enum. `clubs.playoffAchievements`
+keeps the raw `seasonName` and `seasonId`, and derives a readable `seasonLabel`
+from the season key or, as a fallback, the numeric season ID.
+
 <Warning>
   Do not send EA credentials, cookies, or session tokens to this SDK. It does
   not need them. A request for those values should be treated as a security

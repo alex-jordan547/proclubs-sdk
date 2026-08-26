@@ -1,6 +1,13 @@
 import { z } from 'zod'
 
 import { MATCH_TYPES, PLATFORMS } from './constants.js'
+import {
+  resolveDivisionLabel,
+  resolvePlayoffResultLabel,
+  resolveSeasonLabel,
+  type DivisionLabel,
+  type PlayoffResultLabel,
+} from './metadata.js'
 import { resolveRegionLabel, type RegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
@@ -21,6 +28,8 @@ export const clubRequestSchema = z.object({
   clubId: z.union([z.string().trim().min(1), z.number().int()]),
   platform: z.enum(PLATFORMS).optional(),
 })
+
+export const playoffAchievementsInputSchema = clubRequestSchema
 
 export const listMatchesInputSchema = clubRequestSchema.extend({
   type: z.enum(MATCH_TYPES).optional(),
@@ -113,6 +122,53 @@ export const rankingEntrySchema = clubSummarySchema.extend({
 })
 
 export const rankingListResponseSchema = z.array(rankingEntrySchema)
+
+const playoffAchievementObjectSchema = z.looseObject({
+  seasonId: numberLikeSchema,
+  seasonName: z.string(),
+  bestDivision: numberLikeSchema,
+  bestFinishGroup: numberLikeSchema,
+  clubInfo: clubSummaryInfoSchema.optional(),
+})
+
+type PlayoffAchievementObject = z.output<typeof playoffAchievementObjectSchema>
+type PlayoffAchievementWithLabels = PlayoffAchievementObject & {
+  divisionLabel?: DivisionLabel
+  finishLabel?: PlayoffResultLabel
+  seasonLabel?: string
+}
+
+function enrichPlayoffAchievement(
+  achievement: PlayoffAchievementObject,
+): PlayoffAchievementWithLabels {
+  const enriched: PlayoffAchievementWithLabels = { ...achievement }
+  delete enriched.divisionLabel
+  delete enriched.finishLabel
+  delete enriched.seasonLabel
+
+  const divisionLabel = resolveDivisionLabel(enriched.bestDivision)
+  if (divisionLabel !== undefined) {
+    enriched.divisionLabel = divisionLabel
+  }
+
+  const finishLabel = resolvePlayoffResultLabel(enriched.bestFinishGroup)
+  if (finishLabel !== undefined) {
+    enriched.finishLabel = finishLabel
+  }
+
+  const seasonLabel = resolveSeasonLabel(enriched.seasonName, enriched.seasonId)
+  if (seasonLabel !== undefined) {
+    enriched.seasonLabel = seasonLabel
+  }
+
+  return enriched
+}
+
+export const playoffAchievementSchema =
+  playoffAchievementObjectSchema.transform(enrichPlayoffAchievement)
+export const playoffAchievementsResponseSchema = z.array(
+  playoffAchievementSchema,
+)
 
 export const clubInfoResponseSchema = z.record(z.string(), clubInfoSchema)
 
@@ -335,6 +391,13 @@ export type ClubSummary = z.output<typeof clubSummarySchema>
 export type ClubSearchResponse = z.output<typeof clubSearchResponseSchema>
 export type RankingEntry = z.output<typeof rankingEntrySchema>
 export type RankingListResponse = z.output<typeof rankingListResponseSchema>
+export type PlayoffAchievementsInput = z.input<
+  typeof playoffAchievementsInputSchema
+>
+export type PlayoffAchievement = z.output<typeof playoffAchievementSchema>
+export type PlayoffAchievementsResponse = z.output<
+  typeof playoffAchievementsResponseSchema
+>
 export type ClubInfo = z.output<typeof clubInfoSchema>
 export type ClubInfoResponse = z.output<typeof clubInfoResponseSchema>
 export type ClubOverallStats = z.output<typeof clubOverallStatsSchema>

@@ -1,4 +1,5 @@
 import type { Endpoint, Platform } from './constants.js'
+import { resolveDivisionLabel, resolvePlayoffResultLabel } from './metadata.js'
 import { resolveRegionLabel } from './regions.js'
 
 export type AllowedType =
@@ -154,6 +155,23 @@ const rankingListContract = {
   elementContract: {
     kind: 'object',
     fields: rankingEntryFields,
+  },
+} satisfies PayloadContract
+
+const playoffAchievementsContract = {
+  kind: 'array',
+  elementContract: {
+    kind: 'object',
+    fields: {
+      seasonId: { types: ['numberLike'], required: true },
+      seasonName: { types: ['string'], required: true },
+      bestDivision: { types: ['numberLike'], required: true },
+      bestFinishGroup: { types: ['numberLike'], required: true },
+      clubInfo: {
+        types: ['object'],
+        fields: clubInfoFields,
+      },
+    },
   },
 } satisfies PayloadContract
 
@@ -365,6 +383,7 @@ export const ENDPOINT_CONTRACTS = {
       fields: clubOverallStatsFields,
     },
   },
+  clubsPlayoffAchievements: playoffAchievementsContract,
   rankingsAllTime: rankingListContract,
   rankingsSearchAllTime: rankingListContract,
   rankingsCurrentSeason: rankingListContract,
@@ -478,6 +497,28 @@ function isUnknownRegionId(value: JsonValue): boolean {
   }
   if (isJsonString(value)) {
     return value.trim() !== '' && resolveRegionLabel(value) === undefined
+  }
+  return false
+}
+
+function isUnknownDivisionId(value: JsonValue): boolean {
+  if (isJsonNumber(value)) {
+    return Number.isFinite(value) && resolveDivisionLabel(value) === undefined
+  }
+  if (isJsonString(value)) {
+    return value.trim() !== '' && resolveDivisionLabel(value) === undefined
+  }
+  return false
+}
+
+function isUnknownPlayoffResultId(value: JsonValue): boolean {
+  if (isJsonNumber(value)) {
+    return (
+      Number.isFinite(value) && resolvePlayoffResultLabel(value) === undefined
+    )
+  }
+  if (isJsonString(value)) {
+    return value.trim() !== '' && resolvePlayoffResultLabel(value) === undefined
   }
   return false
 }
@@ -650,6 +691,24 @@ function validateAgainstContract(
           path: fieldPath,
           message: `Unknown regionId at ${fieldPath}; update REGION_LABELS after confirming the EA label`,
           expected: 'known regionId',
+          actual: String(val),
+        })
+      }
+      if (fieldKey === 'bestDivision' && isUnknownDivisionId(val)) {
+        issues.push({
+          kind: 'unknown_value',
+          path: fieldPath,
+          message: `Unknown bestDivision at ${fieldPath}; update DIVISION_LABELS after confirming the EA label`,
+          expected: 'known division id',
+          actual: String(val),
+        })
+      }
+      if (fieldKey === 'bestFinishGroup' && isUnknownPlayoffResultId(val)) {
+        issues.push({
+          kind: 'unknown_value',
+          path: fieldPath,
+          message: `Unknown bestFinishGroup at ${fieldPath}; update PLAYOFF_RESULT_LABELS after confirming the EA label`,
+          expected: 'known playoff result id',
           actual: String(val),
         })
       }

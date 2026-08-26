@@ -110,3 +110,29 @@ export function resolvePlayoffResultLabel(
 ): PlayoffResultLabel | undefined {
   return lookupNumericIdLabel(PLAYOFF_RESULT_LABELS, resultId)
 }
+
+export function resolveSeasonLabel(
+  seasonName: string | null | undefined,
+  seasonId?: string | number | null,
+): string | undefined {
+  const normalizedName = seasonName?.trim()
+  const seasonCode = normalizedName?.match(/(?:^|_)SEASON_(\d+)$/i)?.[1]
+  if (seasonCode !== undefined) {
+    return `Season ${Number(seasonCode)}`
+  }
+
+  const seasonIdTag = Object.prototype.toString.call(seasonId)
+  const normalizedId =
+    seasonIdTag === '[object Number]'
+      ? Number.isFinite(Number(seasonId))
+        ? String(seasonId)
+        : undefined
+      : seasonIdTag === '[object String]'
+        ? String(seasonId).trim() || undefined
+        : undefined
+  if (normalizedId !== undefined && /^\d+$/.test(normalizedId)) {
+    return `Season ${Number(normalizedId)}`
+  }
+
+  return normalizedName || undefined
+}

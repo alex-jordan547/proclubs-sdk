@@ -48,6 +48,14 @@ describe('ProClubsClient', () => {
             '42': { clubId: 42, name: 'ALL STAR 237' },
           },
           '/api/fc/clubs/overallStats': [{ clubId: '42', wins: '8' }],
+          '/api/fc/club/playoffAchievements': [
+            {
+              seasonId: '7',
+              seasonName: 'CLUBS_LEAGUE_SEASON_07',
+              bestDivision: '3',
+              bestFinishGroup: '1',
+            },
+          ],
           '/api/fc/members/stats': {
             members: [{ name: 'mrjordan_237', goals: '7' }],
             positionCount: { forward: 1 },
@@ -67,6 +75,9 @@ describe('ProClubsClient', () => {
           case '/api/fc/clubs/overallStats':
             body = bodies['/api/fc/clubs/overallStats']
             break
+          case '/api/fc/club/playoffAchievements':
+            body = bodies['/api/fc/club/playoffAchievements']
+            break
           case '/api/fc/members/stats':
             body = bodies['/api/fc/members/stats']
             break
@@ -85,32 +96,51 @@ describe('ProClubsClient', () => {
 
     const club = await client.clubs.get({ clubId: '42' })
     const overall = await client.clubs.overallStats({ clubId: '42' })
+    const playoffs = await client.clubs.playoffAchievements({ clubId: '42' })
     const members = await client.members.stats({ clubId: '42' })
     const careers = await client.members.careerStats({ clubId: '42' })
     const matches = await client.matches.list({ clubId: '42' })
 
-    expect({ club, overall, members, careers, matches, requestedUrls }).toEqual(
-      {
-        club: { clubId: 42, name: 'ALL STAR 237' },
-        overall: { clubId: '42', wins: '8' },
-        members: {
-          members: [{ name: 'mrjordan_237', goals: '7' }],
-          positionCount: { forward: 1 },
+    expect({
+      club,
+      overall,
+      playoffs,
+      members,
+      careers,
+      matches,
+      requestedUrls,
+    }).toEqual({
+      club: { clubId: 42, name: 'ALL STAR 237' },
+      overall: { clubId: '42', wins: '8' },
+      playoffs: [
+        {
+          seasonId: '7',
+          seasonName: 'CLUBS_LEAGUE_SEASON_07',
+          bestDivision: '3',
+          bestFinishGroup: '1',
+          divisionLabel: 'Division 2',
+          finishLabel: 'Champion',
+          seasonLabel: 'Season 7',
         },
-        careers: {
-          members: [{ name: 'mrjordan237', gamesPlayed: 12 }],
-          positionCount: { midfield: 1 },
-        },
-        matches: [],
-        requestedUrls: [
-          '/api/fc/clubs/info?clubIds=42&platform=common-gen5',
-          '/api/fc/clubs/overallStats?clubIds=42&platform=common-gen5',
-          '/api/fc/members/stats?clubId=42&platform=common-gen5',
-          '/api/fc/members/career/stats?clubId=42&platform=common-gen5',
-          '/api/fc/clubs/matches?clubIds=42&platform=common-gen5&matchType=leagueMatch&maxResultCount=10',
-        ],
+      ],
+      members: {
+        members: [{ name: 'mrjordan_237', goals: '7' }],
+        positionCount: { forward: 1 },
       },
-    )
+      careers: {
+        members: [{ name: 'mrjordan237', gamesPlayed: 12 }],
+        positionCount: { midfield: 1 },
+      },
+      matches: [],
+      requestedUrls: [
+        '/api/fc/clubs/info?clubIds=42&platform=common-gen5',
+        '/api/fc/clubs/overallStats?clubIds=42&platform=common-gen5',
+        '/api/fc/club/playoffAchievements?platform=common-gen5&clubId=42',
+        '/api/fc/members/stats?clubId=42&platform=common-gen5',
+        '/api/fc/members/career/stats?clubId=42&platform=common-gen5',
+        '/api/fc/clubs/matches?clubIds=42&platform=common-gen5&matchType=leagueMatch&maxResultCount=10',
+      ],
+    })
   })
 
   it('retries transient EA responses before returning validated data', async () => {

@@ -50,6 +50,11 @@ function createInitialResults(): EndpointDriftResults {
       status: 'unverified',
       issues: [],
     },
+    clubsPlayoffAchievements: {
+      endpoint: 'clubsPlayoffAchievements',
+      status: 'unverified',
+      issues: [],
+    },
     membersStats: {
       endpoint: 'membersStats',
       status: 'unverified',
@@ -301,6 +306,12 @@ export async function runCompatibilityCheck(
         endpoint: 'clubsOverallStats',
         action: async () => {
           await client.clubs.overallStats({ clubId, platform })
+        },
+      },
+      {
+        endpoint: 'clubsPlayoffAchievements',
+        action: async () => {
+          await client.clubs.playoffAchievements({ clubId, platform })
         },
       },
       {

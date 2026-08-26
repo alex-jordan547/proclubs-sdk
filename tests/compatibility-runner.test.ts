@@ -26,6 +26,8 @@ function fixtureBodyForPath(pathname: string): string {
       return loadFixture('clubs-get')
     case '/api/fc/clubs/overallStats':
       return loadFixture('clubs-overall-stats')
+    case '/api/fc/club/playoffAchievements':
+      return loadFixture('playoff-achievements')
     case '/api/fc/members/stats':
       return loadFixture('members-stats')
     case '/api/fc/members/career/stats':
@@ -38,7 +40,7 @@ function fixtureBodyForPath(pathname: string): string {
 }
 
 describe('Compatibility runner', () => {
-  it('runs all 10 endpoints sequentially on success and produces a sanitized report', async () => {
+  it('runs all 11 endpoints sequentially on success and produces a sanitized report', async () => {
     const executedCalls: string[] = []
     const progressEvents: Array<{ endpoint: Endpoint; status: string }> = []
 
@@ -60,6 +62,7 @@ describe('Compatibility runner', () => {
       '/api/fc/allTimeLeaderboard/search',
       '/api/fc/clubs/info',
       '/api/fc/clubs/overallStats',
+      '/api/fc/club/playoffAchievements',
       '/api/fc/members/stats',
       '/api/fc/members/career/stats',
       '/api/fc/clubs/matches',
@@ -72,6 +75,7 @@ describe('Compatibility runner', () => {
       'clubsSearch',
       'clubsGet',
       'clubsOverallStats',
+      'clubsPlayoffAchievements',
       'membersStats',
       'membersCareerStats',
       'matchesList',

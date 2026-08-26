@@ -14,6 +14,7 @@ import {
   resolvePlayoffResultLabel,
   resolvePositionLabel,
   resolveReputationLabel,
+  resolveSeasonLabel,
   type DivisionLabel,
   type KnownDivisionId,
   type KnownMatchTypeId,
@@ -236,6 +237,25 @@ describe('PLAYOFF_RESULT_LABELS and resolvePlayoffResultLabel', () => {
       resolvePlayoffResultLabel,
       EXPECTED_PLAYOFF_RESULT_LABELS,
     )
+  })
+})
+
+describe('resolveSeasonLabel', () => {
+  it('turns EA season keys into readable labels', () => {
+    expect(resolveSeasonLabel('CLUBS_LEAGUE_SEASON_07', '7')).toBe('Season 7')
+    expect(resolveSeasonLabel('CLUBS_LEAGUE_SEASON_07')).toBe('Season 7')
+  })
+
+  it('falls back to the raw season ID for unknown keys', () => {
+    expect(resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')).toBe('Season 9')
+    expect(resolveSeasonLabel(undefined, 10)).toBe('Season 10')
+  })
+
+  it('returns a non-empty unknown name when no numeric ID exists', () => {
+    expect(resolveSeasonLabel('EA_NEW_SEASON_FORMAT')).toBe(
+      'EA_NEW_SEASON_FORMAT',
+    )
+    expect(resolveSeasonLabel('  ', null)).toBeUndefined()
   })
 })
 

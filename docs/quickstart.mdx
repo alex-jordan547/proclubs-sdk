@@ -57,17 +57,22 @@ if (!club) {
 }
 
 const clubId = club.clubId
-const [info, overallStats, memberStats, careerStats, matches] =
+const [info, overallStats, memberStats, careerStats, matches, playoffs] =
   await Promise.all([
     proclubs.clubs.get({ clubId }),
     proclubs.clubs.overallStats({ clubId }),
     proclubs.members.stats({ clubId }),
     proclubs.members.careerStats({ clubId }),
     proclubs.matches.list({ clubId }),
+    proclubs.clubs.playoffAchievements({ clubId }),
   ])
 
-console.log({ info, overallStats, memberStats, careerStats, matches })
+console.log({ info, overallStats, memberStats, careerStats, matches, playoffs })
 ```
+
+`playoffs` is an ordered history. It preserves EA's raw season and performance
+codes and adds readable labels such as `Season 7`, `Division 2`, and `Champion`.
+Clubs with no playoff history return `[]`.
 
 <Tip>
   EA may add fields to responses. The SDK validates the known envelope and

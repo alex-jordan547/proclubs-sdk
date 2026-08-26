@@ -31,13 +31,14 @@ const proclubs = new ProClubsClient()
 const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
 
 if (club) {
-  const [info, members, matches] = await Promise.all([
+  const [info, members, matches, playoffs] = await Promise.all([
     proclubs.clubs.get({ clubId: club.clubId }),
     proclubs.members.stats({ clubId: club.clubId }),
     proclubs.matches.list({ clubId: club.clubId, limit: 5 }),
+    proclubs.clubs.playoffAchievements({ clubId: club.clubId }),
   ])
 
-  console.log({ info, members, matches })
+  console.log({ info, members, matches, playoffs })
 }
 ```
 
@@ -51,6 +52,7 @@ The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
 | `clubs.search({ name, platform? })` | `Promise<ClubSummary[]>` |
 | `clubs.get({ clubId, platform? })` | `Promise<ClubInfo \| null>` |
 | `clubs.overallStats({ clubId, platform? })` | `Promise<ClubOverallStats \| null>` |
+| `clubs.playoffAchievements({ clubId, platform? })` | `Promise<PlayoffAchievement[]>` |
 | `rankings.allTime(input?)` | `Promise<RankingEntry[]>` |
 | `rankings.searchAllTime({ name, platform? })` | `Promise<RankingEntry[]>` |
 | `rankings.currentSeason(input?)` | `Promise<RankingEntry[]>` |
