@@ -47,9 +47,27 @@ jobs:
         run: npm run check
 
       - name: Publish package
-        run: npm publish --access public
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          release_version="${RELEASE_TAG#v}"
+          if npm view "proclubs-sdk@${release_version}" version >/dev/null 2>&1; then
+            echo "proclubs-sdk@${release_version} is already published; continuing with verification"
+          else
+            npm publish --access public
+          fi
 
       - name: Verify publication
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: npm view "proclubs-sdk@${RELEASE_TAG#v}" version
+        run: |
+          release_version="${RELEASE_TAG#v}"
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            if npm view "proclubs-sdk@${release_version}" version; then
+              exit 0
+            fi
+            echo "Publication is not visible yet (attempt ${attempt}/12); retrying in 10s"
+            sleep 10
+          done
+          echo "Timed out waiting for npm to expose proclubs-sdk@${release_version}"
+          exit 1
