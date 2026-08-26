@@ -22,7 +22,10 @@ description: "See what changed in each release and what is still only planned."
 <Note>
   **Released** means the package is available on npm. EA can still change its
   upstream responses. The compatibility runner detects those changes; it does
-  not guarantee upstream stability.
+  not guarantee upstream stability. The SDK does not use authentication: never
+  send EA credentials, cookies, or session tokens. Keep live probes explicit,
+  sequential, and low volume. See [Support and
+  limitations](/docs/project/limitations) for the full operating guidance.
 </Note>
 
 ## Release diff
