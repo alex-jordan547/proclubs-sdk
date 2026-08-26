@@ -116,6 +116,32 @@ describe('ProClubsClient playoff achievements', () => {
     expect(resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')).toBe('Season 9')
   })
 
+  it('preserves upstream fields that collide with derived label names', async () => {
+    const payload = [
+      {
+        seasonId: '7',
+        seasonName: 'CLUBS_LEAGUE_SEASON_07',
+        bestDivision: '3',
+        bestFinishGroup: '1',
+        divisionLabel: 'EA raw division label',
+        finishLabel: 'EA raw finish label',
+        seasonLabel: 'EA raw season label',
+      },
+    ]
+    const client = new ProClubsClient({
+      transport: async () =>
+        new Response(JSON.stringify(payload), { status: 200 }),
+    })
+
+    const [result] = await client.clubs.playoffAchievements({ clubId: '42' })
+
+    expect(result).toMatchObject({
+      divisionLabel: 'EA raw division label',
+      finishLabel: 'EA raw finish label',
+      seasonLabel: 'EA raw season label',
+    })
+  })
+
   it('returns an empty history and rejects upstream error objects', async () => {
     const client = new ProClubsClient({
       transport: async (url) => {

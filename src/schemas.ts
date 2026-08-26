@@ -142,22 +142,19 @@ function enrichPlayoffAchievement(
   achievement: PlayoffAchievementObject,
 ): PlayoffAchievementWithLabels {
   const enriched: PlayoffAchievementWithLabels = { ...achievement }
-  delete enriched.divisionLabel
-  delete enriched.finishLabel
-  delete enriched.seasonLabel
 
   const divisionLabel = resolveDivisionLabel(enriched.bestDivision)
-  if (divisionLabel !== undefined) {
+  if (divisionLabel !== undefined && enriched.divisionLabel === undefined) {
     enriched.divisionLabel = divisionLabel
   }
 
   const finishLabel = resolvePlayoffResultLabel(enriched.bestFinishGroup)
-  if (finishLabel !== undefined) {
+  if (finishLabel !== undefined && enriched.finishLabel === undefined) {
     enriched.finishLabel = finishLabel
   }
 
   const seasonLabel = resolveSeasonLabel(enriched.seasonName, enriched.seasonId)
-  if (seasonLabel !== undefined) {
+  if (seasonLabel !== undefined && enriched.seasonLabel === undefined) {
     enriched.seasonLabel = seasonLabel
   }
 
