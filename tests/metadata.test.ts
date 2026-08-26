@@ -249,6 +249,15 @@ describe('resolveSeasonLabel', () => {
   it('falls back to the raw season ID for unknown keys', () => {
     expect(resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')).toBe('Season 9')
     expect(resolveSeasonLabel(undefined, 10)).toBe('Season 10')
+    expect(
+      resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '999999999999999999999'),
+    ).toBe('Season 999999999999999999999')
+  })
+
+  it('preserves numeric season keys without unsafe rounding', () => {
+    expect(
+      resolveSeasonLabel('CLUBS_LEAGUE_SEASON_000000000000000000007'),
+    ).toBe('Season 7')
   })
 
   it('returns a non-empty unknown name when no numeric ID exists', () => {

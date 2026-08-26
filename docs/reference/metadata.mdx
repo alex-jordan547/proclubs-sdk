@@ -56,8 +56,14 @@ Call the helpers explicitly when you need a display label or crest URL.
 Playoff season names are not a closed enum because EA can add new keys:
 
 ```ts
+import { resolveSeasonLabel } from 'proclubs-sdk'
+
 resolveSeasonLabel('CLUBS_LEAGUE_SEASON_07', '7')
 // 'Season 7'
+```
+
+```ts
+import { resolveSeasonLabel } from 'proclubs-sdk'
 
 resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')
 // 'Season 9' — fallback based on the raw seasonId

@@ -23,6 +23,7 @@ import {
   ProClubsClient,
   type RankingEntry,
   type RankingListResponse,
+  type PlayoffAchievementDerivedLabels,
   type PlayoffAchievement,
   type PlayoffAchievementsResponse,
   type RegionLabel,
@@ -270,6 +271,65 @@ describe('Fixtures parity and client mapping', () => {
       seasonLabel: 'Season 7',
     })
     expect(rawFixture[0]).not.toHaveProperty('seasonLabel')
+
+    const collisionFixture = rawFixture.map((achievement, index) =>
+      index === 0
+        ? {
+            ...achievement,
+            divisionLabel: 'EA raw division label',
+            finishLabel: 'EA raw finish label',
+            seasonLabel: 'EA raw season label',
+          }
+        : achievement,
+    )
+    const collisionClient = new ProClubsClient({
+      transport: async () =>
+        new Response(JSON.stringify(collisionFixture), { status: 200 }),
+    })
+    const collisionResult = await collisionClient.clubs.playoffAchievements({
+      clubId: '42',
+    })
+    const collisionExpected = collisionFixture.map((achievement) => {
+      const expected = {
+        ...achievement,
+        clubInfo: achievement.clubInfo
+          ? withRegionLabel(achievement.clubInfo)
+          : undefined,
+      }
+      const derivedLabels: PlayoffAchievementDerivedLabels = {}
+
+      if (achievement.divisionLabel === undefined) {
+        expected.divisionLabel =
+          achievement.bestDivision === '3' ? 'Division 2' : 'Division 3'
+      } else {
+        derivedLabels.divisionLabel =
+          achievement.bestDivision === '3' ? 'Division 2' : 'Division 3'
+      }
+
+      if (achievement.finishLabel === undefined) {
+        expected.finishLabel =
+          achievement.bestFinishGroup === '1' ? 'Champion' : 'Runner-Up'
+      } else {
+        derivedLabels.finishLabel =
+          achievement.bestFinishGroup === '1' ? 'Champion' : 'Runner-Up'
+      }
+
+      if (achievement.seasonLabel === undefined) {
+        expected.seasonLabel =
+          achievement.seasonId === '7' ? 'Season 7' : 'Season 6'
+      } else {
+        derivedLabels.seasonLabel =
+          achievement.seasonId === '7' ? 'Season 7' : 'Season 6'
+      }
+
+      if (Object.keys(derivedLabels).length > 0) {
+        expected.derivedLabels = derivedLabels
+      }
+
+      return expected
+    })
+
+    expect(collisionResult).toEqual(collisionExpected)
   })
 
   it('preserves unknown properties at multiple nesting depths', async () => {
@@ -282,6 +342,8 @@ describe('Fixtures parity and client mapping', () => {
         clubInfo: {
           name: 'ALL STAR 237',
           clubId: 42,
+          regionId: 5457237,
+          regionLabel: 'EA raw region label',
           unknownClubInfoField: true,
           customKit: {
             stadName: 'Stade de Wembley',
@@ -301,6 +363,7 @@ describe('Fixtures parity and client mapping', () => {
 
     expect(first?.['unknownTopLevel']).toBe('preserved_value')
     expect(first?.['nestedExtraObject']).toEqual({ deepKey: 123 })
+    expect(first?.clubInfo?.regionLabel).toBe('EA raw region label')
     expect(first?.clubInfo?.['unknownClubInfoField']).toBe(true)
     expect(first?.clubInfo?.customKit?.['unknownKitFeature']).toBe(
       'special_collar',
@@ -355,6 +418,10 @@ describe('Fixtures parity and client mapping', () => {
     expectTypeOf<PlayoffAchievement>().toHaveProperty('divisionLabel')
     expectTypeOf<PlayoffAchievement>().toHaveProperty('finishLabel')
     expectTypeOf<PlayoffAchievement>().toHaveProperty('seasonLabel')
+    expectTypeOf<PlayoffAchievement>().toHaveProperty('derivedLabels')
+    expectTypeOf<PlayoffAchievement['derivedLabels']>().toEqualTypeOf<
+      PlayoffAchievementDerivedLabels | undefined
+    >()
   })
 
   it('declares precise union types for string | number | null and id fields', () => {

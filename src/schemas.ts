@@ -76,10 +76,9 @@ type ClubInfoWithRegionLabel = ClubInfoObject & { regionLabel?: RegionLabel }
 
 function enrichClubRegion(club: ClubInfoObject): ClubInfoWithRegionLabel {
   const enriched: ClubInfoWithRegionLabel = { ...club }
-  delete enriched.regionLabel
 
   const regionLabel = resolveRegionLabel(enriched.regionId)
-  if (regionLabel === undefined) {
+  if (regionLabel === undefined || enriched.regionLabel !== undefined) {
     return enriched
   }
   enriched.regionLabel = regionLabel
@@ -132,30 +131,56 @@ const playoffAchievementObjectSchema = z.looseObject({
 })
 
 type PlayoffAchievementObject = z.output<typeof playoffAchievementObjectSchema>
+export type PlayoffAchievementDerivedLabels = {
+  divisionLabel?: DivisionLabel
+  finishLabel?: PlayoffResultLabel
+  seasonLabel?: string
+}
 type PlayoffAchievementWithLabels = PlayoffAchievementObject & {
   divisionLabel?: DivisionLabel
   finishLabel?: PlayoffResultLabel
   seasonLabel?: string
+  derivedLabels?: PlayoffAchievementDerivedLabels
 }
 
 function enrichPlayoffAchievement(
   achievement: PlayoffAchievementObject,
 ): PlayoffAchievementWithLabels {
   const enriched: PlayoffAchievementWithLabels = { ...achievement }
+  const derivedLabels: PlayoffAchievementDerivedLabels = {}
 
   const divisionLabel = resolveDivisionLabel(enriched.bestDivision)
-  if (divisionLabel !== undefined && enriched.divisionLabel === undefined) {
-    enriched.divisionLabel = divisionLabel
+  if (divisionLabel !== undefined) {
+    if (enriched.divisionLabel === undefined) {
+      enriched.divisionLabel = divisionLabel
+    } else {
+      derivedLabels.divisionLabel = divisionLabel
+    }
   }
 
   const finishLabel = resolvePlayoffResultLabel(enriched.bestFinishGroup)
-  if (finishLabel !== undefined && enriched.finishLabel === undefined) {
-    enriched.finishLabel = finishLabel
+  if (finishLabel !== undefined) {
+    if (enriched.finishLabel === undefined) {
+      enriched.finishLabel = finishLabel
+    } else {
+      derivedLabels.finishLabel = finishLabel
+    }
   }
 
   const seasonLabel = resolveSeasonLabel(enriched.seasonName, enriched.seasonId)
-  if (seasonLabel !== undefined && enriched.seasonLabel === undefined) {
-    enriched.seasonLabel = seasonLabel
+  if (seasonLabel !== undefined) {
+    if (enriched.seasonLabel === undefined) {
+      enriched.seasonLabel = seasonLabel
+    } else {
+      derivedLabels.seasonLabel = seasonLabel
+    }
+  }
+
+  if (
+    Object.keys(derivedLabels).length > 0 &&
+    enriched.derivedLabels === undefined
+  ) {
+    enriched.derivedLabels = derivedLabels
   }
 
   return enriched

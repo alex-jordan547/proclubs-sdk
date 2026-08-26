@@ -126,6 +126,7 @@ export type {
   RankingListResponse,
   RankingSearchInput,
   PlayoffAchievement,
+  PlayoffAchievementDerivedLabels,
   PlayoffAchievementsInput,
   PlayoffAchievementsResponse,
   SearchClubsInput,

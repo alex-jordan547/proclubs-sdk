@@ -118,20 +118,20 @@ export function resolveSeasonLabel(
   const normalizedName = seasonName?.trim()
   const seasonCode = normalizedName?.match(/(?:^|_)SEASON_(\d+)$/i)?.[1]
   if (seasonCode !== undefined) {
-    return `Season ${Number(seasonCode)}`
+    return `Season ${seasonCode.replace(/^0+(?=\d)/, '')}`
   }
 
   const seasonIdTag = Object.prototype.toString.call(seasonId)
   const normalizedId =
     seasonIdTag === '[object Number]'
-      ? Number.isFinite(Number(seasonId))
+      ? Number.isFinite(seasonId)
         ? String(seasonId)
         : undefined
       : seasonIdTag === '[object String]'
         ? String(seasonId).trim() || undefined
         : undefined
   if (normalizedId !== undefined && /^\d+$/.test(normalizedId)) {
-    return `Season ${Number(normalizedId)}`
+    return `Season ${normalizedId.replace(/^0+(?=\d)/, '')}`
   }
 
   return normalizedName || undefined

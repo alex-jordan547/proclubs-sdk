@@ -139,6 +139,11 @@ describe('ProClubsClient playoff achievements', () => {
       divisionLabel: 'EA raw division label',
       finishLabel: 'EA raw finish label',
       seasonLabel: 'EA raw season label',
+      derivedLabels: {
+        divisionLabel: 'Division 2',
+        finishLabel: 'Champion',
+        seasonLabel: 'Season 7',
+      },
     })
   })
 

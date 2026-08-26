@@ -42,6 +42,7 @@ import type {
   ClubOverallStats,
   ClubOverallStatsResponse,
   PlayoffAchievement,
+  PlayoffAchievementDerivedLabels,
   PlayoffAchievementsResponse,
   ClubSearchResponse,
   ClubSummary,
@@ -58,6 +59,9 @@ import type {
 
 Response object types preserve unknown upstream fields at runtime. Known fields follow the
 observed FC26 shapes described on the namespace reference pages.
+
+`PlayoffAchievementDerivedLabels` contains the typed resolved labels used when
+EA already supplies a field with one of the derived label names.
 
 ## Runtime fidelity and normalizations
 
