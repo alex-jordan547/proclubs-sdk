@@ -3,11 +3,21 @@ title: "Rankings"
 description: "Retrieve and search all-time and current-season club leaderboards."
 ---
 
+<Warning>
+  EA's Pro Clubs API is public but undocumented and can change without notice.
+  It does not require authentication. Keep requests low volume, never send
+  credentials or cookies, and do not include sensitive data in club names or
+  other request inputs.
+</Warning>
+
 ## `rankings.allTime`
 
 Get the all-time club leaderboard.
 
 ```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
 const entries = await proclubs.rankings.allTime()
 ```
 
@@ -29,6 +39,9 @@ const entries = await proclubs.rankings.allTime()
 Search the all-time leaderboard by club name.
 
 ```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
 const entries = await proclubs.rankings.searchAllTime({
   name: 'ALL STAR 237',
   platform: 'common-gen5',
@@ -52,6 +65,9 @@ const entries = await proclubs.rankings.searchAllTime({
 Get the current-season club leaderboard.
 
 ```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
 const entries = await proclubs.rankings.currentSeason({
   platform: 'common-gen5',
 })
@@ -72,6 +88,9 @@ const entries = await proclubs.rankings.currentSeason({
 Search the current-season leaderboard by club name.
 
 ```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
 const entries = await proclubs.rankings.searchCurrentSeason({
   name: 'HEMLE FC',
 })
