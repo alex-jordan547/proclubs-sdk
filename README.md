@@ -20,7 +20,7 @@ relay. An optional local memory cache helps repeated requests stay lightweight.
 npm install proclubs-sdk
 ```
 
-Requires Node.js 22 or newer and ESM.
+Requires Node.js 22.18.0 or newer and ESM.
 
 ## Quick start
 
@@ -73,6 +73,10 @@ Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 - [Errors and retries](./docs/guides/errors-and-retries.mdx)
 - [Cache and observability](./docs/guides/cache-and-observability.mdx)
 - [SDK reference](./docs/reference/client.mdx)
+- [Clubs reference](./docs/reference/clubs.mdx)
+- [Rankings reference](./docs/reference/rankings.mdx)
+- [Metadata and crest helpers](./docs/reference/metadata.mdx)
+- [Types, schemas, and compatibility](./docs/reference/types-and-schemas.mdx)
 - [Regions](./docs/reference/regions.mdx)
 - [Roadmap](./docs/project/roadmap.mdx)
 - [Support and limitations](./docs/project/limitations.mdx)

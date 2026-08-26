@@ -209,6 +209,12 @@ if (drift.status === 'drifted') {
 Run drift detection on **raw EA payloads**, not on SDK output. `regionLabel` is
 a derived SDK field and would otherwise appear as `field_added`.
 
+An endpoint with only `unknown_value` diagnostics remains `passed`: the raw EA
+value is usable, while the diagnostic tells maintainers that a label mapping
+may need to be extended. Structural changes, rejected payloads, and invalid
+envelopes are `drifted`. Empty arrays are `unverified` because their shape
+cannot be confirmed from an empty response.
+
 An unknown `regionId` does not fail club requests. The same ID can appear in a
 compatibility report as `unknown_value` so maintainers can extend
 `REGION_LABELS` after confirming the EA label. That signal is additive (`minor`)
@@ -222,7 +228,7 @@ Each report ends with a summary status and a release recommendation:
 | Recommendation | Meaning | Suggested action |
 | --- | --- | --- |
 | `patch` | All endpoints match the known contract. | Safe to release; no contract change. |
-| `minor` | EA added fields only (`field_added`), or a `regionId` is not yet in `REGION_LABELS` (`unknown_value`). Existing fields are intact. | Type and document the new fields or region, then release a minor version. |
+| `minor` | EA added fields only (`field_added`), or an enum/region value is not yet mapped (`unknown_value`). Existing fields are intact. | Type and document the new fields or value, then release a minor version. |
 | `major` | Fields were removed or renamed, types changed, or envelopes shifted. | Assess consumer impact before releasing a major version. |
 | `manual_review` | The run stopped early or produced mixed signals (for example, a Zod rejection on top of structural drift). | Inspect the per-endpoint issues before deciding. |
 

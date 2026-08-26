@@ -810,10 +810,17 @@ export function detectDrift(
   const isUnverified =
     Array.isArray(payload) && payload.length === 0 && issues.length === 0
 
+  const hasStructuralDrift = issues.some(
+    (issue) => issue.kind !== 'unknown_value',
+  )
+  // Unknown enum values preserve the raw response and only need a mapping review.
   const result: EndpointDriftResult = {
     endpoint,
-    status:
-      issues.length > 0 ? 'drifted' : isUnverified ? 'unverified' : 'passed',
+    status: hasStructuralDrift
+      ? 'drifted'
+      : isUnverified
+        ? 'unverified'
+        : 'passed',
     issues,
   }
   if (itemCount !== undefined) {
