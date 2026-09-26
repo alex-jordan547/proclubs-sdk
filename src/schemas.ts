@@ -334,10 +334,10 @@ function enrichMemberNationality(
   }
 
   const derivedLabels = { nationality } satisfies ClubMemberDerivedLabels
-  if (enriched.derivedLabels === undefined) {
-    enriched.derivedLabels = derivedLabels
-  } else if (isJsonObject(enriched.derivedLabels)) {
+  if (isJsonObject(enriched.derivedLabels)) {
     enriched.derivedLabels = { ...enriched.derivedLabels, ...derivedLabels }
+  } else {
+    enriched.derivedLabels = derivedLabels
   }
 
   return enriched

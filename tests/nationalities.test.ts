@@ -289,6 +289,24 @@ describe('Member nationality enrichment', () => {
     })
   })
 
+  it('replaces a non-object derivedLabels with the calculated nationality', () => {
+    const parsed = clubMemberSchema.parse({
+      name: 'bad-derived',
+      proNationality: '18',
+      nationality: 'France raw',
+      derivedLabels: null,
+    })
+
+    expect(parsed).toEqual({
+      name: 'bad-derived',
+      proNationality: '18',
+      nationality: 'France raw',
+      derivedLabels: {
+        nationality: { id: '18', label: 'France', isoCode: 'FR' },
+      },
+    })
+  })
+
   it('preserves a null upstream nationality', () => {
     const parsed = clubMemberSchema.parse({
       name: 'null-upstream',
