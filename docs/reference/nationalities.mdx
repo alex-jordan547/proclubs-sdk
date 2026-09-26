@@ -1,0 +1,312 @@
+---
+title: "Nationalities"
+description: "Resolve EA proNationality values to a nation label and ISO code."
+---
+
+EA Pro Clubs member responses identify a virtual pro's nation with a numeric
+`proNationality`. The SDK keeps that raw identifier and, when the value is
+known, adds a derived `nationality` on normalized members from `members.stats`
+and `members.careerStats`.
+
+<Warning>
+  This mapping is reverse-engineered from the EA SPORTS FC website. It is not
+  an official EA contract and can change without notice. Unknown IDs never fail
+  a request: `proNationality` stays available and `nationality` is omitted.
+</Warning>
+
+## Where the table comes from
+
+Captured on 2026-09-26 from
+[the EA SPORTS FC ratings page](https://www.ea.com/games/ea-sports-fc/ratings).
+
+The page embeds `props.pageProps.ratingsFilters.nationality` in its
+`__NEXT_DATA__` JSON. Each item is `{ id, label, imageUrl, isPopular }`. The
+flag asset is named `f_{id}.png` (`f_14.png` is England). The Pro Clubs
+overview and member-list pages embed region translations only, so they do not
+carry this table. Live `members/stats` payloads use the same numeric ids.
+
+The ratings page listed Comoros (`214`) twice, with the same label and two
+flag URLs. The SDK keeps one entry.
+
+Labels are copied exactly from EA, including `Holland`, `Côte d'Ivoire`,
+`Korea Republic`, `China PR`, `Cape Verde Islands`, and
+`São Tomé e Príncipe`.
+
+## Beginner example
+
+```ts
+import { ProClubsClient, resolveNationality } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const stats = await proclubs.members.stats({ clubId: '35303' })
+
+for (const member of stats.members) {
+  console.log(member.proNationality, member.nationality)
+}
+
+resolveNationality(14)
+resolveNationality('14')
+resolveNationality('  14  ')
+// { id: '14', label: 'England', isoCode: 'GB-ENG' }
+
+resolveNationality(999999)
+resolveNationality(null)
+resolveNationality('')
+// undefined
+```
+
+`id` on the derived object is the canonical EA id as a string, the same key
+used by `NATIONALITY_LABELS`. The raw `proNationality` is not rewritten, so a
+numeric upstream value stays a number.
+
+## ISO codes
+
+`isoCode` is added by the SDK. EA does not send it.
+
+- When the nation has an ISO 3166-1 alpha-2 code, `isoCode` is that code.
+- England, Scotland, Wales, and Northern Ireland have no alpha-2 code of their
+  own. `isoCode` is the ISO 3166-2 subdivision: `GB-ENG`, `GB-SCT`, `GB-WLS`,
+  and `GB-NIR`.
+- Chinese Taipei (`213`) and Kosovo (`219`) have no officially assigned ISO
+  3166-1 alpha-2 code, so `isoCode` is omitted.
+- EA's label for the Netherlands is `Holland`. `isoCode` is `NL`.
+
+## Known nationalities
+
+| `proNationality` | Label | `isoCode` |
+| --- | --- | --- |
+| `1` | Albania | `AL` |
+| `2` | Andorra | `AD` |
+| `3` | Armenia | `AM` |
+| `4` | Austria | `AT` |
+| `5` | Azerbaijan | `AZ` |
+| `6` | Belarus | `BY` |
+| `7` | Belgium | `BE` |
+| `8` | Bosnia and Herzegovina | `BA` |
+| `9` | Bulgaria | `BG` |
+| `10` | Croatia | `HR` |
+| `11` | Cyprus | `CY` |
+| `12` | Czech Republic | `CZ` |
+| `13` | Denmark | `DK` |
+| `14` | England | `GB-ENG` |
+| `15` | Montenegro | `ME` |
+| `16` | Faroe Islands | `FO` |
+| `17` | Finland | `FI` |
+| `18` | France | `FR` |
+| `19` | North Macedonia | `MK` |
+| `20` | Georgia | `GE` |
+| `21` | Germany | `DE` |
+| `22` | Greece | `GR` |
+| `23` | Hungary | `HU` |
+| `24` | Iceland | `IS` |
+| `25` | Republic of Ireland | `IE` |
+| `26` | Israel | `IL` |
+| `27` | Italy | `IT` |
+| `28` | Latvia | `LV` |
+| `29` | Liechtenstein | `LI` |
+| `30` | Lithuania | `LT` |
+| `31` | Luxembourg | `LU` |
+| `32` | Malta | `MT` |
+| `33` | Moldova | `MD` |
+| `34` | Holland | `NL` |
+| `35` | Northern Ireland | `GB-NIR` |
+| `36` | Norway | `NO` |
+| `37` | Poland | `PL` |
+| `38` | Portugal | `PT` |
+| `39` | Romania | `RO` |
+| `40` | Russia | `RU` |
+| `42` | Scotland | `GB-SCT` |
+| `43` | Slovakia | `SK` |
+| `44` | Slovenia | `SI` |
+| `45` | Spain | `ES` |
+| `46` | Sweden | `SE` |
+| `47` | Switzerland | `CH` |
+| `48` | Turkey | `TR` |
+| `49` | Ukraine | `UA` |
+| `50` | Wales | `GB-WLS` |
+| `51` | Serbia | `RS` |
+| `52` | Argentina | `AR` |
+| `53` | Bolivia | `BO` |
+| `54` | Brazil | `BR` |
+| `55` | Chile | `CL` |
+| `56` | Colombia | `CO` |
+| `57` | Ecuador | `EC` |
+| `58` | Paraguay | `PY` |
+| `59` | Peru | `PE` |
+| `60` | Uruguay | `UY` |
+| `61` | Venezuela | `VE` |
+| `63` | Antigua and Barbuda | `AG` |
+| `66` | Barbados | `BB` |
+| `68` | Bermuda | `BM` |
+| `70` | Canada | `CA` |
+| `72` | Costa Rica | `CR` |
+| `73` | Cuba | `CU` |
+| `76` | El Salvador | `SV` |
+| `77` | Grenada | `GD` |
+| `78` | Guatemala | `GT` |
+| `79` | Guyana | `GY` |
+| `80` | Haiti | `HT` |
+| `81` | Honduras | `HN` |
+| `82` | Jamaica | `JM` |
+| `83` | Mexico | `MX` |
+| `84` | Montserrat | `MS` |
+| `85` | Curaçao | `CW` |
+| `87` | Panama | `PA` |
+| `88` | Puerto Rico | `PR` |
+| `89` | St. Kitts and Nevis | `KN` |
+| `90` | St. Lucia | `LC` |
+| `92` | Suriname | `SR` |
+| `93` | Trinidad and Tobago | `TT` |
+| `95` | United States | `US` |
+| `97` | Algeria | `DZ` |
+| `98` | Angola | `AO` |
+| `99` | Benin | `BJ` |
+| `101` | Burkina Faso | `BF` |
+| `102` | Burundi | `BI` |
+| `103` | Cameroon | `CM` |
+| `104` | Cape Verde Islands | `CV` |
+| `105` | Central African Republic | `CF` |
+| `106` | Chad | `TD` |
+| `107` | Congo | `CG` |
+| `108` | Côte d'Ivoire | `CI` |
+| `110` | Congo DR | `CD` |
+| `111` | Egypt | `EG` |
+| `112` | Equatorial Guinea | `GQ` |
+| `113` | Eritrea | `ER` |
+| `115` | Gabon | `GA` |
+| `116` | Gambia | `GM` |
+| `117` | Ghana | `GH` |
+| `118` | Guinea | `GN` |
+| `119` | Guinea-Bissau | `GW` |
+| `120` | Kenya | `KE` |
+| `122` | Liberia | `LR` |
+| `123` | Libya | `LY` |
+| `124` | Madagascar | `MG` |
+| `125` | Malawi | `MW` |
+| `126` | Mali | `ML` |
+| `127` | Mauritania | `MR` |
+| `128` | Mauritius | `MU` |
+| `129` | Morocco | `MA` |
+| `130` | Mozambique | `MZ` |
+| `131` | Namibia | `NA` |
+| `132` | Niger | `NE` |
+| `133` | Nigeria | `NG` |
+| `134` | Rwanda | `RW` |
+| `135` | São Tomé e Príncipe | `ST` |
+| `136` | Senegal | `SN` |
+| `138` | Sierra Leone | `SL` |
+| `139` | Somalia | `SO` |
+| `140` | South Africa | `ZA` |
+| `143` | Tanzania | `TZ` |
+| `144` | Togo | `TG` |
+| `145` | Tunisia | `TN` |
+| `146` | Uganda | `UG` |
+| `147` | Zambia | `ZM` |
+| `148` | Zimbabwe | `ZW` |
+| `149` | Afghanistan | `AF` |
+| `151` | Bangladesh | `BD` |
+| `155` | China PR | `CN` |
+| `158` | Hong Kong | `HK` |
+| `159` | India | `IN` |
+| `160` | Indonesia | `ID` |
+| `161` | Iran | `IR` |
+| `162` | Iraq | `IQ` |
+| `163` | Japan | `JP` |
+| `164` | Jordan | `JO` |
+| `165` | Kazakhstan | `KZ` |
+| `166` | Korea DPR | `KP` |
+| `167` | Korea Republic | `KR` |
+| `171` | Lebanon | `LB` |
+| `178` | Oman | `OM` |
+| `179` | Pakistan | `PK` |
+| `180` | Palestine | `PS` |
+| `181` | Philippines | `PH` |
+| `182` | Qatar | `QA` |
+| `183` | Saudi Arabia | `SA` |
+| `185` | Sri Lanka | `LK` |
+| `186` | Syria | `SY` |
+| `188` | Thailand | `TH` |
+| `190` | United Arab Emirates | `AE` |
+| `191` | Uzbekistan | `UZ` |
+| `193` | Yemen | `YE` |
+| `195` | Australia | `AU` |
+| `198` | New Zealand | `NZ` |
+| `204` | Vanuatu | `VU` |
+| `205` | Gibraltar | `GI` |
+| `207` | Dominican Republic | `DO` |
+| `208` | Estonia | `EE` |
+| `213` | Chinese Taipei | absent |
+| `214` | Comoros | `KM` |
+| `215` | New Caledonia | `NC` |
+| `219` | Kosovo | absent |
+
+## Mapping and helper
+
+```ts
+import {
+  NATIONALITY_LABELS,
+  resolveNationality,
+  type KnownNationalityId,
+  type Nationality,
+  type NationalityIsoCode,
+  type NationalityLabel,
+} from 'proclubs-sdk'
+
+NATIONALITY_LABELS['14']
+// { label: 'England', isoCode: 'GB-ENG' }
+
+NATIONALITY_LABELS['213']
+// { label: 'Chinese Taipei' }
+```
+
+- `NATIONALITY_LABELS` is a frozen object whose keys are the EA IDs as strings.
+  Each value is frozen too.
+- `KnownNationalityId`, `NationalityLabel`, and `NationalityIsoCode` are derived
+  from that constant.
+- `resolveNationality` accepts `string | number | null | undefined` and returns
+  `{ id, label, isoCode? }` or `undefined`.
+- Surrounding whitespace on string IDs is ignored. There is no partial match
+  and no numeric coercion beyond the exact string or number EA sent.
+- `null`, `undefined`, `''`, and a whitespace-only string resolve to
+  `undefined` and do not throw.
+
+If EA already supplies `nationality` on a member, that raw value is preserved
+and the calculated value is exposed under `derivedLabels.nationality`.
+
+## Players checked against the table
+
+These players are shown on the ratings page with the nation below. The id is
+the same value stored in `nationality.id` next to that player.
+
+| Player | `proNationality` | Label |
+| --- | --- | --- |
+| Harry Kane | `14` | England |
+| Kylian Mbappé | `18` | France |
+| Klara Bühl | `21` | Germany |
+| Katie McCabe | `25` | Republic of Ireland |
+| Gianluigi Donnarumma | `27` | Italy |
+| Virgil van Dijk | `34` | Holland |
+| Vitinha | `38` | Portugal |
+| Scott McTominay | `42` | Scotland |
+| Alexia Putellas | `45` | Spain |
+| Lionel Messi | `52` | Argentina |
+| Vini Jr. | `54` | Brazil |
+| Sophia Wilson | `95` | United States |
+| Yui Hasegawa | `163` | Japan |
+
+On 2026-09-26, live Pro Clubs rosters on `common-gen5` returned the same ids
+for frequent nations, including England, France, Germany, Italy, Holland,
+Portugal, Spain, Scotland, Argentina, Brazil, and the United States, plus
+Wales (`50`) and Chinese Taipei (`213`). The member-list page does not render
+the nation name, so those rosters confirm the id space rather than a second
+label source.
+
+## Drift detection
+
+An unknown `proNationality` is valid at runtime so a new EA nation cannot break
+`members.stats` or `members.careerStats`. The
+[structural drift detector](/docs/reference/types-and-schemas) can report that
+ID as `unknown_value` on a live compatibility check. `null` and an empty or
+whitespace-only string are not reported: they mean the nation was not sent.
+Maintainers then confirm the EA label and update `NATIONALITY_LABELS`
+deliberately. The mapping does not depend on the full compatibility workflow.

@@ -47,8 +47,13 @@ that shape as `ClubMemberCareerStats`.
   `assists`, `cleanSheetsDef`, `cleanSheetsGK`, `shotSuccessRate`, `passesMade`,
   `passSuccessRate`, `ratingAve`, `tacklesMade`, `tackleSuccessRate`,
   `proName`, `proPos`, `proStyle`, `proHeight`, `proNationality`, `proOverall`,
-  `proOverallStr`, `manOfTheMatch`, `redCards`, `prevGoals`, `prevGoals1..10`, and `favoritePosition`.
+  `proOverallStr`, `manOfTheMatch`, `redCards`, `prevGoals`, `prevGoals1..10`,
+  `favoritePosition`, and, when `proNationality` is a known EA id, a derived
+  `nationality` of `{ id, label, isoCode? }`.
 </ResponseField>
+
+`proNationality` stays exactly as EA sent it. `nationality` is calculated by
+the SDK. See [Nationalities](/docs/reference/nationalities).
 
 <ResponseField name="positionCount" type="Record<string, number>" required>
   Number of members grouped by EA position key (e.g. `midfielder`, `forward`, `defender`, `goalkeeper`).

@@ -26,6 +26,13 @@ export type {
   Platform,
   ProClubsEndpoint,
 } from './constants.js'
+export { NATIONALITY_LABELS, resolveNationality } from './nationalities.js'
+export type {
+  KnownNationalityId,
+  Nationality,
+  NationalityIsoCode,
+  NationalityLabel,
+} from './nationalities.js'
 export { REGION_LABELS, resolveRegionLabel } from './regions.js'
 export type { KnownRegionId, RegionLabel } from './regions.js'
 export {
@@ -110,6 +117,7 @@ export type {
   ClubMatchesResponse,
   ClubMember,
   ClubMemberCareerStats,
+  ClubMemberDerivedLabels,
   ClubMemberStats,
   ClubOverallStats,
   ClubOverallStatsResponse,

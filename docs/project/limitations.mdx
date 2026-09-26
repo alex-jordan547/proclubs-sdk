@@ -29,7 +29,9 @@ upstream service stable.
 
 Region labels are reverse-engineered from the EA website. They are not an
 official EA contract. A new or renamed region keeps the raw `regionId` readable
-and omits `regionLabel` until the SDK mapping is updated.
+and omits `regionLabel` until the SDK mapping is updated. Nationality labels
+follow the same rule: an unknown `proNationality` stays on the member and
+`nationality` is omitted until `NATIONALITY_LABELS` is updated.
 
 Platform, match-type, position, reputation, division, and playoff labels follow
 the same rule: raw EA codes stay on the response object and helpers return

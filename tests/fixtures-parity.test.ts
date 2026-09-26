@@ -29,6 +29,7 @@ import {
   type PlayoffAchievementsResponse,
   type JsonValue,
   type RegionLabel,
+  resolveNationality,
   resolveRegionLabel,
 } from '../src/index.js'
 
@@ -116,7 +117,7 @@ describe('Fixtures parity and client mapping', () => {
     expect(result?.lastOpponent0).toBe('43')
   })
 
-  it('verifies members.stats returns exact raw fixture data', async () => {
+  it('verifies members.stats keeps raw fields and adds nationality', async () => {
     const rawFixture = loadFixture<ClubMemberStats>('members-stats')
     const client = new ProClubsClient({
       transport: async () =>
@@ -124,11 +125,26 @@ describe('Fixtures parity and client mapping', () => {
     })
 
     const result = await client.members.stats({ clubId: '42' })
+    const expected = structuredClone(rawFixture)
+    const member = expected.members[0]
+    if (member) {
+      const nationality = resolveNationality(member.proNationality)
+      expected.members[0] = nationality
+        ? { ...member, nationality }
+        : { ...member }
+    }
 
-    expect(result).toEqual(rawFixture)
+    expect(result).toEqual(expected)
     expect(result.members[0]?.name).toBe('mrjordan_237')
+    expect(result.members[0]?.proNationality).toBe('115')
+    expect(result.members[0]?.nationality).toEqual({
+      id: '115',
+      label: 'Gabon',
+      isoCode: 'GA',
+    })
     expect(result.members[0]?.proOverallStr).toBe('86')
     expect(result.positionCount?.['midfielder']).toBe(11)
+    expect(rawFixture.members[0]).not.toHaveProperty('nationality')
   })
 
   it('verifies members.careerStats returns exact raw fixture data', async () => {
