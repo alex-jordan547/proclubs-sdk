@@ -17,6 +17,7 @@ interface ProClubsClientOptions {
   timeoutMs?: number
   maxAttempts?: number
   baseDelayMs?: number
+  httpMode?: 'default' | 'strict'
   transport?: ProClubsTransport
   cache?: boolean | ProClubsCacheOptions
   onEvent?: ProClubsEventHandler

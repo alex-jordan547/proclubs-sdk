@@ -58,7 +58,7 @@ The SDK retries:
 - network failures and timeouts;
 - `429`, `502`, `503`, and `504` responses;
 - `403` responses only when the body does not validate as the requested
-  endpoint's expected payload.
+  endpoint's expected payload, in the default HTTP mode.
 
 Retries use exponential backoff from `baseDelayMs`. If EA returns `Retry-After`
 with a longer delay, that value wins. The total number of attempts is bounded by
@@ -69,6 +69,36 @@ with a longer delay, that value wins. The total number of attempts is bounded by
   accepts such a response only when its body validates for that exact endpoint.
   A body such as `{ "error": "Forbidden" }` is never treated as valid data.
 </Info>
+
+## Stop on every 403
+
+Set `httpMode: 'strict'` when a probe or consumer must stop on a 403 regardless
+of its payload:
+
+```ts
+import { ProClubsClient, ProClubsHttpError } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({ httpMode: 'strict' })
+
+try {
+  await proclubs.matches.list({ clubId: '12345' })
+} catch (error) {
+  if (error instanceof ProClubsHttpError && error.status === 403) {
+    // Stop this probe or report that access was denied.
+  } else {
+    throw error
+  }
+}
+```
+
+Strict mode rejects a 403 on the first attempt with `ProClubsHttpError`, even
+when `maxAttempts` is greater than `1`. The error includes `status: 403` and the
+typed `endpoint`. The request emits `request:error` with code `HTTP` and status
+`403`, without `request:success` or `request:retry` for that attempt. Other
+statuses keep their existing retry behavior. Strict mode stops before reading
+the 403 body, so `bodySnippet` is unavailable for that error. It does not change a
+value already served from the optional cache; use `{ cache: 'bypass' }` when
+every call must reach the transport.
 
 The SDK does not retry:
 
