@@ -1,49 +1,29 @@
-import { readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { beforeAll, describe, expect, expectTypeOf, it } from 'vitest'
 
-import {
-  DIVISION_LABELS,
-  MATCH_TYPE_LABELS,
-  MATCH_TYPE_RESPONSE_LABELS,
-  PLATFORM_LABELS,
-  PLAYOFF_RESULT_LABELS,
-  POSITION_LABELS,
-  REPUTATION_LABELS,
-  resolveDivisionLabel,
-  resolveMatchTypeLabel,
-  resolvePlatformLabel,
-  resolvePlayoffResultLabel,
-  resolvePositionLabel,
-  resolveReputationLabel,
-  resolveSeasonLabel,
-  type DivisionLabel,
-  type KnownDivisionId,
-  type KnownMatchTypeId,
-  type KnownPlatformId,
-  type KnownPlayoffResultId,
-  type KnownPositionId,
-  type KnownReputationId,
-  type MatchTypeLabel,
-  type PlatformLabel,
-  type PlayoffResultLabel,
-  type PositionLabel,
-  type ReputationLabel,
-} from 'proclubs-sdk/metadata'
-import {
-  NATIONALITY_LABELS,
-  resolveNationality,
-  type KnownNationalityId,
-  type Nationality,
-  type NationalityIsoCode,
-  type NationalityLabel,
-} from 'proclubs-sdk/nationalities'
-import {
-  REGION_LABELS,
-  resolveRegionLabel,
-  type KnownRegionId,
-  type RegionLabel,
-} from 'proclubs-sdk/regions'
+import type {
+  DivisionLabel,
+  KnownDivisionId,
+  KnownMatchTypeId,
+  KnownPlatformId,
+  KnownPlayoffResultId,
+  KnownPositionId,
+  KnownReputationId,
+  MatchTypeLabel,
+  PlatformLabel,
+  PlayoffResultLabel,
+  PositionLabel,
+  ReputationLabel,
+} from '../src/metadata.js'
+import type {
+  KnownNationalityId,
+  Nationality,
+  NationalityIsoCode,
+  NationalityLabel,
+} from '../src/nationalities.js'
+import type { KnownRegionId, RegionLabel } from '../src/regions.js'
 
 function getTransitiveImports(
   filePath: string,
@@ -68,24 +48,42 @@ function getTransitiveImports(
 }
 
 describe('Subpath exports', () => {
-  it('exposes nationalities without client or native dependencies', () => {
-    expect(NATIONALITY_LABELS['14'].label).toBe('England')
-    expect(resolveNationality('14')).toEqual({
+  beforeAll(() => {
+    if (!existsSync(resolve(process.cwd(), 'dist/nationalities.js'))) {
+      const build = spawnSync('npm', ['run', 'build'], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+      })
+      if (build.status !== 0) {
+        throw new Error(`Build failed in subpaths test: ${build.stderr}`)
+      }
+    }
+  })
+
+  it('exposes nationalities without client or native dependencies', async () => {
+    const nationalities = await import('proclubs-sdk/nationalities')
+    expect(nationalities.NATIONALITY_LABELS['14'].label).toBe('England')
+    expect(nationalities.resolveNationality('14')).toEqual({
       id: '14',
       label: 'England',
       isoCode: 'GB-ENG',
     })
-    expectTypeOf(resolveNationality).toBeFunction()
-    expectTypeOf(NATIONALITY_LABELS['14'].label).toEqualTypeOf<'England'>()
+
+    expectTypeOf(nationalities.resolveNationality('14')).toEqualTypeOf<
+      Nationality | undefined
+    >()
+    expectTypeOf(
+      nationalities.NATIONALITY_LABELS['14'].label,
+    ).toEqualTypeOf<'England'>()
     expectTypeOf<KnownNationalityId>().toEqualTypeOf<
-      keyof typeof NATIONALITY_LABELS
+      keyof typeof nationalities.NATIONALITY_LABELS
     >()
     expectTypeOf<NationalityLabel>().toEqualTypeOf<
-      (typeof NATIONALITY_LABELS)[KnownNationalityId]['label']
+      (typeof nationalities.NATIONALITY_LABELS)[KnownNationalityId]['label']
     >()
     expectTypeOf<NationalityIsoCode>().toEqualTypeOf<
       Extract<
-        (typeof NATIONALITY_LABELS)[KnownNationalityId],
+        (typeof nationalities.NATIONALITY_LABELS)[KnownNationalityId],
         { readonly isoCode: string }
       >['isoCode']
     >()
@@ -102,14 +100,22 @@ describe('Subpath exports', () => {
     expect(deps).toEqual([])
   })
 
-  it('exposes regions without client or native dependencies', () => {
-    expect(REGION_LABELS['5457237']).toBe('Southern Europe')
-    expect(resolveRegionLabel(5457237)).toBe('Southern Europe')
-    expectTypeOf(resolveRegionLabel).toBeFunction()
-    expectTypeOf(REGION_LABELS['5457237']).toEqualTypeOf<'Southern Europe'>()
-    expectTypeOf<KnownRegionId>().toEqualTypeOf<keyof typeof REGION_LABELS>()
+  it('exposes regions without client or native dependencies', async () => {
+    const regions = await import('proclubs-sdk/regions')
+    expect(regions.REGION_LABELS['5457237']).toBe('Southern Europe')
+    expect(regions.resolveRegionLabel(5457237)).toBe('Southern Europe')
+
+    expectTypeOf(regions.resolveRegionLabel(5457237)).toEqualTypeOf<
+      RegionLabel | undefined
+    >()
+    expectTypeOf(
+      regions.REGION_LABELS['5457237'],
+    ).toEqualTypeOf<'Southern Europe'>()
+    expectTypeOf<KnownRegionId>().toEqualTypeOf<
+      keyof typeof regions.REGION_LABELS
+    >()
     expectTypeOf<RegionLabel>().toEqualTypeOf<
-      (typeof REGION_LABELS)[KnownRegionId]
+      (typeof regions.REGION_LABELS)[KnownRegionId]
     >()
 
     const regionsPath = resolve(process.cwd(), 'dist/regions.js')
@@ -119,67 +125,84 @@ describe('Subpath exports', () => {
     expect(deps).toEqual([])
   })
 
-  it('exposes metadata without client or native dependencies', () => {
-    expect(PLATFORM_LABELS['common-gen5']).toBe('Crossplatform Current Gen')
-    expect(resolvePlatformLabel('common-gen5')).toBe(
+  it('exposes metadata without client or native dependencies', async () => {
+    const metadata = await import('proclubs-sdk/metadata')
+    expect(metadata.PLATFORM_LABELS['common-gen5']).toBe(
       'Crossplatform Current Gen',
     )
-    expect(DIVISION_LABELS['1']).toBe('Elite')
-    expect(resolveDivisionLabel(1)).toBe('Elite')
-    expect(MATCH_TYPE_LABELS.leagueMatch).toBe('League Match')
-    expect(MATCH_TYPE_RESPONSE_LABELS['1']).toBe('League Match')
-    expect(resolveMatchTypeLabel('1')).toBe('League Match')
-    expect(PLAYOFF_RESULT_LABELS['1']).toBe('Champion')
-    expect(resolvePlayoffResultLabel(1)).toBe('Champion')
-    expect(POSITION_LABELS.midfielder).toBe('Midfielder')
-    expect(resolvePositionLabel('midfielder')).toBe('Midfielder')
-    expect(REPUTATION_LABELS['3']).toBe('World Renown')
-    expect(resolveReputationLabel(3)).toBe('World Renown')
-    expect(resolveSeasonLabel('Season 1')).toBe('Season 1')
+    expect(metadata.resolvePlatformLabel('common-gen5')).toBe(
+      'Crossplatform Current Gen',
+    )
+    expect(metadata.DIVISION_LABELS['1']).toBe('Elite')
+    expect(metadata.resolveDivisionLabel(1)).toBe('Elite')
+    expect(metadata.MATCH_TYPE_LABELS.leagueMatch).toBe('League Match')
+    expect(metadata.MATCH_TYPE_RESPONSE_LABELS['1']).toBe('League Match')
+    expect(metadata.resolveMatchTypeLabel('1')).toBe('League Match')
+    expect(metadata.PLAYOFF_RESULT_LABELS['1']).toBe('Champion')
+    expect(metadata.resolvePlayoffResultLabel(1)).toBe('Champion')
+    expect(metadata.POSITION_LABELS.midfielder).toBe('Midfielder')
+    expect(metadata.resolvePositionLabel('midfielder')).toBe('Midfielder')
+    expect(metadata.REPUTATION_LABELS['3']).toBe('World Renown')
+    expect(metadata.resolveReputationLabel(3)).toBe('World Renown')
+    expect(metadata.resolveSeasonLabel('Season 1')).toBe('Season 1')
 
-    expectTypeOf(resolvePlatformLabel).toBeFunction()
-    expectTypeOf(resolveDivisionLabel).toBeFunction()
-    expectTypeOf(resolveMatchTypeLabel).toBeFunction()
-    expectTypeOf(resolvePlayoffResultLabel).toBeFunction()
-    expectTypeOf(resolvePositionLabel).toBeFunction()
-    expectTypeOf(resolveReputationLabel).toBeFunction()
-    expectTypeOf(resolveSeasonLabel).toBeFunction()
+    expectTypeOf(metadata.resolvePlatformLabel('common-gen5')).toEqualTypeOf<
+      PlatformLabel | undefined
+    >()
+    expectTypeOf(metadata.resolveDivisionLabel(1)).toEqualTypeOf<
+      DivisionLabel | undefined
+    >()
+    expectTypeOf(metadata.resolveMatchTypeLabel('1')).toEqualTypeOf<
+      MatchTypeLabel | undefined
+    >()
+    expectTypeOf(metadata.resolvePlayoffResultLabel(1)).toEqualTypeOf<
+      PlayoffResultLabel | undefined
+    >()
+    expectTypeOf(metadata.resolvePositionLabel('midfielder')).toEqualTypeOf<
+      PositionLabel | undefined
+    >()
+    expectTypeOf(metadata.resolveReputationLabel(1)).toEqualTypeOf<
+      ReputationLabel | undefined
+    >()
+    expectTypeOf(metadata.resolveSeasonLabel('Season 1')).toEqualTypeOf<
+      string | undefined
+    >()
 
     expectTypeOf<KnownPlatformId>().toEqualTypeOf<
-      keyof typeof PLATFORM_LABELS
+      keyof typeof metadata.PLATFORM_LABELS
     >()
     expectTypeOf<PlatformLabel>().toEqualTypeOf<
-      (typeof PLATFORM_LABELS)[KnownPlatformId]
+      (typeof metadata.PLATFORM_LABELS)[KnownPlatformId]
     >()
     expectTypeOf<KnownDivisionId>().toEqualTypeOf<
-      keyof typeof DIVISION_LABELS
+      keyof typeof metadata.DIVISION_LABELS
     >()
     expectTypeOf<DivisionLabel>().toEqualTypeOf<
-      (typeof DIVISION_LABELS)[KnownDivisionId]
+      (typeof metadata.DIVISION_LABELS)[KnownDivisionId]
     >()
     expectTypeOf<KnownMatchTypeId>().toEqualTypeOf<
-      keyof typeof MATCH_TYPE_LABELS
+      keyof typeof metadata.MATCH_TYPE_LABELS
     >()
     expectTypeOf<MatchTypeLabel>().toEqualTypeOf<
-      (typeof MATCH_TYPE_LABELS)[KnownMatchTypeId]
+      (typeof metadata.MATCH_TYPE_LABELS)[KnownMatchTypeId]
     >()
     expectTypeOf<KnownPlayoffResultId>().toEqualTypeOf<
-      keyof typeof PLAYOFF_RESULT_LABELS
+      keyof typeof metadata.PLAYOFF_RESULT_LABELS
     >()
     expectTypeOf<PlayoffResultLabel>().toEqualTypeOf<
-      (typeof PLAYOFF_RESULT_LABELS)[KnownPlayoffResultId]
+      (typeof metadata.PLAYOFF_RESULT_LABELS)[KnownPlayoffResultId]
     >()
     expectTypeOf<KnownPositionId>().toEqualTypeOf<
-      keyof typeof POSITION_LABELS
+      keyof typeof metadata.POSITION_LABELS
     >()
     expectTypeOf<PositionLabel>().toEqualTypeOf<
-      (typeof POSITION_LABELS)[KnownPositionId]
+      (typeof metadata.POSITION_LABELS)[KnownPositionId]
     >()
     expectTypeOf<KnownReputationId>().toEqualTypeOf<
-      keyof typeof REPUTATION_LABELS
+      keyof typeof metadata.REPUTATION_LABELS
     >()
     expectTypeOf<ReputationLabel>().toEqualTypeOf<
-      (typeof REPUTATION_LABELS)[KnownReputationId]
+      (typeof metadata.REPUTATION_LABELS)[KnownReputationId]
     >()
 
     const metadataPath = resolve(process.cwd(), 'dist/metadata.js')
@@ -187,5 +210,31 @@ describe('Subpath exports', () => {
     expect(deps).not.toContain('./client.js')
     expect(deps).not.toContain('impit')
     expect(deps).toEqual(['./label-lookup.js'])
+  })
+
+  it('runs isolated in a child Node process without loading impit or client.js', () => {
+    const script = `
+      import { resolveNationality } from 'proclubs-sdk/nationalities'
+      import { resolveRegionLabel } from 'proclubs-sdk/regions'
+      import { resolveDivisionLabel } from 'proclubs-sdk/metadata'
+
+      const nation = resolveNationality(14)
+      const region = resolveRegionLabel(5457237)
+      const div = resolveDivisionLabel(1)
+
+      if (!nation || nation.label !== 'England') process.exit(2)
+      if (region !== 'Southern Europe') process.exit(3)
+      if (div !== 'Elite') process.exit(4)
+
+      // Ensure native impit was not loaded
+      if (globalThis.__impit_loaded__ || process.features?.inspector === false) {
+        process.exit(5)
+      }
+    `
+    const result = spawnSync('node', ['--input-type=module', '-e', script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    })
+    expect(result.status).toBe(0)
   })
 })
