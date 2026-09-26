@@ -334,8 +334,12 @@ function enrichMemberNationality(
   }
 
   const derivedLabels = { nationality } satisfies ClubMemberDerivedLabels
-  if (isJsonObject(enriched.derivedLabels)) {
-    enriched.derivedLabels = { ...enriched.derivedLabels, ...derivedLabels }
+  const existingDerivedLabels = enriched.derivedLabels
+  if (
+    existingDerivedLabels !== undefined &&
+    isJsonObject(existingDerivedLabels)
+  ) {
+    enriched.derivedLabels = { ...existingDerivedLabels, ...derivedLabels }
   } else {
     enriched.derivedLabels = derivedLabels
   }
