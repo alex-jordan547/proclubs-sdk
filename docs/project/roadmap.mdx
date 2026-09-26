@@ -7,9 +7,9 @@ description: "See what changed in each release and what is still only planned."
   <Card
     title="Current release"
     icon="tag"
-    href="https://www.npmjs.com/package/proclubs-sdk/v/0.2.1"
+    href="https://www.npmjs.com/package/proclubs-sdk/v/0.2.2"
   >
-    `0.2.1` is the current npm release.
+    `0.2.2` is the current npm release.
   </Card>
   <Card title="Public API" icon="code" href="/docs/reference/client">
     11 typed methods across clubs, rankings, members, matches, and playoffs.
@@ -34,7 +34,15 @@ description: "See what changed in each release and what is still only planned."
 | --- | --- | ---: |
 | [`0.1.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.1.0) | First public SDK with Zod validation, bounded retries, typed errors, cancellation, and documentation. | 6 |
 | [`0.2.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.0) | Added the opt-in memory cache, bounded LRU capacity, request deduplication, and local observability. The endpoint surface stayed the same. | 6 |
-| [`0.2.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.1) (current) | Added rankings, playoff history, exhaustive endpoint contracts, metadata helpers, and configurable live compatibility probes. | 11 |
+| [`0.2.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.1) | Added rankings, playoff history, exhaustive endpoint contracts, metadata helpers, and configurable live compatibility probes. | 11 |
+| [`0.2.2`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.2) (current) | Added strict mode for forbidden responses, released response resources promptly, and updated dependencies. | 11 |
+
+## What shipped in 0.2.2
+
+- Added an opt-in strict mode that reports an immediate `403` instead of retrying.
+- Released response resources before returning a strict-mode HTTP error.
+- Updated Zod and development dependencies. The public endpoint surface stays at
+  11 typed methods.
 
 ## What shipped in 0.2.1
 
