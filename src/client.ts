@@ -80,6 +80,8 @@ export interface ProClubsResponse {
   readonly statusText: string
   readonly ok: boolean
   readonly headers: Headers
+  readonly body?: { cancel(): Promise<void> } | null
+  arrayBuffer?(): Promise<ArrayBuffer>
   text(): Promise<string>
 }
 
@@ -489,6 +491,7 @@ export class ProClubsClient {
         }
         response = await this.#transport(url, requestInit)
         if (this.#httpMode === 'strict' && response.status === 403) {
+          await this.releaseResponse(response)
           const errorOptions: ProClubsHttpErrorOptions = {
             status: 403,
             endpoint,
@@ -792,6 +795,22 @@ export class ProClubsClient {
   private truncateBody(body: string): string {
     const compact = body.replace(/\s+/g, ' ').trim()
     return compact.length <= 200 ? compact : `${compact.slice(0, 200)}…`
+  }
+
+  private async releaseResponse(response: ProClubsResponse): Promise<void> {
+    try {
+      await response.body?.cancel()
+    } catch {
+      // Keep the HTTP error when response cleanup fails.
+    }
+    try {
+      // Impit detaches its AbortSignal listener when a body method settles.
+      if (response.body) {
+        await response.arrayBuffer?.()
+      }
+    } catch {
+      // A cancelled body may reject when read.
+    }
   }
 
   private isNamedError(error: Error, name: string): boolean {

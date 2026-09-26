@@ -95,10 +95,10 @@ Strict mode rejects a 403 on the first attempt with `ProClubsHttpError`, even
 when `maxAttempts` is greater than `1`. The error includes `status: 403` and the
 typed `endpoint`. The request emits `request:error` with code `HTTP` and status
 `403`, without `request:success` or `request:retry` for that attempt. Other
-statuses keep their existing retry behavior. Strict mode stops before reading
-the 403 body, so `bodySnippet` is unavailable for that error. It does not change a
-value already served from the optional cache; use `{ cache: 'bypass' }` when
-every call must reach the transport.
+statuses keep their existing retry behavior. Strict mode releases the response
+without parsing its payload, so `bodySnippet` is unavailable for that error.
+It does not change a value already served from the optional cache; use
+`{ cache: 'bypass' }` when every call must reach the transport.
 
 The SDK does not retry:
 

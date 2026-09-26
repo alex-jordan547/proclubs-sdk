@@ -210,6 +210,7 @@ describe('ProClubsClient', () => {
       const events: ProClubsEvent[] = []
       let calls = 0
       let bodyReads = 0
+      let bodyCancels = 0
       const client = new ProClubsClient({
         httpMode: 'strict',
         maxAttempts: 3,
@@ -221,6 +222,15 @@ describe('ProClubsClient', () => {
         transport: async () => {
           calls += 1
           const response = new Response(payload, { status: 403 })
+          const body = response.body
+          if (!body) {
+            throw new Error('expected a response body')
+          }
+          const cancel = body.cancel.bind(body)
+          vi.spyOn(body, 'cancel').mockImplementation(async () => {
+            bodyCancels += 1
+            await cancel()
+          })
           vi.spyOn(response, 'text').mockImplementation(async () => {
             bodyReads += 1
             return payload
@@ -243,6 +253,7 @@ describe('ProClubsClient', () => {
       } satisfies Partial<ProClubsHttpError>)
       expect(calls).toBe(1)
       expect(bodyReads).toBe(0)
+      expect(bodyCancels).toBe(1)
       expect(
         events.filter((event) => event.type.startsWith('request:')),
       ).toEqual([
@@ -265,9 +276,47 @@ describe('ProClubsClient', () => {
       )
       expect(calls).toBe(2)
       expect(bodyReads).toBe(0)
+      expect(bodyCancels).toBe(2)
       expect(events.some((event) => event.type === 'cache:write')).toBe(false)
     },
   )
+
+  it('detaches an abort listener when releasing an Impit-compatible 403 response', async () => {
+    const controller = new AbortController()
+    const onAbort = vi.fn()
+    const cancelBody = vi.fn(async () => {})
+    const readBody = vi.fn(async () => '[]')
+    const client = new ProClubsClient({
+      httpMode: 'strict',
+      transport: async (_url, init) => {
+        init?.signal?.addEventListener('abort', onAbort)
+        return {
+          status: 403,
+          statusText: 'Forbidden',
+          ok: false,
+          headers: new Headers(),
+          body: { cancel: cancelBody },
+          arrayBuffer: async () => {
+            init?.signal?.removeEventListener('abort', onAbort)
+            return new ArrayBuffer(0)
+          },
+          text: readBody,
+        }
+      },
+    })
+
+    await expect(
+      client.matches.list({ clubId: '1' }, { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      code: 'HTTP',
+      status: 403,
+      endpoint: 'matchesList',
+    })
+    expect(cancelBody).toHaveBeenCalledOnce()
+    expect(readBody).not.toHaveBeenCalled()
+    controller.abort()
+    expect(onAbort).not.toHaveBeenCalled()
+  })
 
   it('rejects a forbidden member-stats body instead of treating it as an empty roster', async () => {
     const client = new ProClubsClient({
