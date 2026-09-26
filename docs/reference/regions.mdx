@@ -75,6 +75,9 @@ resolveRegionLabel(null)
 - `resolveRegionLabel` accepts `string | number | null | undefined`.
 - Surrounding whitespace on string IDs is ignored. There is no partial match
   and no numeric coercion beyond the exact string or number EA sent.
+- Consumers that only need the region table can import from the standalone
+  subpath `proclubs-sdk/regions` without loading the HTTP client or native
+  dependencies.
 
 ## Drift detection
 

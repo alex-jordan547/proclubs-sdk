@@ -286,6 +286,10 @@ NATIONALITY_LABELS['213']
 - `null`, `undefined`, `''`, and a whitespace-only string resolve to
   `undefined` and do not throw.
 
+Consumers that only need the nationality table can import from the standalone
+subpath `proclubs-sdk/nationalities` without loading the HTTP client or native
+dependencies.
+
 If EA already supplies `nationality` on a member, that raw value is preserved
 and the calculated value is exposed under `derivedLabels.nationality`.
 
