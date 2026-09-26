@@ -80,6 +80,8 @@ export interface ProClubsResponse {
   readonly statusText: string
   readonly ok: boolean
   readonly headers: Headers
+  readonly body?: { cancel(): Promise<void> } | null
+  arrayBuffer?(): Promise<ArrayBuffer>
   text(): Promise<string>
 }
 
@@ -93,11 +95,14 @@ export type ProClubsTransport = (
   init?: ProClubsRequestInit,
 ) => Promise<ProClubsResponse>
 
+export type ProClubsHttpMode = 'default' | 'strict'
+
 export interface ProClubsClientOptions {
   platform?: Platform
   timeoutMs?: number
   maxAttempts?: number
   baseDelayMs?: number
+  httpMode?: ProClubsHttpMode
   transport?: ProClubsTransport
   cache?: boolean | ProClubsCacheOptions
   onEvent?: ProClubsEventHandler
@@ -181,6 +186,7 @@ export class ProClubsClient {
   readonly #transport: ProClubsTransport
   readonly #maxAttempts: number
   readonly #baseDelayMs: number
+  readonly #httpMode: ProClubsHttpMode
   readonly #cache?: MemoryCache<unknown>
   readonly #inFlight = new Map<string, Promise<unknown>>()
   readonly #onEvent: ProClubsEventHandler | undefined
@@ -204,10 +210,20 @@ export class ProClubsClient {
         'timeoutMs must be a positive finite number',
       )
     }
+    if (
+      options.httpMode !== undefined &&
+      options.httpMode !== 'default' &&
+      options.httpMode !== 'strict'
+    ) {
+      throw new ProClubsValidationError(
+        'httpMode must be "default" or "strict"',
+      )
+    }
     this.#platform = options.platform ?? DEFAULT_PLATFORM
     this.#transport = options.transport ?? createDefaultTransport(timeoutMs)
     this.#maxAttempts = maxAttempts
     this.#baseDelayMs = baseDelayMs
+    this.#httpMode = options.httpMode ?? 'default'
     this.#onEvent = options.onEvent
 
     if (options.cache) {
@@ -474,6 +490,24 @@ export class ProClubsClient {
           requestInit.signal = options.signal
         }
         response = await this.#transport(url, requestInit)
+        if (this.#httpMode === 'strict' && response.status === 403) {
+          await this.releaseResponse(response)
+          const errorOptions: ProClubsHttpErrorOptions = {
+            status: 403,
+            endpoint,
+          }
+          const retryAfterMs = this.parseRetryAfter(response.headers)
+          if (retryAfterMs !== undefined) {
+            errorOptions.retryAfterMs = retryAfterMs
+          }
+          const error = new ProClubsHttpError(
+            `EA FC ${endpoint} failed with HTTP 403${response.statusText ? ` ${response.statusText}` : ''}`,
+            errorOptions,
+          )
+          this.emitRequestError(endpoint, attempt, startedAt, error.code, 403)
+          outcomeEmitted = true
+          throw error
+        }
         const body = await response.text()
         let json: unknown
         let parsedJson = true
@@ -515,7 +549,11 @@ export class ProClubsClient {
           throw error
         }
 
-        if (response.status === 403 && parsed?.success) {
+        if (
+          response.status === 403 &&
+          this.#httpMode === 'default' &&
+          parsed?.success
+        ) {
           this.emit({
             type: 'request:success',
             endpoint,
@@ -757,6 +795,22 @@ export class ProClubsClient {
   private truncateBody(body: string): string {
     const compact = body.replace(/\s+/g, ' ').trim()
     return compact.length <= 200 ? compact : `${compact.slice(0, 200)}…`
+  }
+
+  private async releaseResponse(response: ProClubsResponse): Promise<void> {
+    try {
+      await response.body?.cancel()
+    } catch {
+      // Keep the HTTP error when response cleanup fails.
+    }
+    try {
+      // Impit detaches its AbortSignal listener when a body method settles.
+      if (response.body) {
+        await response.arrayBuffer?.()
+      }
+    } catch {
+      // A cancelled body may reject when read.
+    }
   }
 
   private isNamedError(error: Error, name: string): boolean {

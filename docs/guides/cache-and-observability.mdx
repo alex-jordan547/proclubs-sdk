@@ -85,3 +85,7 @@ retry delay, and error code where relevant. They do not include URLs, query
 parameters, club IDs, player names, or response bodies.
 
 Observer failures are ignored by the SDK and cannot change the request result.
+`onEvent` can report a 403 but cannot make the request fail. Use
+`httpMode: 'strict'` on the client if a 403 must reject the promise; see
+[Errors and retries](/docs/guides/errors-and-retries). Events in either mode
+remain free of URLs, query parameters, identities, and response bodies.

@@ -34,6 +34,12 @@ const proclubs = new ProClubsClient({
   backoff delay.
 </ParamField>
 
+<ParamField path="httpMode" type="'default' | 'strict'" default="default">
+  In `strict` mode, reject every HTTP 403 immediately, even when the payload
+  validates. The default mode accepts a valid 403 payload and retries an invalid
+  one within `maxAttempts`. See [Errors and retries](/docs/guides/errors-and-retries).
+</ParamField>
+
 <ParamField path="transport" type="ProClubsTransport">
   Optional request function for tests or custom Node.js runtimes.
 </ParamField>

@@ -9,6 +9,7 @@ export type {
 } from './events.js'
 export type {
   ProClubsClientOptions,
+  ProClubsHttpMode,
   ProClubsRequestInit,
   ProClubsRequestOptions,
   ProClubsResponse,
