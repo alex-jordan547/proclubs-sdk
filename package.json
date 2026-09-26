@@ -1,6 +1,6 @@
 {
   "name": "proclubs-sdk",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Unofficial TypeScript SDK for EA Sports FC Pro Clubs.",
   "author": "Alex Jordan",
   "type": "module",
