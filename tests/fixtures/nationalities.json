@@ -1,0 +1,1006 @@
+{
+  "source": {
+    "url": "https://www.ea.com/games/ea-sports-fc/ratings",
+    "capturedOn": "2026-09-26",
+    "method": "Read props.pageProps.ratingsFilters.nationality from the __NEXT_DATA__ JSON embedded in the EA SPORTS FC ratings page. Each item is {id, label, imageUrl, isPopular}. Flag files are named f_{id}.png. The Pro Clubs overview and member-list pages embed region translations only. Live members/stats proNationality values use these same ids."
+  },
+  "duplicateIdsCollapsed": ["214"],
+  "isoNotes": {
+    "alpha2": "isoCode is ISO 3166-1 alpha-2 when that code exists. These codes are not supplied by EA.",
+    "subdivisions": {
+      "14": "GB-ENG",
+      "35": "GB-NIR",
+      "42": "GB-SCT",
+      "50": "GB-WLS"
+    },
+    "absent": {
+      "213": "Chinese Taipei has no ISO 3166-1 alpha-2 code.",
+      "219": "Kosovo has no officially assigned ISO 3166-1 alpha-2 code."
+    },
+    "labelAliases": {
+      "Holland": "EA's label is Holland. NL is the alpha-2 code for the Netherlands."
+    }
+  },
+  "entries": [
+    {
+      "id": "1",
+      "label": "Albania",
+      "isoCode": "AL"
+    },
+    {
+      "id": "2",
+      "label": "Andorra",
+      "isoCode": "AD"
+    },
+    {
+      "id": "3",
+      "label": "Armenia",
+      "isoCode": "AM"
+    },
+    {
+      "id": "4",
+      "label": "Austria",
+      "isoCode": "AT"
+    },
+    {
+      "id": "5",
+      "label": "Azerbaijan",
+      "isoCode": "AZ"
+    },
+    {
+      "id": "6",
+      "label": "Belarus",
+      "isoCode": "BY"
+    },
+    {
+      "id": "7",
+      "label": "Belgium",
+      "isoCode": "BE"
+    },
+    {
+      "id": "8",
+      "label": "Bosnia and Herzegovina",
+      "isoCode": "BA"
+    },
+    {
+      "id": "9",
+      "label": "Bulgaria",
+      "isoCode": "BG"
+    },
+    {
+      "id": "10",
+      "label": "Croatia",
+      "isoCode": "HR"
+    },
+    {
+      "id": "11",
+      "label": "Cyprus",
+      "isoCode": "CY"
+    },
+    {
+      "id": "12",
+      "label": "Czech Republic",
+      "isoCode": "CZ"
+    },
+    {
+      "id": "13",
+      "label": "Denmark",
+      "isoCode": "DK"
+    },
+    {
+      "id": "14",
+      "label": "England",
+      "isoCode": "GB-ENG"
+    },
+    {
+      "id": "15",
+      "label": "Montenegro",
+      "isoCode": "ME"
+    },
+    {
+      "id": "16",
+      "label": "Faroe Islands",
+      "isoCode": "FO"
+    },
+    {
+      "id": "17",
+      "label": "Finland",
+      "isoCode": "FI"
+    },
+    {
+      "id": "18",
+      "label": "France",
+      "isoCode": "FR"
+    },
+    {
+      "id": "19",
+      "label": "North Macedonia",
+      "isoCode": "MK"
+    },
+    {
+      "id": "20",
+      "label": "Georgia",
+      "isoCode": "GE"
+    },
+    {
+      "id": "21",
+      "label": "Germany",
+      "isoCode": "DE"
+    },
+    {
+      "id": "22",
+      "label": "Greece",
+      "isoCode": "GR"
+    },
+    {
+      "id": "23",
+      "label": "Hungary",
+      "isoCode": "HU"
+    },
+    {
+      "id": "24",
+      "label": "Iceland",
+      "isoCode": "IS"
+    },
+    {
+      "id": "25",
+      "label": "Republic of Ireland",
+      "isoCode": "IE"
+    },
+    {
+      "id": "26",
+      "label": "Israel",
+      "isoCode": "IL"
+    },
+    {
+      "id": "27",
+      "label": "Italy",
+      "isoCode": "IT"
+    },
+    {
+      "id": "28",
+      "label": "Latvia",
+      "isoCode": "LV"
+    },
+    {
+      "id": "29",
+      "label": "Liechtenstein",
+      "isoCode": "LI"
+    },
+    {
+      "id": "30",
+      "label": "Lithuania",
+      "isoCode": "LT"
+    },
+    {
+      "id": "31",
+      "label": "Luxembourg",
+      "isoCode": "LU"
+    },
+    {
+      "id": "32",
+      "label": "Malta",
+      "isoCode": "MT"
+    },
+    {
+      "id": "33",
+      "label": "Moldova",
+      "isoCode": "MD"
+    },
+    {
+      "id": "34",
+      "label": "Holland",
+      "isoCode": "NL"
+    },
+    {
+      "id": "35",
+      "label": "Northern Ireland",
+      "isoCode": "GB-NIR"
+    },
+    {
+      "id": "36",
+      "label": "Norway",
+      "isoCode": "NO"
+    },
+    {
+      "id": "37",
+      "label": "Poland",
+      "isoCode": "PL"
+    },
+    {
+      "id": "38",
+      "label": "Portugal",
+      "isoCode": "PT"
+    },
+    {
+      "id": "39",
+      "label": "Romania",
+      "isoCode": "RO"
+    },
+    {
+      "id": "40",
+      "label": "Russia",
+      "isoCode": "RU"
+    },
+    {
+      "id": "42",
+      "label": "Scotland",
+      "isoCode": "GB-SCT"
+    },
+    {
+      "id": "43",
+      "label": "Slovakia",
+      "isoCode": "SK"
+    },
+    {
+      "id": "44",
+      "label": "Slovenia",
+      "isoCode": "SI"
+    },
+    {
+      "id": "45",
+      "label": "Spain",
+      "isoCode": "ES"
+    },
+    {
+      "id": "46",
+      "label": "Sweden",
+      "isoCode": "SE"
+    },
+    {
+      "id": "47",
+      "label": "Switzerland",
+      "isoCode": "CH"
+    },
+    {
+      "id": "48",
+      "label": "Turkey",
+      "isoCode": "TR"
+    },
+    {
+      "id": "49",
+      "label": "Ukraine",
+      "isoCode": "UA"
+    },
+    {
+      "id": "50",
+      "label": "Wales",
+      "isoCode": "GB-WLS"
+    },
+    {
+      "id": "51",
+      "label": "Serbia",
+      "isoCode": "RS"
+    },
+    {
+      "id": "52",
+      "label": "Argentina",
+      "isoCode": "AR"
+    },
+    {
+      "id": "53",
+      "label": "Bolivia",
+      "isoCode": "BO"
+    },
+    {
+      "id": "54",
+      "label": "Brazil",
+      "isoCode": "BR"
+    },
+    {
+      "id": "55",
+      "label": "Chile",
+      "isoCode": "CL"
+    },
+    {
+      "id": "56",
+      "label": "Colombia",
+      "isoCode": "CO"
+    },
+    {
+      "id": "57",
+      "label": "Ecuador",
+      "isoCode": "EC"
+    },
+    {
+      "id": "58",
+      "label": "Paraguay",
+      "isoCode": "PY"
+    },
+    {
+      "id": "59",
+      "label": "Peru",
+      "isoCode": "PE"
+    },
+    {
+      "id": "60",
+      "label": "Uruguay",
+      "isoCode": "UY"
+    },
+    {
+      "id": "61",
+      "label": "Venezuela",
+      "isoCode": "VE"
+    },
+    {
+      "id": "63",
+      "label": "Antigua and Barbuda",
+      "isoCode": "AG"
+    },
+    {
+      "id": "66",
+      "label": "Barbados",
+      "isoCode": "BB"
+    },
+    {
+      "id": "68",
+      "label": "Bermuda",
+      "isoCode": "BM"
+    },
+    {
+      "id": "70",
+      "label": "Canada",
+      "isoCode": "CA"
+    },
+    {
+      "id": "72",
+      "label": "Costa Rica",
+      "isoCode": "CR"
+    },
+    {
+      "id": "73",
+      "label": "Cuba",
+      "isoCode": "CU"
+    },
+    {
+      "id": "76",
+      "label": "El Salvador",
+      "isoCode": "SV"
+    },
+    {
+      "id": "77",
+      "label": "Grenada",
+      "isoCode": "GD"
+    },
+    {
+      "id": "78",
+      "label": "Guatemala",
+      "isoCode": "GT"
+    },
+    {
+      "id": "79",
+      "label": "Guyana",
+      "isoCode": "GY"
+    },
+    {
+      "id": "80",
+      "label": "Haiti",
+      "isoCode": "HT"
+    },
+    {
+      "id": "81",
+      "label": "Honduras",
+      "isoCode": "HN"
+    },
+    {
+      "id": "82",
+      "label": "Jamaica",
+      "isoCode": "JM"
+    },
+    {
+      "id": "83",
+      "label": "Mexico",
+      "isoCode": "MX"
+    },
+    {
+      "id": "84",
+      "label": "Montserrat",
+      "isoCode": "MS"
+    },
+    {
+      "id": "85",
+      "label": "Curaçao",
+      "isoCode": "CW"
+    },
+    {
+      "id": "87",
+      "label": "Panama",
+      "isoCode": "PA"
+    },
+    {
+      "id": "88",
+      "label": "Puerto Rico",
+      "isoCode": "PR"
+    },
+    {
+      "id": "89",
+      "label": "St. Kitts and Nevis",
+      "isoCode": "KN"
+    },
+    {
+      "id": "90",
+      "label": "St. Lucia",
+      "isoCode": "LC"
+    },
+    {
+      "id": "92",
+      "label": "Suriname",
+      "isoCode": "SR"
+    },
+    {
+      "id": "93",
+      "label": "Trinidad and Tobago",
+      "isoCode": "TT"
+    },
+    {
+      "id": "95",
+      "label": "United States",
+      "isoCode": "US"
+    },
+    {
+      "id": "97",
+      "label": "Algeria",
+      "isoCode": "DZ"
+    },
+    {
+      "id": "98",
+      "label": "Angola",
+      "isoCode": "AO"
+    },
+    {
+      "id": "99",
+      "label": "Benin",
+      "isoCode": "BJ"
+    },
+    {
+      "id": "101",
+      "label": "Burkina Faso",
+      "isoCode": "BF"
+    },
+    {
+      "id": "102",
+      "label": "Burundi",
+      "isoCode": "BI"
+    },
+    {
+      "id": "103",
+      "label": "Cameroon",
+      "isoCode": "CM"
+    },
+    {
+      "id": "104",
+      "label": "Cape Verde Islands",
+      "isoCode": "CV"
+    },
+    {
+      "id": "105",
+      "label": "Central African Republic",
+      "isoCode": "CF"
+    },
+    {
+      "id": "106",
+      "label": "Chad",
+      "isoCode": "TD"
+    },
+    {
+      "id": "107",
+      "label": "Congo",
+      "isoCode": "CG"
+    },
+    {
+      "id": "108",
+      "label": "Côte d'Ivoire",
+      "isoCode": "CI"
+    },
+    {
+      "id": "110",
+      "label": "Congo DR",
+      "isoCode": "CD"
+    },
+    {
+      "id": "111",
+      "label": "Egypt",
+      "isoCode": "EG"
+    },
+    {
+      "id": "112",
+      "label": "Equatorial Guinea",
+      "isoCode": "GQ"
+    },
+    {
+      "id": "113",
+      "label": "Eritrea",
+      "isoCode": "ER"
+    },
+    {
+      "id": "115",
+      "label": "Gabon",
+      "isoCode": "GA"
+    },
+    {
+      "id": "116",
+      "label": "Gambia",
+      "isoCode": "GM"
+    },
+    {
+      "id": "117",
+      "label": "Ghana",
+      "isoCode": "GH"
+    },
+    {
+      "id": "118",
+      "label": "Guinea",
+      "isoCode": "GN"
+    },
+    {
+      "id": "119",
+      "label": "Guinea-Bissau",
+      "isoCode": "GW"
+    },
+    {
+      "id": "120",
+      "label": "Kenya",
+      "isoCode": "KE"
+    },
+    {
+      "id": "122",
+      "label": "Liberia",
+      "isoCode": "LR"
+    },
+    {
+      "id": "123",
+      "label": "Libya",
+      "isoCode": "LY"
+    },
+    {
+      "id": "124",
+      "label": "Madagascar",
+      "isoCode": "MG"
+    },
+    {
+      "id": "125",
+      "label": "Malawi",
+      "isoCode": "MW"
+    },
+    {
+      "id": "126",
+      "label": "Mali",
+      "isoCode": "ML"
+    },
+    {
+      "id": "127",
+      "label": "Mauritania",
+      "isoCode": "MR"
+    },
+    {
+      "id": "128",
+      "label": "Mauritius",
+      "isoCode": "MU"
+    },
+    {
+      "id": "129",
+      "label": "Morocco",
+      "isoCode": "MA"
+    },
+    {
+      "id": "130",
+      "label": "Mozambique",
+      "isoCode": "MZ"
+    },
+    {
+      "id": "131",
+      "label": "Namibia",
+      "isoCode": "NA"
+    },
+    {
+      "id": "132",
+      "label": "Niger",
+      "isoCode": "NE"
+    },
+    {
+      "id": "133",
+      "label": "Nigeria",
+      "isoCode": "NG"
+    },
+    {
+      "id": "134",
+      "label": "Rwanda",
+      "isoCode": "RW"
+    },
+    {
+      "id": "135",
+      "label": "São Tomé e Príncipe",
+      "isoCode": "ST"
+    },
+    {
+      "id": "136",
+      "label": "Senegal",
+      "isoCode": "SN"
+    },
+    {
+      "id": "138",
+      "label": "Sierra Leone",
+      "isoCode": "SL"
+    },
+    {
+      "id": "139",
+      "label": "Somalia",
+      "isoCode": "SO"
+    },
+    {
+      "id": "140",
+      "label": "South Africa",
+      "isoCode": "ZA"
+    },
+    {
+      "id": "143",
+      "label": "Tanzania",
+      "isoCode": "TZ"
+    },
+    {
+      "id": "144",
+      "label": "Togo",
+      "isoCode": "TG"
+    },
+    {
+      "id": "145",
+      "label": "Tunisia",
+      "isoCode": "TN"
+    },
+    {
+      "id": "146",
+      "label": "Uganda",
+      "isoCode": "UG"
+    },
+    {
+      "id": "147",
+      "label": "Zambia",
+      "isoCode": "ZM"
+    },
+    {
+      "id": "148",
+      "label": "Zimbabwe",
+      "isoCode": "ZW"
+    },
+    {
+      "id": "149",
+      "label": "Afghanistan",
+      "isoCode": "AF"
+    },
+    {
+      "id": "151",
+      "label": "Bangladesh",
+      "isoCode": "BD"
+    },
+    {
+      "id": "155",
+      "label": "China PR",
+      "isoCode": "CN"
+    },
+    {
+      "id": "158",
+      "label": "Hong Kong",
+      "isoCode": "HK"
+    },
+    {
+      "id": "159",
+      "label": "India",
+      "isoCode": "IN"
+    },
+    {
+      "id": "160",
+      "label": "Indonesia",
+      "isoCode": "ID"
+    },
+    {
+      "id": "161",
+      "label": "Iran",
+      "isoCode": "IR"
+    },
+    {
+      "id": "162",
+      "label": "Iraq",
+      "isoCode": "IQ"
+    },
+    {
+      "id": "163",
+      "label": "Japan",
+      "isoCode": "JP"
+    },
+    {
+      "id": "164",
+      "label": "Jordan",
+      "isoCode": "JO"
+    },
+    {
+      "id": "165",
+      "label": "Kazakhstan",
+      "isoCode": "KZ"
+    },
+    {
+      "id": "166",
+      "label": "Korea DPR",
+      "isoCode": "KP"
+    },
+    {
+      "id": "167",
+      "label": "Korea Republic",
+      "isoCode": "KR"
+    },
+    {
+      "id": "171",
+      "label": "Lebanon",
+      "isoCode": "LB"
+    },
+    {
+      "id": "178",
+      "label": "Oman",
+      "isoCode": "OM"
+    },
+    {
+      "id": "179",
+      "label": "Pakistan",
+      "isoCode": "PK"
+    },
+    {
+      "id": "180",
+      "label": "Palestine",
+      "isoCode": "PS"
+    },
+    {
+      "id": "181",
+      "label": "Philippines",
+      "isoCode": "PH"
+    },
+    {
+      "id": "182",
+      "label": "Qatar",
+      "isoCode": "QA"
+    },
+    {
+      "id": "183",
+      "label": "Saudi Arabia",
+      "isoCode": "SA"
+    },
+    {
+      "id": "185",
+      "label": "Sri Lanka",
+      "isoCode": "LK"
+    },
+    {
+      "id": "186",
+      "label": "Syria",
+      "isoCode": "SY"
+    },
+    {
+      "id": "188",
+      "label": "Thailand",
+      "isoCode": "TH"
+    },
+    {
+      "id": "190",
+      "label": "United Arab Emirates",
+      "isoCode": "AE"
+    },
+    {
+      "id": "191",
+      "label": "Uzbekistan",
+      "isoCode": "UZ"
+    },
+    {
+      "id": "193",
+      "label": "Yemen",
+      "isoCode": "YE"
+    },
+    {
+      "id": "195",
+      "label": "Australia",
+      "isoCode": "AU"
+    },
+    {
+      "id": "198",
+      "label": "New Zealand",
+      "isoCode": "NZ"
+    },
+    {
+      "id": "204",
+      "label": "Vanuatu",
+      "isoCode": "VU"
+    },
+    {
+      "id": "205",
+      "label": "Gibraltar",
+      "isoCode": "GI"
+    },
+    {
+      "id": "207",
+      "label": "Dominican Republic",
+      "isoCode": "DO"
+    },
+    {
+      "id": "208",
+      "label": "Estonia",
+      "isoCode": "EE"
+    },
+    {
+      "id": "213",
+      "label": "Chinese Taipei"
+    },
+    {
+      "id": "214",
+      "label": "Comoros",
+      "isoCode": "KM"
+    },
+    {
+      "id": "215",
+      "label": "New Caledonia",
+      "isoCode": "NC"
+    },
+    {
+      "id": "219",
+      "label": "Kosovo"
+    }
+  ],
+  "crossCheck": {
+    "ratingsPlayers": [
+      {
+        "name": "Harry Kane",
+        "id": "14",
+        "label": "England"
+      },
+      {
+        "name": "Kylian Mbappé",
+        "id": "18",
+        "label": "France"
+      },
+      {
+        "name": "Klara Bühl",
+        "id": "21",
+        "label": "Germany"
+      },
+      {
+        "name": "Katie McCabe",
+        "id": "25",
+        "label": "Republic of Ireland"
+      },
+      {
+        "name": "Gianluigi Donnarumma",
+        "id": "27",
+        "label": "Italy"
+      },
+      {
+        "name": "Virgil van Dijk",
+        "id": "34",
+        "label": "Holland"
+      },
+      {
+        "name": "Vitinha",
+        "id": "38",
+        "label": "Portugal"
+      },
+      {
+        "name": "Scott McTominay",
+        "id": "42",
+        "label": "Scotland"
+      },
+      {
+        "name": "Alexia Putellas",
+        "id": "45",
+        "label": "Spain"
+      },
+      {
+        "name": "Lionel Messi",
+        "id": "52",
+        "label": "Argentina"
+      },
+      {
+        "name": "Vini Jr.",
+        "id": "54",
+        "label": "Brazil"
+      },
+      {
+        "name": "Sophia Wilson",
+        "id": "95",
+        "label": "United States"
+      },
+      {
+        "name": "Yui Hasegawa",
+        "id": "163",
+        "label": "Japan"
+      }
+    ],
+    "proClubsMembers": [
+      {
+        "name": "Jasonqian",
+        "clubName": "Noir Sync ATH",
+        "clubId": "35303",
+        "id": "14",
+        "label": "England"
+      },
+      {
+        "name": "LVDOUFENOVO",
+        "clubName": "Noir Sync ATH",
+        "clubId": "35303",
+        "id": "18",
+        "label": "France"
+      },
+      {
+        "name": "LD-Kongbai-DL",
+        "clubName": "KNOCK FC",
+        "clubId": "83490",
+        "id": "21",
+        "label": "Germany"
+      },
+      {
+        "name": "HITT-Hood-1312",
+        "clubName": "Old Chap",
+        "clubId": "1274",
+        "id": "27",
+        "label": "Italy"
+      },
+      {
+        "name": "XIao_Luo22",
+        "clubName": "LightningSpa 11",
+        "clubId": "46363",
+        "id": "34",
+        "label": "Holland"
+      },
+      {
+        "name": "SEA-NunoMendes",
+        "clubName": "NewJeans",
+        "clubId": "6171",
+        "id": "38",
+        "label": "Portugal"
+      },
+      {
+        "name": "0ybinuuhC",
+        "clubName": "To The Fore",
+        "clubId": "43798",
+        "id": "42",
+        "label": "Scotland"
+      },
+      {
+        "name": "KFC-Alonso",
+        "clubName": "KNOCK FC",
+        "clubId": "83490",
+        "id": "45",
+        "label": "Spain"
+      },
+      {
+        "name": "ECsebVet",
+        "clubName": "Huang Hai FC",
+        "clubId": "52100",
+        "id": "50",
+        "label": "Wales"
+      },
+      {
+        "name": "kikikiha",
+        "clubName": "Noir Sync ATH",
+        "clubId": "35303",
+        "id": "52",
+        "label": "Argentina"
+      },
+      {
+        "name": "MK9iExh",
+        "clubName": "Old Chap",
+        "clubId": "1274",
+        "id": "54",
+        "label": "Brazil"
+      },
+      {
+        "name": "Cailee-Spaeny",
+        "clubName": "RED DEVILS",
+        "clubId": "5832",
+        "id": "95",
+        "label": "United States"
+      },
+      {
+        "name": "raychu0420",
+        "clubName": "LightningSpa 11",
+        "clubId": "46363",
+        "id": "213",
+        "label": "Chinese Taipei"
+      }
+    ]
+  }
+}

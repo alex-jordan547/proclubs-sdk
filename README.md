@@ -78,6 +78,7 @@ Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 - [Metadata and crest helpers](./docs/reference/metadata.mdx)
 - [Types, schemas, and compatibility](./docs/reference/types-and-schemas.mdx)
 - [Regions](./docs/reference/regions.mdx)
+- [Nationalities](./docs/reference/nationalities.mdx)
 - [Roadmap](./docs/project/roadmap.mdx)
 - [Support and limitations](./docs/project/limitations.mdx)
 

@@ -500,6 +500,43 @@ describe('Contract drift detector', () => {
     )
   })
 
+  it('reports unknown proNationality values without treating them as a breaking type change', () => {
+    const result = detectDrift('membersStats', {
+      members: [
+        { name: 'unknown-nation', proNationality: 999_999 },
+        { name: 'known-nation', proNationality: '14' },
+        { name: 'empty-nation', proNationality: '' },
+        { name: 'blank-nation', proNationality: '   ' },
+        { name: 'null-nation', proNationality: null },
+      ],
+      positionCount: { midfielder: 1 },
+    })
+
+    expect(result.status).toBe('passed')
+    expect(result.issues).toEqual([
+      {
+        kind: 'unknown_value',
+        path: '$.members[0].proNationality',
+        message:
+          'Unknown proNationality at $.members[0].proNationality; update NATIONALITY_LABELS after confirming the EA label',
+        expected: 'known proNationality',
+        actual: '999999',
+      },
+    ])
+    expect(classifyRecommendation(driftResults({ membersStats: result }))).toBe(
+      'minor',
+    )
+  })
+
+  it('does not report drift for a known proNationality string or number', () => {
+    expect(
+      detectDrift('membersCareerStats', {
+        members: [{ proNationality: 18 }, { proNationality: '18' }],
+        positionCount: { forward: 1 },
+      }).issues,
+    ).toEqual([])
+  })
+
   it('does not report drift for a known regionId string or number', () => {
     expect(
       detectDrift('clubsGet', {

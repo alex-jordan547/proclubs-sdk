@@ -1,5 +1,6 @@
 import type { Endpoint, Platform } from './constants.js'
 import { resolveDivisionLabel, resolvePlayoffResultLabel } from './metadata.js'
+import { resolveNationality } from './nationalities.js'
 import { resolveRegionLabel } from './regions.js'
 
 export type AllowedType =
@@ -501,6 +502,16 @@ function isUnknownRegionId(value: JsonValue): boolean {
   return false
 }
 
+function isUnknownNationalityId(value: JsonValue): boolean {
+  if (isJsonNumber(value)) {
+    return Number.isFinite(value) && resolveNationality(value) === undefined
+  }
+  if (isJsonString(value)) {
+    return value.trim() !== '' && resolveNationality(value) === undefined
+  }
+  return false
+}
+
 function isUnknownDivisionId(value: JsonValue): boolean {
   if (isJsonNumber(value)) {
     return Number.isFinite(value) && resolveDivisionLabel(value) === undefined
@@ -691,6 +702,15 @@ function validateAgainstContract(
           path: fieldPath,
           message: `Unknown regionId at ${fieldPath}; update REGION_LABELS after confirming the EA label`,
           expected: 'known regionId',
+          actual: String(val),
+        })
+      }
+      if (fieldKey === 'proNationality' && isUnknownNationalityId(val)) {
+        issues.push({
+          kind: 'unknown_value',
+          path: fieldPath,
+          message: `Unknown proNationality at ${fieldPath}; update NATIONALITY_LABELS after confirming the EA label`,
+          expected: 'known proNationality',
           actual: String(val),
         })
       }

@@ -9,6 +9,7 @@ import {
   type DivisionLabel,
   type PlayoffResultLabel,
 } from './metadata.js'
+import { resolveNationality, type Nationality } from './nationalities.js'
 import { resolveRegionLabel, type RegionLabel } from './regions.js'
 
 const idSchema = z.union([z.string(), z.number()])
@@ -271,7 +272,7 @@ export const clubOverallStatsSchema = z.looseObject({
 
 export const clubOverallStatsResponseSchema = z.array(clubOverallStatsSchema)
 
-export const clubMemberSchema = z.looseObject({
+const clubMemberObjectSchema = z.looseObject({
   name: z.string().optional(),
   gamesPlayed: numberLikeSchema.optional(),
   winRate: numberLikeSchema.optional(),
@@ -307,6 +308,44 @@ export const clubMemberSchema = z.looseObject({
   prevGoals10: numberLikeSchema.optional(),
   favoritePosition: z.string().optional(),
 })
+
+type ClubMemberObject = z.output<typeof clubMemberObjectSchema>
+export type ClubMemberDerivedLabels = {
+  [key: string]: JsonValue
+  nationality?: Nationality
+}
+type ClubMemberWithNationality = ClubMemberObject & {
+  nationality?: JsonValue
+  derivedLabels?: ClubMemberDerivedLabels
+}
+
+function enrichMemberNationality(
+  member: ClubMemberObject,
+): ClubMemberWithNationality {
+  const enriched: ClubMemberWithNationality = { ...member }
+  const nationality = resolveNationality(enriched.proNationality)
+  if (nationality === undefined) {
+    return enriched
+  }
+
+  if (enriched.nationality === undefined) {
+    enriched.nationality = nationality
+    return enriched
+  }
+
+  const derivedLabels = { nationality } satisfies ClubMemberDerivedLabels
+  if (enriched.derivedLabels === undefined) {
+    enriched.derivedLabels = derivedLabels
+  } else if (isJsonObject(enriched.derivedLabels)) {
+    enriched.derivedLabels = { ...enriched.derivedLabels, ...derivedLabels }
+  }
+
+  return enriched
+}
+
+export const clubMemberSchema = clubMemberObjectSchema.transform(
+  enrichMemberNationality,
+)
 
 export const clubMemberStatsSchema = z.looseObject({
   members: z.array(clubMemberSchema),
