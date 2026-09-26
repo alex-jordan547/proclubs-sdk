@@ -181,6 +181,10 @@ String-code families (`platform`, `match type`, `position`) accept trimmed
 strings. Numeric families (`reputation`, `division`, `playoff result`) also
 accept finite numbers. There is no partial match and no fuzzy coercion.
 
+Consumers that only need the metadata tables and resolvers can import from the
+standalone subpath `proclubs-sdk/metadata` without loading the HTTP client or
+native dependencies.
+
 ## Club crest URLs
 
 ```ts
