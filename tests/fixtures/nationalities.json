@@ -18,7 +18,8 @@
       "219": "Kosovo has no officially assigned ISO 3166-1 alpha-2 code."
     },
     "labelAliases": {
-      "Holland": "EA's label is Holland. NL is the alpha-2 code for the Netherlands."
+      "Holland": "EA's label is Holland. NL is the alpha-2 code for the Netherlands.",
+      "Swaziland": "EA's label is Swaziland. SZ is the ISO 3166-1 alpha-2 code, now used for Eswatini."
     }
   },
   "entries": [
@@ -333,6 +334,11 @@
       "isoCode": "BB"
     },
     {
+      "id": "67",
+      "label": "Belize",
+      "isoCode": "BZ"
+    },
+    {
       "id": "68",
       "label": "Bermuda",
       "isoCode": "BM"
@@ -401,6 +407,11 @@
       "id": "85",
       "label": "Curaçao",
       "isoCode": "CW"
+    },
+    {
+      "id": "86",
+      "label": "Nicaragua",
+      "isoCode": "NI"
     },
     {
       "id": "87",
@@ -511,6 +522,11 @@
       "id": "113",
       "label": "Eritrea",
       "isoCode": "ER"
+    },
+    {
+      "id": "114",
+      "label": "Ethiopia",
+      "isoCode": "ET"
     },
     {
       "id": "115",
@@ -633,6 +649,11 @@
       "isoCode": "ZA"
     },
     {
+      "id": "142",
+      "label": "Swaziland",
+      "isoCode": "SZ"
+    },
+    {
       "id": "143",
       "label": "Tanzania",
       "isoCode": "TZ"
@@ -673,9 +694,24 @@
       "isoCode": "BD"
     },
     {
+      "id": "152",
+      "label": "Bhutan",
+      "isoCode": "BT"
+    },
+    {
+      "id": "153",
+      "label": "Brunei Darussalam",
+      "isoCode": "BN"
+    },
+    {
       "id": "155",
       "label": "China PR",
       "isoCode": "CN"
+    },
+    {
+      "id": "157",
+      "label": "Guam",
+      "isoCode": "GU"
     },
     {
       "id": "158",
@@ -731,6 +767,16 @@
       "id": "171",
       "label": "Lebanon",
       "isoCode": "LB"
+    },
+    {
+      "id": "173",
+      "label": "Malaysia",
+      "isoCode": "MY"
+    },
+    {
+      "id": "175",
+      "label": "Mongolia",
+      "isoCode": "MN"
     },
     {
       "id": "178",
@@ -801,6 +847,11 @@
       "id": "198",
       "label": "New Zealand",
       "isoCode": "NZ"
+    },
+    {
+      "id": "201",
+      "label": "Solomon Islands",
+      "isoCode": "SB"
     },
     {
       "id": "204",
@@ -1002,5 +1053,10 @@
         "label": "Chinese Taipei"
       }
     ]
+  },
+  "supplementalNations": {
+    "source": "Historical EA nation id table (fut.nations). Shared ids match the 2026-09-26 ratings capture, including 14 England, 113 Eritrea, and 115 Gabon.",
+    "reason": "These ids are absent from the ratings filter and are used by live Pro Clubs members.",
+    "ids": ["67", "86", "114", "142", "152", "153", "157", "173", "175", "201"]
   }
 }

@@ -2,7 +2,9 @@
 // (props.pageProps.ratingsFilters.nationality in the page __NEXT_DATA__).
 // Labels are EA's. isoCode is ISO 3166-1 alpha-2 when one exists, or an
 // ISO 3166-2 subdivision for England, Scotland, Wales, and Northern Ireland.
-// Chinese Taipei and Kosovo have no isoCode. See docs/reference/nationalities.mdx.
+// Chinese Taipei and Kosovo have no isoCode. Ten ids absent from the ratings
+// filter (67, 86, 114, 142, 152, 153, 157, 173, 175, 201) use the historical
+// EA nation names. See docs/reference/nationalities.mdx.
 const NATIONALITY_ENTRIES = {
   '1': { label: 'Albania', isoCode: 'AL' },
   '2': { label: 'Andorra', isoCode: 'AD' },
@@ -66,6 +68,7 @@ const NATIONALITY_ENTRIES = {
   '61': { label: 'Venezuela', isoCode: 'VE' },
   '63': { label: 'Antigua and Barbuda', isoCode: 'AG' },
   '66': { label: 'Barbados', isoCode: 'BB' },
+  '67': { label: 'Belize', isoCode: 'BZ' },
   '68': { label: 'Bermuda', isoCode: 'BM' },
   '70': { label: 'Canada', isoCode: 'CA' },
   '72': { label: 'Costa Rica', isoCode: 'CR' },
@@ -80,6 +83,7 @@ const NATIONALITY_ENTRIES = {
   '83': { label: 'Mexico', isoCode: 'MX' },
   '84': { label: 'Montserrat', isoCode: 'MS' },
   '85': { label: 'Curaçao', isoCode: 'CW' },
+  '86': { label: 'Nicaragua', isoCode: 'NI' },
   '87': { label: 'Panama', isoCode: 'PA' },
   '88': { label: 'Puerto Rico', isoCode: 'PR' },
   '89': { label: 'St. Kitts and Nevis', isoCode: 'KN' },
@@ -102,6 +106,7 @@ const NATIONALITY_ENTRIES = {
   '111': { label: 'Egypt', isoCode: 'EG' },
   '112': { label: 'Equatorial Guinea', isoCode: 'GQ' },
   '113': { label: 'Eritrea', isoCode: 'ER' },
+  '114': { label: 'Ethiopia', isoCode: 'ET' },
   '115': { label: 'Gabon', isoCode: 'GA' },
   '116': { label: 'Gambia', isoCode: 'GM' },
   '117': { label: 'Ghana', isoCode: 'GH' },
@@ -126,6 +131,7 @@ const NATIONALITY_ENTRIES = {
   '138': { label: 'Sierra Leone', isoCode: 'SL' },
   '139': { label: 'Somalia', isoCode: 'SO' },
   '140': { label: 'South Africa', isoCode: 'ZA' },
+  '142': { label: 'Swaziland', isoCode: 'SZ' },
   '143': { label: 'Tanzania', isoCode: 'TZ' },
   '144': { label: 'Togo', isoCode: 'TG' },
   '145': { label: 'Tunisia', isoCode: 'TN' },
@@ -134,7 +140,10 @@ const NATIONALITY_ENTRIES = {
   '148': { label: 'Zimbabwe', isoCode: 'ZW' },
   '149': { label: 'Afghanistan', isoCode: 'AF' },
   '151': { label: 'Bangladesh', isoCode: 'BD' },
+  '152': { label: 'Bhutan', isoCode: 'BT' },
+  '153': { label: 'Brunei Darussalam', isoCode: 'BN' },
   '155': { label: 'China PR', isoCode: 'CN' },
+  '157': { label: 'Guam', isoCode: 'GU' },
   '158': { label: 'Hong Kong', isoCode: 'HK' },
   '159': { label: 'India', isoCode: 'IN' },
   '160': { label: 'Indonesia', isoCode: 'ID' },
@@ -146,6 +155,8 @@ const NATIONALITY_ENTRIES = {
   '166': { label: 'Korea DPR', isoCode: 'KP' },
   '167': { label: 'Korea Republic', isoCode: 'KR' },
   '171': { label: 'Lebanon', isoCode: 'LB' },
+  '173': { label: 'Malaysia', isoCode: 'MY' },
+  '175': { label: 'Mongolia', isoCode: 'MN' },
   '178': { label: 'Oman', isoCode: 'OM' },
   '179': { label: 'Pakistan', isoCode: 'PK' },
   '180': { label: 'Palestine', isoCode: 'PS' },
@@ -160,6 +171,7 @@ const NATIONALITY_ENTRIES = {
   '193': { label: 'Yemen', isoCode: 'YE' },
   '195': { label: 'Australia', isoCode: 'AU' },
   '198': { label: 'New Zealand', isoCode: 'NZ' },
+  '201': { label: 'Solomon Islands', isoCode: 'SB' },
   '204': { label: 'Vanuatu', isoCode: 'VU' },
   '205': { label: 'Gibraltar', isoCode: 'GI' },
   '207': { label: 'Dominican Republic', isoCode: 'DO' },

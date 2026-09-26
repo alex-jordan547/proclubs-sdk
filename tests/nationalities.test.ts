@@ -66,13 +66,13 @@ describe('NATIONALITY_LABELS and resolveNationality', () => {
     })
     expect(fixture.source.method).toContain('ratingsFilters.nationality')
     expect(fixture.duplicateIdsCollapsed).toEqual(['214'])
-    expect(fixture.entries).toHaveLength(164)
+    expect(fixture.entries).toHaveLength(174)
 
     const expected = Object.fromEntries(
       fixture.entries.map((entry) => [entry.id, expectedNationality(entry)]),
     )
     expect(NATIONALITY_LABELS).toEqual(expected)
-    expect(Object.keys(NATIONALITY_LABELS)).toHaveLength(164)
+    expect(Object.keys(NATIONALITY_LABELS)).toHaveLength(174)
     expect(Object.isFrozen(NATIONALITY_LABELS)).toBe(true)
     for (const entry of Object.values(NATIONALITY_LABELS)) {
       expect(Object.isFrozen(entry)).toBe(true)
@@ -126,6 +126,59 @@ describe('NATIONALITY_LABELS and resolveNationality', () => {
     })
     expect(resolveNationality(213)).not.toHaveProperty('isoCode')
     expect(resolveNationality(219)).not.toHaveProperty('isoCode')
+  })
+
+  it('resolves nation ids absent from the ratings filter but used by Pro Clubs', () => {
+    expect(resolveNationality(67)).toEqual({
+      id: '67',
+      label: 'Belize',
+      isoCode: 'BZ',
+    })
+    expect(resolveNationality(86)).toEqual({
+      id: '86',
+      label: 'Nicaragua',
+      isoCode: 'NI',
+    })
+    expect(resolveNationality(114)).toEqual({
+      id: '114',
+      label: 'Ethiopia',
+      isoCode: 'ET',
+    })
+    expect(resolveNationality(142)).toEqual({
+      id: '142',
+      label: 'Swaziland',
+      isoCode: 'SZ',
+    })
+    expect(resolveNationality(152)).toEqual({
+      id: '152',
+      label: 'Bhutan',
+      isoCode: 'BT',
+    })
+    expect(resolveNationality(153)).toEqual({
+      id: '153',
+      label: 'Brunei Darussalam',
+      isoCode: 'BN',
+    })
+    expect(resolveNationality(157)).toEqual({
+      id: '157',
+      label: 'Guam',
+      isoCode: 'GU',
+    })
+    expect(resolveNationality(173)).toEqual({
+      id: '173',
+      label: 'Malaysia',
+      isoCode: 'MY',
+    })
+    expect(resolveNationality(175)).toEqual({
+      id: '175',
+      label: 'Mongolia',
+      isoCode: 'MN',
+    })
+    expect(resolveNationality(201)).toEqual({
+      id: '201',
+      label: 'Solomon Islands',
+      isoCode: 'SB',
+    })
   })
 
   it('trims surrounding whitespace on string ids without fuzzy matching', () => {
