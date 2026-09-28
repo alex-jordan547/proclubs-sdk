@@ -4,26 +4,32 @@ import {
   DIVISION_LABELS,
   MATCH_TYPE_LABELS,
   MATCH_TYPE_RESPONSE_LABELS,
+  NAMESPACE_FAMILIES,
   PLATFORM_LABELS,
   PLAYOFF_RESULT_LABELS,
   POSITION_LABELS,
   REPUTATION_LABELS,
   resolveDivisionLabel,
+  resolveExactPlatform,
   resolveMatchTypeLabel,
+  resolvePlatformFamily,
   resolvePlatformLabel,
   resolvePlayoffResultLabel,
   resolvePositionLabel,
   resolveReputationLabel,
   resolveSeasonLabel,
   type DivisionLabel,
+  type ExactPlatform,
   type KnownDivisionId,
   type KnownMatchTypeId,
   type KnownMatchTypeResponseId,
+  type KnownNamespaceId,
   type KnownPlatformId,
   type KnownPlayoffResultId,
   type KnownPositionId,
   type KnownReputationId,
   type MatchTypeLabel,
+  type PlatformFamily,
   type PlatformLabel,
   type PlayoffResultLabel,
   type PositionLabel,
@@ -37,6 +43,12 @@ const EXPECTED_PLATFORM_LABELS = {
   'common-gen4': 'Crossplatform Last Gen',
   nx: 'Switch',
 } as const satisfies Record<KnownPlatformId, PlatformLabel>
+
+const EXPECTED_NAMESPACE_FAMILIES = {
+  '1': 'playstation',
+  '2': 'xbox',
+  '3': 'pc',
+} as const satisfies Record<KnownNamespaceId, PlatformFamily>
 
 const EXPECTED_MATCH_TYPE_LABELS = {
   friendlyMatch: 'Friendly Match',
@@ -127,6 +139,54 @@ describe('PLATFORM_LABELS and resolvePlatformLabel', () => {
     expect(resolvePlatformLabel('unknown-platform')).toBeUndefined()
     expect(resolvePlatformLabel(1)).toBeUndefined()
     expect(() => resolvePlatformLabel('unknown-platform')).not.toThrow()
+  })
+})
+
+describe('NAMESPACE_FAMILIES and platform resolvers', () => {
+  it('exposes the known namespace families as an immutable mapping', () => {
+    expect(NAMESPACE_FAMILIES).toEqual(EXPECTED_NAMESPACE_FAMILIES)
+    expect(Object.keys(NAMESPACE_FAMILIES)).toHaveLength(3)
+    expect(Object.isFrozen(NAMESPACE_FAMILIES)).toBe(true)
+    expectTypeOf<PlatformFamily>().toEqualTypeOf<
+      'playstation' | 'xbox' | 'pc'
+    >()
+    expectTypeOf<ExactPlatform>().toEqualTypeOf<
+      'ps5' | 'xbox-series' | 'ps4' | 'xbox-one' | 'pc'
+    >()
+  })
+
+  it('resolves each namespace to its family and generation-specific platform', () => {
+    const cases: readonly [
+      KnownNamespaceId,
+      PlatformFamily,
+      ExactPlatform,
+      ExactPlatform,
+    ][] = [
+      ['1', 'playstation', 'ps5', 'ps4'],
+      ['2', 'xbox', 'xbox-series', 'xbox-one'],
+      ['3', 'pc', 'pc', 'pc'],
+    ]
+
+    for (const [namespace, family, gen5, gen4] of cases) {
+      expect(resolvePlatformFamily(namespace)).toBe(family)
+      expect(resolvePlatformFamily(Number(namespace))).toBe(family)
+      expect(resolveExactPlatform(namespace, 'common-gen5')).toBe(gen5)
+      expect(resolveExactPlatform(namespace, 'common-gen4')).toBe(gen4)
+      expect(resolveExactPlatform(namespace, 'nx')).toBeUndefined()
+    }
+  })
+
+  it('does not infer a platform for friendly, empty, null, or unknown namespaces', () => {
+    for (const namespace of ['0', '', null, undefined, '7'] as const) {
+      expect(resolvePlatformFamily(namespace)).toBeUndefined()
+      expect(resolveExactPlatform(namespace, 'common-gen5')).toBeUndefined()
+      expect(resolveExactPlatform(namespace, 'common-gen4')).toBeUndefined()
+    }
+
+    expect(resolveExactPlatform(1, 'common-gen5')).toBe('ps5')
+    expect(resolveExactPlatform('1', 'common-gen5')).toBe('ps5')
+    expect(resolvePlatformFamily(1)).toBe(resolvePlatformFamily('1'))
+    expect(resolveExactPlatform('1', undefined)).toBeUndefined()
   })
 })
 

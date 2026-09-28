@@ -256,6 +256,36 @@ describe('Contract drift detector', () => {
     ])
   })
 
+  it('reports unknown player namespaces without treating aggregate namespace as a platform', () => {
+    const result = detectDrift('matchesList', [
+      {
+        matchId: 'match-1',
+        players: {
+          '42': {
+            '1001': { namespace: '7' },
+            '1002': { namespace: 1 },
+            '1003': { namespace: '0' },
+          },
+        },
+        aggregate: {
+          '42': { namespace: 4 },
+        },
+      },
+    ])
+
+    expect(result.status).toBe('passed')
+    expect(result.issues).toEqual([
+      {
+        kind: 'unknown_value',
+        path: '$[0].players.*.*.namespace',
+        message:
+          'Unknown player namespace at $[0].players.*.*.namespace; update NAMESPACE_FAMILIES after confirming the EA platform',
+        expected: 'known player namespace 0 | 1 | 2 | 3',
+        actual: '7',
+      },
+    ])
+  })
+
   it('detects playoff fields added, removed, or changed upstream', () => {
     const valid = {
       seasonId: '7',

@@ -29,7 +29,7 @@ import {
 import type { ProClubsEvent, ProClubsEventHandler } from './events.js'
 import {
   clubInfoResponseSchema,
-  clubMatchesResponseSchema,
+  clubMatchesResponseSchemaForPlatform,
   clubMemberStatsSchema,
   clubOverallStatsResponseSchema,
   playoffAchievementsInputSchema,
@@ -379,15 +379,16 @@ export class ProClubsClient {
     options?: ProClubsRequestOptions,
   ): Promise<ClubMatch[]> {
     const parsed = this.parseInput(listMatchesInputSchema, input)
+    const platform = parsed.platform ?? this.#platform
     return this.request(
       'matchesList',
       new URLSearchParams({
         clubIds: String(parsed.clubId),
-        platform: parsed.platform ?? this.#platform,
+        platform,
         matchType: parsed.type ?? 'leagueMatch',
         maxResultCount: String(parsed.limit ?? 10),
       }),
-      clubMatchesResponseSchema,
+      clubMatchesResponseSchemaForPlatform(platform),
       options,
     )
   }

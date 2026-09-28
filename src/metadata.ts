@@ -1,4 +1,5 @@
 import { lookupNumericIdLabel, lookupStringCodeLabel } from './label-lookup.js'
+import type { Platform } from './constants.js'
 
 export const PLATFORM_LABELS = Object.freeze({
   'common-gen5': 'Crossplatform Current Gen',
@@ -13,6 +14,47 @@ export function resolvePlatformLabel(
   platform: string | number | null | undefined,
 ): PlatformLabel | undefined {
   return lookupStringCodeLabel(PLATFORM_LABELS, platform)
+}
+
+export const NAMESPACE_FAMILIES = Object.freeze({
+  '1': 'playstation',
+  '2': 'xbox',
+  '3': 'pc',
+} as const)
+
+export type KnownNamespaceId = keyof typeof NAMESPACE_FAMILIES
+export type PlatformFamily = (typeof NAMESPACE_FAMILIES)[KnownNamespaceId]
+
+export function resolvePlatformFamily(
+  namespace: string | number | null | undefined,
+): PlatformFamily | undefined {
+  return lookupNumericIdLabel(NAMESPACE_FAMILIES, namespace)
+}
+
+export type ExactPlatform = 'ps5' | 'xbox-series' | 'ps4' | 'xbox-one' | 'pc'
+
+export function resolveExactPlatform(
+  namespace: string | number | null | undefined,
+  platform: Platform | undefined,
+): ExactPlatform | undefined {
+  const family = resolvePlatformFamily(namespace)
+  if (family === undefined) {
+    return undefined
+  }
+
+  if (platform === 'common-gen5') {
+    if (family === 'playstation') return 'ps5'
+    if (family === 'xbox') return 'xbox-series'
+    return 'pc'
+  }
+
+  if (platform === 'common-gen4') {
+    if (family === 'playstation') return 'ps4'
+    if (family === 'xbox') return 'xbox-one'
+    return 'pc'
+  }
+
+  return undefined
 }
 
 export const MATCH_TYPE_LABELS = Object.freeze({

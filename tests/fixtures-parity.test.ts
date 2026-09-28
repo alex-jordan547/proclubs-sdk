@@ -173,6 +173,17 @@ describe('Fixtures parity and client mapping', () => {
 
     const result = await client.matches.list({ clubId: '42' })
     const expected = structuredClone(rawFixture)
+    const players = expected[0]?.players?.['42']
+    const firstPlayer = players?.['1001']
+    if (players && firstPlayer) {
+      players['1001'] = {
+        ...firstPlayer,
+        derivedLabels: {
+          platformFamily: 'playstation',
+          exactPlatform: 'ps5',
+        },
+      }
+    }
     const clubs = expected[0]?.clubs
     if (clubs) {
       for (const [clubId, details] of Object.entries(clubs)) {
