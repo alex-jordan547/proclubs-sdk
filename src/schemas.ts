@@ -1,13 +1,18 @@
 import { z } from 'zod'
 
 import { MATCH_TYPES, PLATFORMS } from './constants.js'
+import type { Platform } from './constants.js'
 import type { JsonValue } from './drift.js'
 import {
   resolveDivisionLabel,
+  resolveExactPlatform,
+  resolvePlatformFamily,
   resolvePlayoffResultLabel,
   resolveSeasonLabel,
   type DivisionLabel,
+  type ExactPlatform,
   type PlayoffResultLabel,
+  type PlatformFamily,
 } from './metadata.js'
 import { resolveNationality, type Nationality } from './nationalities.js'
 import { resolveRegionLabel, type RegionLabel } from './regions.js'
@@ -378,7 +383,7 @@ export const matchClubDetailsSchema = z.looseObject({
   details: clubInfoSchema.optional(),
 })
 
-export const matchPlayerStatsSchema = z.looseObject({
+const matchPlayerStatsObjectSchema = z.looseObject({
   playername: z.string().optional(),
   pos: z.string().optional(),
   rating: numberLikeSchema.optional(),
@@ -419,6 +424,60 @@ export const matchPlayerStatsSchema = z.looseObject({
   match_event_aggregate_2: z.string().optional(),
   match_event_aggregate_3: z.string().optional(),
 })
+
+type MatchPlayerStatsObject = z.output<typeof matchPlayerStatsObjectSchema>
+export type MatchPlayerDerivedLabels = {
+  [key: string]: JsonValue
+  platformFamily?: PlatformFamily
+  exactPlatform?: ExactPlatform
+}
+type MatchPlayerWithDerivedLabels = MatchPlayerStatsObject & {
+  derivedLabels?: MatchPlayerDerivedLabels
+}
+
+function enrichMatchPlayerStats(
+  player: MatchPlayerStatsObject,
+  platform?: Platform,
+): MatchPlayerWithDerivedLabels {
+  const enriched: MatchPlayerWithDerivedLabels = { ...player }
+  const derivedLabels: MatchPlayerDerivedLabels = {}
+
+  const platformFamily = resolvePlatformFamily(enriched.namespace)
+  if (platformFamily !== undefined) {
+    derivedLabels.platformFamily = platformFamily
+  }
+
+  const exactPlatform = resolveExactPlatform(enriched.namespace, platform)
+  if (exactPlatform !== undefined) {
+    derivedLabels.exactPlatform = exactPlatform
+  }
+
+  if (Object.keys(derivedLabels).length === 0) {
+    return enriched
+  }
+
+  const existingDerivedLabels = enriched.derivedLabels
+  if (existingDerivedLabels === undefined) {
+    enriched.derivedLabels = derivedLabels
+  } else if (isJsonObject(existingDerivedLabels)) {
+    enriched.derivedLabels = {
+      ...existingDerivedLabels,
+      ...derivedLabels,
+    }
+  } else {
+    enriched.derivedLabels = derivedLabels
+  }
+
+  return enriched
+}
+
+function createMatchPlayerStatsSchema(platform?: Platform) {
+  return matchPlayerStatsObjectSchema.transform((player) =>
+    enrichMatchPlayerStats(player, platform),
+  )
+}
+
+export const matchPlayerStatsSchema = createMatchPlayerStatsSchema()
 
 export const matchAggregateStatsSchema = z.looseObject({
   archetypeid: numberLikeSchema.optional(),
@@ -461,18 +520,28 @@ export const matchAggregateStatsSchema = z.looseObject({
   wins: numberLikeSchema.optional(),
 })
 
-export const clubMatchSchema = z.looseObject({
-  matchId: idSchema.optional(),
-  timestamp: numberLikeSchema.optional(),
-  timeAgo: matchTimeAgoSchema.optional(),
-  clubs: z.record(z.string(), matchClubDetailsSchema).optional(),
-  players: z
-    .record(z.string(), z.record(z.string(), matchPlayerStatsSchema))
-    .optional(),
-  aggregate: z.record(z.string(), matchAggregateStatsSchema).optional(),
-})
+function createClubMatchSchema(platform?: Platform) {
+  return z.looseObject({
+    matchId: idSchema.optional(),
+    timestamp: numberLikeSchema.optional(),
+    timeAgo: matchTimeAgoSchema.optional(),
+    clubs: z.record(z.string(), matchClubDetailsSchema).optional(),
+    players: z
+      .record(
+        z.string(),
+        z.record(z.string(), createMatchPlayerStatsSchema(platform)),
+      )
+      .optional(),
+    aggregate: z.record(z.string(), matchAggregateStatsSchema).optional(),
+  })
+}
 
+export const clubMatchSchema = createClubMatchSchema()
 export const clubMatchesResponseSchema = z.array(clubMatchSchema)
+
+export function clubMatchesResponseSchemaForPlatform(platform?: Platform) {
+  return z.array(createClubMatchSchema(platform))
+}
 
 export type SearchClubsInput = z.input<typeof searchClubsInputSchema>
 export type RankingListInput = z.input<typeof rankingListInputSchema>

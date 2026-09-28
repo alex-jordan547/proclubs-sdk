@@ -64,6 +64,8 @@ The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
 Supported platforms are `common-gen5` (default), `common-gen4`, and `nx`.
 Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 `playoffMatch`.
+`friendlyMatch` never exposes player platforms (`namespace` is always `"0"`);
+use `leagueMatch` or `playoffMatch` to identify a player's platform.
 
 ## Documentation
 

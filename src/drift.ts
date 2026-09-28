@@ -1,5 +1,9 @@
 import type { Endpoint, Platform } from './constants.js'
-import { resolveDivisionLabel, resolvePlayoffResultLabel } from './metadata.js'
+import {
+  NAMESPACE_FAMILIES,
+  resolveDivisionLabel,
+  resolvePlayoffResultLabel,
+} from './metadata.js'
 import { resolveNationality } from './nationalities.js'
 import { resolveRegionLabel } from './regions.js'
 
@@ -534,6 +538,23 @@ function isUnknownPlayoffResultId(value: JsonValue): boolean {
   return false
 }
 
+const KNOWN_PLAYER_NAMESPACE_IDS = new Set([
+  '0',
+  ...Object.keys(NAMESPACE_FAMILIES),
+])
+
+function isUnknownPlayerNamespace(value: JsonValue): boolean {
+  if (isJsonString(value)) {
+    return !KNOWN_PLAYER_NAMESPACE_IDS.has(value.trim())
+  }
+  if (isJsonNumber(value)) {
+    return (
+      !Number.isFinite(value) || !KNOWN_PLAYER_NAMESPACE_IDS.has(String(value))
+    )
+  }
+  return true
+}
+
 function getTypeCategory(value: JsonValue): string {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
@@ -729,6 +750,19 @@ function validateAgainstContract(
           path: fieldPath,
           message: `Unknown bestFinishGroup at ${fieldPath}; update PLAYOFF_RESULT_LABELS after confirming the EA label`,
           expected: 'known playoff result id',
+          actual: String(val),
+        })
+      }
+      if (
+        fieldKey === 'namespace' &&
+        path.includes('.players.') &&
+        isUnknownPlayerNamespace(val)
+      ) {
+        issues.push({
+          kind: 'unknown_value',
+          path: fieldPath,
+          message: `Unknown player namespace at ${fieldPath}; update NAMESPACE_FAMILIES after confirming the EA platform`,
+          expected: 'known player namespace 0 | 1 | 2 | 3',
           actual: String(val),
         })
       }

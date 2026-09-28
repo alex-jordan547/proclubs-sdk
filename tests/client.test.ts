@@ -145,6 +145,78 @@ describe('ProClubsClient', () => {
     })
   })
 
+  it('derives player platforms from namespace and the requested match platform', async () => {
+    const friendlyMatch = [
+      {
+        matchId: 'friendly-1',
+        players: {
+          '42': {
+            '1001': { playername: 'FriendlyPlayer', namespace: '0' },
+          },
+        },
+      },
+    ]
+    const leagueMatch = [
+      {
+        matchId: 'league-1',
+        players: {
+          '42': {
+            '1001': { playername: 'PlayStationPlayer', namespace: '1' },
+            '1002': { playername: 'XboxPlayer', namespace: 2 },
+          },
+        },
+      },
+    ]
+    const client = new ProClubsClient({
+      transport: async (url) => {
+        const type = new URL(url).searchParams.get('matchType')
+        return new Response(
+          JSON.stringify(
+            type === 'friendlyMatch' ? friendlyMatch : leagueMatch,
+          ),
+          { status: 200 },
+        )
+      },
+    })
+
+    const [friendly] = await client.matches.list({
+      clubId: '42',
+      type: 'friendlyMatch',
+    })
+    const [league] = await client.matches.list({
+      clubId: '42',
+      type: 'leagueMatch',
+    })
+    const [lastGenLeague] = await client.matches.list({
+      clubId: '42',
+      platform: 'common-gen4',
+      type: 'leagueMatch',
+    })
+
+    expect(friendly?.players?.['42']?.['1001']).toMatchObject({
+      namespace: '0',
+    })
+    expect(friendly?.players?.['42']?.['1001']?.derivedLabels).toBeUndefined()
+    expect(league?.players?.['42']?.['1001']).toMatchObject({
+      namespace: '1',
+      derivedLabels: {
+        platformFamily: 'playstation',
+        exactPlatform: 'ps5',
+      },
+    })
+    expect(league?.players?.['42']?.['1002']).toMatchObject({
+      namespace: 2,
+      derivedLabels: {
+        platformFamily: 'xbox',
+        exactPlatform: 'xbox-series',
+      },
+    })
+    expect(lastGenLeague?.players?.['42']?.['1001']?.derivedLabels).toEqual({
+      platformFamily: 'playstation',
+      exactPlatform: 'ps4',
+    })
+  })
+
   it('retries transient EA responses before returning validated data', async () => {
     let attempts = 0
     const client = new ProClubsClient({
