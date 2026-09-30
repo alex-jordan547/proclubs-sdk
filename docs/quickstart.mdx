@@ -15,7 +15,7 @@ npm install proclubs-sdk
 import { ProClubsClient } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
-const clubs = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const clubs = await proclubs.clubs.search({ name: 'HEMLE FC' })
 
 console.log(clubs)
 ```
@@ -26,15 +26,15 @@ between 1 and 32 characters.
 ## Check club rankings
 
 ```ts
-const [allStar] = await proclubs.rankings.searchAllTime({
-  name: 'ALL STAR 237',
+const [hemleAllTime] = await proclubs.rankings.searchAllTime({
+  name: 'HEMLE FC',
 })
 const hemleSeason = await proclubs.rankings.searchCurrentSeason({
   name: 'HEMLE FC',
 })
 const leaders = await proclubs.rankings.allTime()
 
-console.log(allStar, hemleSeason, leaders[0]?.rank)
+console.log(hemleAllTime, hemleSeason, leaders[0]?.rank)
 ```
 
 Search returns `[]` when the club is not on that board. Full leaderboards keep
@@ -49,7 +49,7 @@ requests can run in parallel.
 import { ProClubsClient } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
-const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const [club] = await proclubs.clubs.search({ name: 'HEMLE FC' })
 
 if (!club) {
   console.log('Club not found')
@@ -84,15 +84,21 @@ Clubs with no playoff history return `[]`.
 Set a default on the client or override it for one call.
 
 ```ts
-const proclubs = new ProClubsClient({ platform: 'common-gen4' })
+const proclubs = new ProClubsClient({ platform: 'nx' })
 
-const switchClubs = await proclubs.clubs.search({
+const currentGenClubs = await proclubs.clubs.search({
   name: 'HEMLE FC',
-  platform: 'nx',
+  platform: 'common-gen5',
 })
 ```
 
-Supported platforms are `common-gen5`, `common-gen4`, and `nx`.
+Supported platforms are `common-gen5` and `nx`.
+
+<Warning>
+  `common-gen4` is deprecated. EA rejects it with HTTP 400 since the FC 27
+  switchover (last checked on 2026-09-30). See
+  [Configuration](/docs/guides/configuration#deprecated-platforms).
+</Warning>
 
 ## Handle SDK errors
 

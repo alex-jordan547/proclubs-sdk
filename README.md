@@ -28,7 +28,7 @@ Requires Node.js 22.18.0 or newer and ESM.
 import { ProClubsClient } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
-const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const [club] = await proclubs.clubs.search({ name: 'HEMLE FC' })
 
 if (club) {
   const [info, members, matches, playoffs] = await Promise.all([
@@ -42,8 +42,8 @@ if (club) {
 }
 ```
 
-The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
-`mrjordan_237` / `mrjordan237` as test member names.
+The examples use `HEMLE FC` as the test club, and `mrjordan_237` /
+`mrjordan237` as test member names.
 
 ## API
 
@@ -61,7 +61,21 @@ The examples use `ALL STAR 237` and `HEMLE FC` as test clubs, and
 | `members.careerStats({ clubId, platform? })` | `Promise<ClubMemberCareerStats>` |
 | `matches.list({ clubId, platform?, type?, limit? })` | `Promise<ClubMatch[]>` |
 
-Supported platforms are `common-gen5` (default), `common-gen4`, and `nx`.
+### Platforms
+
+| Platform | EA label | Status on FC 27 |
+| --- | --- | --- |
+| `common-gen5` (default) | Crossplatform Current Gen | Supported |
+| `nx` | Switch | Supported |
+| `common-gen4` | Crossplatform Last Gen | Deprecated: EA rejects it with HTTP 400 |
+
+Platform status was last checked against the live EA endpoints on 2026-09-30.
+The SDK still accepts `common-gen4` so existing code keeps compiling, and emits
+a `DeprecationWarning` (`PROCLUBS_DEP001`) once per client when a request uses
+it.
+
+### Match types
+
 Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 `playoffMatch`.
 `friendlyMatch` never exposes player platforms (`namespace` is always `"0"`);

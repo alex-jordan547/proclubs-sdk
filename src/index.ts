@@ -17,6 +17,7 @@ export type {
 } from './client.js'
 export {
   DEFAULT_PLATFORM,
+  DEPRECATED_PLATFORMS,
   MATCH_TYPES,
   PLATFORMS,
 } from './constants.js'

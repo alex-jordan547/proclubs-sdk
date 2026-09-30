@@ -5,16 +5,16 @@ description: "See what changed in each release and what is still only planned."
 
 <CardGroup cols={3}>
   <Card
-    title="Pending release"
+    title="Current release"
     icon="tag"
   >
-    `0.2.5` is pending npm publication.
+    `0.3.0` is published on npm.
   </Card>
   <Card title="Public API" icon="code" href="/docs/reference/client">
     11 typed methods across clubs, rankings, members, matches, and playoffs.
   </Card>
   <Card title="Next target" icon="map">
-    `0.3` is planned. No milestone is marked in progress.
+    `0.4` is planned. No milestone is marked in progress.
   </Card>
 </CardGroup>
 
@@ -36,8 +36,20 @@ description: "See what changed in each release and what is still only planned."
 | [`0.2.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.1) | Added rankings, playoff history, exhaustive endpoint contracts, metadata helpers, and configurable live compatibility probes. | 11 |
 | [`0.2.2`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.2) | Added strict mode for forbidden responses, released response resources promptly, and updated dependencies. | 11 |
 | [`0.2.3`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.3) | Added typed nationality labels for member `proNationality` values. The public endpoint surface stays at 11 methods. | 11 |
-| [`0.2.4`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.4) (current) | Added ten Pro Clubs nation ids that the ratings filter omits. | 11 |
+| [`0.2.4`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.4) | Added ten Pro Clubs nation ids that the ratings filter omits. | 11 |
 | [`0.2.5`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.5) | Added standalone export subpaths for label tables. | 11 |
+| [`0.3.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.0) (current) | Added human-readable player platforms on `matches.list`. | 11 |
+
+## Unreleased
+
+- Checked the SDK against EA Sports FC 27 on 2026-09-30. `common-gen5` and `nx` pass the live compatibility probes on 10 of 11 endpoints. `clubs.playoffAchievements` stays unverified until clubs finish their first FC 27 playoffs.
+- Deprecated `common-gen4`. EA rejects it with HTTP 400 since the FC 27 switchover. The value stays in `PLATFORMS`; a client emits one `DeprecationWarning` (`PROCLUBS_DEP001`) when a request uses it. Added `DEPRECATED_PLATFORMS`.
+- Switched the documentation examples and the default compatibility probe to `HEMLE FC`, which exists on FC 27.
+
+## What shipped in 0.3.0
+
+- `matches.list` players keep the raw `namespace` and gain `derivedLabels.platformFamily` (`playstation`, `xbox`, or `pc`) and `derivedLabels.exactPlatform` (for example `ps5` or `xbox-series`), resolved from the requested platform.
+- `friendlyMatch` rows have `namespace: "0"` and no derived platform.
 
 ## What shipped in 0.2.5
 
@@ -84,8 +96,8 @@ currently in progress.
 
 | Target | Scope | Boundary |
 | --- | --- | --- |
-| `0.3` | Optional relay CLI, healthcheck, route allowlist, shared-secret authentication, and Docker packaging. | The relay stays optional. The SDK continues to make direct server-side requests without it. |
-| `0.4` | Circuit breaker, client-side rate limiting, stable-IP proxy support, and framework adapters. | Adds request handling and integration options around the SDK. |
+| `0.4` | Optional relay CLI, healthcheck, route allowlist, shared-secret authentication, and Docker packaging. | The relay stays optional. The SDK continues to make direct server-side requests without it. |
+| `0.5` | Circuit breaker, client-side rate limiting, stable-IP proxy support, and framework adapters. | Adds request handling and integration options around the SDK. |
 | `1.0` | Stabilized public API, maintained EA compatibility matrix, and a single release and compatibility workflow. | The current on-demand probes become a maintained platform support policy. |
 
 ## Status rules

@@ -83,6 +83,7 @@ supplies a raw region label. `ClubMemberDerivedLabels` contains the resolved
 ```ts
 import {
   DEFAULT_PLATFORM,
+  DEPRECATED_PLATFORMS,
   DIVISION_LABELS,
   EA_CREST_ASSET_BASE_URL,
   MATCH_TYPE_LABELS,
@@ -131,6 +132,7 @@ import {
 
 ```ts
 PLATFORMS // ['common-gen5', 'common-gen4', 'nx']
+DEPRECATED_PLATFORMS // ['common-gen4'], rejected by EA since FC 27
 DEFAULT_PLATFORM // 'common-gen5'
 MATCH_TYPES // ['friendlyMatch', 'leagueMatch', 'playoffMatch']
 MATCH_TYPE_RESPONSE_LABELS['1'] // 'League Match'

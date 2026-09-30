@@ -454,6 +454,52 @@ describe('ProClubsClient', () => {
     })
   })
 
+  it('warns once per client when a request targets the deprecated common-gen4 platform', async () => {
+    const emitWarning = vi
+      .spyOn(process, 'emitWarning')
+      .mockImplementation(() => {})
+    const requestedPlatforms: (string | null)[] = []
+    const client = new ProClubsClient({
+      transport: async (url) => {
+        requestedPlatforms.push(new URL(url).searchParams.get('platform'))
+        return new Response('[]', { status: 200 })
+      },
+    })
+
+    await client.clubs.search({ name: 'HEMLE FC' })
+    await client.clubs.search({ name: 'HEMLE FC', platform: 'nx' })
+    expect(emitWarning).not.toHaveBeenCalled()
+
+    await client.clubs.search({ name: 'HEMLE FC', platform: 'common-gen4' })
+    await client.rankings.allTime({ platform: 'common-gen4' })
+
+    expect(requestedPlatforms).toEqual([
+      'common-gen5',
+      'nx',
+      'common-gen4',
+      'common-gen4',
+    ])
+    expect(emitWarning).toHaveBeenCalledTimes(1)
+    expect(emitWarning).toHaveBeenCalledWith(
+      expect.stringContaining('"common-gen4" is deprecated'),
+      { type: 'DeprecationWarning', code: 'PROCLUBS_DEP001' },
+    )
+  })
+
+  it('warns when the client default platform is the deprecated common-gen4', async () => {
+    const emitWarning = vi
+      .spyOn(process, 'emitWarning')
+      .mockImplementation(() => {})
+    const client = new ProClubsClient({
+      platform: 'common-gen4',
+      transport: async () => new Response('[]', { status: 200 }),
+    })
+
+    await client.rankings.currentSeason()
+
+    expect(emitWarning).toHaveBeenCalledTimes(1)
+  })
+
   it('rejects invalid inputs locally with a stable validation error', async () => {
     let requested = false
     const client = new ProClubsClient({
@@ -807,4 +853,5 @@ describe('ProClubsClient', () => {
 
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
 })

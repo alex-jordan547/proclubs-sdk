@@ -67,10 +67,31 @@ Every method that accepts a platform uses this precedence:
 ```ts
 const proclubs = new ProClubsClient({ platform: 'common-gen5' })
 
-const legacyClub = await proclubs.clubs.get({
+const switchClub = await proclubs.clubs.get({
   clubId: '12345',
-  platform: 'common-gen4',
+  platform: 'nx',
 })
+```
+
+### Deprecated platforms
+
+`common-gen4` is deprecated. Since the FC 27 switchover, EA rejects it with
+HTTP 400 on every endpoint, and the EA rankings page only lists `common-gen5`
+and `nx` (last checked on 2026-09-30).
+
+The value stays in `PLATFORMS` and in the `Platform` type so existing code keeps
+compiling. A request that uses it still reaches EA and fails with
+`ProClubsHttpError` (`status: 400`). Each client emits one Node.js
+`DeprecationWarning` with the code `PROCLUBS_DEP001` the first time it sends
+such a request.
+
+```ts
+import { DEPRECATED_PLATFORMS, PLATFORMS } from 'proclubs-sdk'
+
+const activePlatforms = PLATFORMS.filter(
+  (platform) => !DEPRECATED_PLATFORMS.includes(platform),
+)
+// ['common-gen5', 'nx']
 ```
 
 ## Custom transport
