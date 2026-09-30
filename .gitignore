@@ -1,4 +1,5 @@
 .DS_Store
+.claude/worktrees/
 .code-review-graph/
 coverage/
 dist/
