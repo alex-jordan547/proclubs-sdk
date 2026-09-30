@@ -14,6 +14,29 @@ so your app does not reimplement the same rules.
   throw: the raw value stays available and the helper returns `undefined`.
 </Warning>
 
+## Player platform labels
+
+`matches.list` preserves each player's raw `namespace` and adds
+`derivedLabels.platformFamily` and `derivedLabels.exactPlatform` when they
+can be resolved.
+
+| Player namespace | Platform family | Exact platform on `common-gen5` | Exact platform on `nx` |
+| --- | --- | --- | --- |
+| `"1"` | `playstation` | `ps5` | Unresolved |
+| `"2"` | `xbox` | `xbox-series` | Unresolved |
+| `"3"` | `pc` | `pc` | Unresolved |
+| `"4"` | `nintendo` | Unresolved | `switch` |
+
+`switch` means the Nintendo Switch family, including Switch 2. EA exposes
+one `nx` pool with no field to distinguish the consoles. Numeric namespaces
+are also accepted. Friendly-match (`"0"`), empty, and unknown namespaces
+remain unresolved. `resolvePlatformFamily` works without request context;
+`resolveExactPlatform` also requires the requested EA platform.
+
+The Nintendo mapping was checked against live EA responses on 2026-10-01:
+118 player-match rows across 28 distinct league matches and 15 club rosters
+all carried namespace `"4"`. The sampled clubs returned no playoff matches.
+
 ## Beginner example with HEMLE FC
 
 ```ts

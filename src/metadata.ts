@@ -20,6 +20,7 @@ export const NAMESPACE_FAMILIES = Object.freeze({
   '1': 'playstation',
   '2': 'xbox',
   '3': 'pc',
+  '4': 'nintendo',
 } as const)
 
 export type KnownNamespaceId = keyof typeof NAMESPACE_FAMILIES
@@ -31,7 +32,14 @@ export function resolvePlatformFamily(
   return lookupNumericIdLabel(NAMESPACE_FAMILIES, namespace)
 }
 
-export type ExactPlatform = 'ps5' | 'xbox-series' | 'ps4' | 'xbox-one' | 'pc'
+/** `switch` identifies the Nintendo Switch family; EA does not distinguish Switch 2. */
+export type ExactPlatform =
+  | 'ps5'
+  | 'xbox-series'
+  | 'ps4'
+  | 'xbox-one'
+  | 'pc'
+  | 'switch'
 
 export function resolveExactPlatform(
   namespace: string | number | null | undefined,
@@ -40,6 +48,10 @@ export function resolveExactPlatform(
   const family = resolvePlatformFamily(namespace)
   if (family === undefined) {
     return undefined
+  }
+
+  if (family === 'nintendo') {
+    return platform === 'nx' ? 'switch' : undefined
   }
 
   if (platform === 'common-gen5') {

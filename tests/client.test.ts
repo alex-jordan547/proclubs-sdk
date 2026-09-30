@@ -217,6 +217,60 @@ describe('ProClubsClient', () => {
     })
   })
 
+  it('derives Switch labels on nx while preserving raw namespaces and unknown players', async () => {
+    const requestedUrls: string[] = []
+    const client = new ProClubsClient({
+      transport: async (url) => {
+        requestedUrls.push(url.toString())
+        return new Response(
+          JSON.stringify([
+            {
+              matchId: 'switch-1',
+              players: {
+                '42': {
+                  '1001': { namespace: '4' },
+                  '1002': { namespace: 4 },
+                  '1003': { namespace: '0' },
+                  '1004': { namespace: '7' },
+                },
+              },
+            },
+          ]),
+          { status: 200 },
+        )
+      },
+    })
+
+    for (const type of ['leagueMatch', 'playoffMatch'] as const) {
+      const [match] = await client.matches.list({
+        clubId: '42',
+        platform: 'nx',
+        type,
+      })
+      expect(match?.players?.['42']).toEqual({
+        '1001': {
+          namespace: '4',
+          derivedLabels: {
+            platformFamily: 'nintendo',
+            exactPlatform: 'switch',
+          },
+        },
+        '1002': {
+          namespace: 4,
+          derivedLabels: {
+            platformFamily: 'nintendo',
+            exactPlatform: 'switch',
+          },
+        },
+        '1003': { namespace: '0' },
+        '1004': { namespace: '7' },
+      })
+    }
+    expect(
+      requestedUrls.map((url) => new URL(url).searchParams.get('platform')),
+    ).toEqual(['nx', 'nx'])
+  })
+
   it('retries transient EA responses before returning validated data', async () => {
     let attempts = 0
     const client = new ProClubsClient({

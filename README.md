@@ -107,13 +107,20 @@ The examples use `HEMLE FC` as the test club, and `mrjordan_237` /
 | Platform | EA label | Status on FC 27 |
 | --- | --- | --- |
 | `common-gen5` (default) | Crossplatform Current Gen | Supported |
-| `nx` | Switch | Supported |
+| `nx` | Switch | Supported: Switch and Switch 2 share one pool |
 | `common-gen4` | Crossplatform Last Gen | Deprecated: EA rejects it with HTTP 400 |
 
 Platform status was last checked against the live EA endpoints on 2026-09-30.
 The SDK still accepts `common-gen4` so existing code keeps compiling, and emits
 a `DeprecationWarning` (`PROCLUBS_DEP001`) once per client when a request uses
 it.
+
+EA exposes a single `nx` pool and no value that distinguishes Switch from
+Switch 2. Players with `namespace: "4"` gain
+`derivedLabels.platformFamily: "nintendo"` and, on `nx`,
+`derivedLabels.exactPlatform: "switch"`. Here `switch` means the console
+family, not a specific hardware generation. The raw `namespace` is preserved;
+unknown or friendly-match namespaces remain unresolved.
 
 ### Match types
 

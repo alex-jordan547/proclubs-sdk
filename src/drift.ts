@@ -762,7 +762,7 @@ function validateAgainstContract(
           kind: 'unknown_value',
           path: fieldPath,
           message: `Unknown player namespace at ${fieldPath}; update NAMESPACE_FAMILIES after confirming the EA platform`,
-          expected: 'known player namespace 0 | 1 | 2 | 3',
+          expected: `known player namespace ${[...KNOWN_PLAYER_NAMESPACE_IDS].join(' | ')}`,
           actual: String(val),
         })
       }

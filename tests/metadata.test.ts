@@ -48,6 +48,7 @@ const EXPECTED_NAMESPACE_FAMILIES = {
   '1': 'playstation',
   '2': 'xbox',
   '3': 'pc',
+  '4': 'nintendo',
 } as const satisfies Record<KnownNamespaceId, PlatformFamily>
 
 const EXPECTED_MATCH_TYPE_LABELS = {
@@ -145,13 +146,13 @@ describe('PLATFORM_LABELS and resolvePlatformLabel', () => {
 describe('NAMESPACE_FAMILIES and platform resolvers', () => {
   it('exposes the known namespace families as an immutable mapping', () => {
     expect(NAMESPACE_FAMILIES).toEqual(EXPECTED_NAMESPACE_FAMILIES)
-    expect(Object.keys(NAMESPACE_FAMILIES)).toHaveLength(3)
+    expect(Object.keys(NAMESPACE_FAMILIES)).toHaveLength(4)
     expect(Object.isFrozen(NAMESPACE_FAMILIES)).toBe(true)
     expectTypeOf<PlatformFamily>().toEqualTypeOf<
-      'playstation' | 'xbox' | 'pc'
+      'playstation' | 'xbox' | 'pc' | 'nintendo'
     >()
     expectTypeOf<ExactPlatform>().toEqualTypeOf<
-      'ps5' | 'xbox-series' | 'ps4' | 'xbox-one' | 'pc'
+      'ps5' | 'xbox-series' | 'ps4' | 'xbox-one' | 'pc' | 'switch'
     >()
   })
 
@@ -176,11 +177,22 @@ describe('NAMESPACE_FAMILIES and platform resolvers', () => {
     }
   })
 
+  it('resolves Nintendo namespaces only to the Switch family on nx', () => {
+    for (const namespace of ['4', 4] as const) {
+      expect(resolvePlatformFamily(namespace)).toBe('nintendo')
+      expect(resolveExactPlatform(namespace, 'nx')).toBe('switch')
+      expect(resolveExactPlatform(namespace, 'common-gen5')).toBeUndefined()
+      expect(resolveExactPlatform(namespace, 'common-gen4')).toBeUndefined()
+      expect(resolveExactPlatform(namespace, undefined)).toBeUndefined()
+    }
+  })
+
   it('does not infer a platform for friendly, empty, null, or unknown namespaces', () => {
     for (const namespace of ['0', '', null, undefined, '7'] as const) {
       expect(resolvePlatformFamily(namespace)).toBeUndefined()
       expect(resolveExactPlatform(namespace, 'common-gen5')).toBeUndefined()
       expect(resolveExactPlatform(namespace, 'common-gen4')).toBeUndefined()
+      expect(resolveExactPlatform(namespace, 'nx')).toBeUndefined()
     }
 
     expect(resolveExactPlatform(1, 'common-gen5')).toBe('ps5')
