@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">proclubs-sdk: EA FC Pro Clubs data, ready for your app</title>
+  <desc id="description">A TypeScript and Node.js SDK for club stats, player rosters, rankings and recent matches. No EA account required.</desc>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#86efac" stroke-opacity=".06"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0d2419"/><stop offset="1" stop-color="#07130e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" rx="20" fill="url(#fade)"/>
+  <rect width="1200" height="630" rx="20" fill="url(#grid)"/>
+  <g transform="translate(800 87)" fill="none" stroke="#86efac" stroke-width="2">
+    <rect width="318" height="456" rx="5" stroke-opacity=".25"/>
+    <path d="M0 228h318M85 0v68h148V0M117 0v26h84V0M85 456v-68h148v68m-116 0v-26h84v26" stroke-opacity=".25"/>
+    <circle cx="159" cy="228" r="62" stroke-opacity=".25"/>
+    <g fill="#86efac" stroke="none">
+      <circle cx="159" cy="46" r="6"/><circle cx="52" cy="142" r="6"/><circle cx="122" cy="120" r="6"/>
+      <circle cx="202" cy="120" r="6"/><circle cx="272" cy="142" r="6"/><circle cx="76" cy="245" r="6"/>
+      <circle cx="159" cy="226" r="6"/><circle cx="244" cy="245" r="6"/><circle cx="55" cy="352" r="6"/>
+      <circle cx="159" cy="324" r="6"/><circle cx="263" cy="352" r="6"/>
+    </g>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="72" y="91" font-size="28" font-weight="700" fill="#86efac">proclubs-sdk</text>
+    <text x="72" y="144" font-size="14" letter-spacing="3" fill="#b1c5ba">TYPESCRIPT / NODE.JS / MIT</text>
+    <text x="67" y="250" font-size="66" font-weight="700" letter-spacing="-3" fill="#f1faf5">Pro Clubs data.</text>
+    <text x="67" y="326" font-size="66" font-weight="700" letter-spacing="-3" fill="#f1faf5">Ready for your app.</text>
+    <text x="72" y="399" font-size="23" fill="#b1c5ba">Club stats. Player rosters. Rankings. Recent matches.</text>
+    <rect x="72" y="454" width="558" height="60" rx="8" fill="#86efac"/>
+    <text x="96" y="493" font-family="monospace" font-size="23" font-weight="600" fill="#0d2419">npm install proclubs-sdk</text>
+    <text x="72" y="561" font-size="17" fill="#b1c5ba">Unofficial EA FC SDK · No EA account required</text>
+  </g>
+</svg>

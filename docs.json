@@ -2,17 +2,25 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "proclubs-sdk",
-  "description": "TypeScript SDK for the public EA Sports FC Pro Clubs endpoints.",
+  "description": "Unofficial EA FC Pro Clubs API SDK for TypeScript and Node.js. Club stats, player rosters, rankings and recent matches, without an EA account.",
   "colors": {
-    "primary": "#635BFF",
-    "light": "#7C74FF",
-    "dark": "#4F46E5"
+    "primary": "#15803D",
+    "light": "#16A34A",
+    "dark": "#166534"
   },
   "navigation": {
     "groups": [
       {
         "group": "Get started",
         "pages": ["docs/index", "docs/quickstart"]
+      },
+      {
+        "group": "Build with the SDK",
+        "pages": [
+          "docs/guides/pro-clubs-api-nodejs",
+          "docs/guides/discord-bot",
+          "docs/guides/fc27-api-changes"
+        ]
       },
       {
         "group": "Guides",
@@ -46,5 +54,60 @@
         ]
       }
     ]
+  },
+  "logo": {
+    "light": "/assets/logo-light.svg",
+    "dark": "/assets/logo-dark.svg"
+  },
+  "favicon": "/assets/favicon.svg",
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/alex-jordan547/proclubs-sdk"
+      },
+      {
+        "label": "npm",
+        "href": "https://www.npmjs.com/package/proclubs-sdk"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Quickstart",
+      "href": "/docs/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/alex-jordan547/proclubs-sdk"
+    },
+    "links": [
+      {
+        "header": "Project",
+        "items": [
+          {
+            "label": "npm package",
+            "href": "https://www.npmjs.com/package/proclubs-sdk"
+          },
+          {
+            "label": "Report an issue",
+            "href": "https://github.com/alex-jordan547/proclubs-sdk/issues"
+          }
+        ]
+      }
+    ]
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:site_name": "proclubs-sdk",
+      "og:image": "https://proclubs-sdk.mintlify.app/assets/social-card.png",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://proclubs-sdk.mintlify.app/assets/social-card.png",
+      "google-site-verification": "w-y1Bz4FXE3PY5g1juLr2DJsSTtg3v5kEN7rA5FRcJM"
+    }
+  },
+  "search": {
+    "prompt": "Search clubs, players, platforms, errors..."
   }
 }

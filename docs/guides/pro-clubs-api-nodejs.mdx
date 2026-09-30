@@ -1,0 +1,97 @@
+---
+title: "Use the EA FC Pro Clubs API with Node.js"
+sidebarTitle: "Club dashboard"
+description: "Fetch EA FC Pro Clubs statistics in TypeScript or JavaScript: find a club, load its players and recent matches, and build a dashboard with proclubs-sdk."
+---
+
+Read a club's public data from EA FC Pro Clubs with `proclubs-sdk`.
+Use this on a Node.js backend, in a command-line tool, or on the server
+side of a dashboard.
+
+## Install and run
+
+Use Node.js 22.18.0 or newer. In an empty directory:
+
+```bash
+npm init -y
+npm install proclubs-sdk
+```
+
+Save this as `club.mjs`. The extension enables ESM without changing
+your package configuration.
+
+```js
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({ cache: true })
+const clubName = process.argv[2] ?? 'HEMLE FC'
+const clubs = await proclubs.clubs.search({ name: clubName })
+
+if (clubs.length === 0) {
+  console.error('No club found. Check the name and platform.')
+  process.exit(1)
+}
+
+if (clubs.length > 1) {
+  console.error('Several clubs found. Use a more specific name or select a club ID in your app.')
+  process.exit(1)
+}
+
+const club = clubs[0]
+const clubId = club.clubId
+const [info, record, squad, matches] = await Promise.all([
+  proclubs.clubs.get({ clubId }),
+  proclubs.clubs.overallStats({ clubId }),
+  proclubs.members.stats({ clubId }),
+  proclubs.matches.list({ clubId, type: 'leagueMatch', limit: 5 }),
+])
+
+console.log(JSON.stringify({ clubId, info, record, squad, matches }, null, 2))
+```
+
+```bash
+node club.mjs "HEMLE FC"
+```
+
+The same imports work in TypeScript. Each method infers its response type.
+
+## Choose the correct platform
+
+The default `common-gen5` pool includes PS5, Xbox Series X|S, and PC.
+For Nintendo, construct a client with `platform: 'nx'` or override
+the platform for one request.
+
+```ts
+const nintendo = new ProClubsClient({ platform: 'nx', cache: true })
+const clubs = await nintendo.clubs.search({ name: 'dontd' })
+```
+
+`common-gen4` is deprecated in FC 27. Adding credentials or changing
+the transport cannot make that platform available.
+
+## Keep EA codes and display labels
+
+EA often returns totals as strings. The SDK preserves those raw values.
+Convert a particular total with `Number(value)` when your application
+needs arithmetic, and check that the result is finite.
+
+Known metadata gains readable labels. Members can include `nationality`;
+matches can include `players[clubId][playerId].derivedLabels`.
+Unknown values remain readable in their raw fields.
+See [metadata](/docs/reference/metadata).
+
+## Put the client on your server
+
+Reuse one client per process so requests can share its optional cache.
+Expose only the data your dashboard needs through your own backend.
+The native transport is not supported in browsers, React Native, or
+edge runtimes. Handle [SDK errors](/docs/guides/errors-and-retries)
+when EA refuses a connection or changes a response.
+
+The public endpoints return recent matches, not a paginated lifetime
+archive. There is no API key to unlock historical FC 26 data or private
+accounts.
+
+<Card title="Check the yearly switchover" icon="calendar" href="/docs/guides/fc27-api-changes">
+  Understand which platforms and saved club IDs changed with FC 27.
+</Card>

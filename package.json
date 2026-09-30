@@ -1,7 +1,7 @@
 {
   "name": "proclubs-sdk",
-  "version": "0.3.1",
-  "description": "Unofficial TypeScript SDK for EA Sports FC Pro Clubs.",
+  "version": "0.3.2",
+  "description": "Unofficial EA FC Pro Clubs API SDK for TypeScript and Node.js: club stats, player rosters, rankings and matches.",
   "author": "Alex Jordan",
   "type": "module",
   "engines": {
@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/alex-jordan547/proclubs-sdk.git"
   },
-  "homepage": "https://github.com/alex-jordan547/proclubs-sdk#readme",
+  "homepage": "https://proclubs-sdk.mintlify.app/docs",
   "bugs": {
     "url": "https://github.com/alex-jordan547/proclubs-sdk/issues"
   },
@@ -59,8 +59,15 @@
   "keywords": [
     "ea-sports-fc",
     "pro-clubs",
+    "proclubs",
+    "fc27",
+    "fifa",
     "sdk",
-    "typescript"
+    "typescript",
+    "nodejs",
+    "api-client",
+    "football",
+    "club-stats"
   ],
   "license": "MIT",
   "dependencies": {
