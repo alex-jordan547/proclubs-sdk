@@ -1,6 +1,8 @@
 # proclubs-sdk
 
 [![npm version](https://img.shields.io/npm/v/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
+[![node](https://img.shields.io/node/v/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
 [![CI](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/proclubs-sdk.svg)](./LICENSE)
 
@@ -13,6 +15,38 @@ relay. An optional local memory cache helps repeated requests stay lightweight.
 > This project is not affiliated with or endorsed by Electronic Arts. The
 > upstream API is undocumented and may change or become unavailable without
 > notice.
+
+## Why this exists
+
+EA publishes no Pro Clubs API. The EA Clubs website reads a set of public JSON
+endpoints, and every stats site, league tool, and Discord bot ends up calling
+them with its own request code. That code breaks in the same three places.
+
+**EA's edge is picky about the client.** Checked on 2026-09-30 against
+`proclubs.ea.com`: curl gets an HTTP/2 stream reset, and hangs over HTTP/1.1,
+while a browser gets a 200. Developers also report
+[intermittent 403s and timeouts from servers](https://forums.ea.com/discussions/fc-26-general-discussion-en/ea-fc-26-pro-clubs-api-returning-403-and-timeouts/13560619).
+The default transport is [Impit](https://github.com/apify/impit) with a Chrome
+network profile, so requests look like the ones the EA website sends. You can
+[inject your own transport](./docs/guides/configuration.mdx) instead, for
+example plain `fetch`.
+
+**EA changes the responses without notice.** Every response goes through a Zod
+schema, unknown fields are kept, and a
+[compatibility probe](./docs/reference/types-and-schemas.mdx) reports drift per
+endpoint. That probe is how this README knows `common-gen4` stopped working
+with FC 27.
+
+**The data is raw codes.** The SDK keeps the raw value and adds a readable one:
+
+| EA returns | The SDK adds |
+| --- | --- |
+| `proNationality: "115"` | `nationality: { id: "115", label: "Gabon", isoCode: "GA" }` |
+| `regionId: 5457237` | `regionLabel: "Southern Europe"` |
+| `namespace: "1"` on a `common-gen5` match | `derivedLabels.exactPlatform: "ps5"` |
+
+The SDK sends no EA credentials or cookies, and it only reads the endpoints the
+public website reads. It is built for low request volumes, not for scraping.
 
 ## Install
 
