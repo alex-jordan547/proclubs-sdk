@@ -23,9 +23,10 @@ endpoints, and every stats site, league tool, and Discord bot ends up calling
 them with its own request code. That code breaks in the same three places.
 
 **EA's edge is picky about the client.** Checked on 2026-09-30 against
-`proclubs.ea.com`: curl gets an HTTP/2 stream reset, and hangs over HTTP/1.1,
-while a browser gets a 200. Developers also report
-[intermittent 403s and timeouts from servers](https://forums.ea.com/discussions/fc-26-general-discussion-en/ea-fc-26-pro-clubs-api-returning-403-and-timeouts/13560619).
+`proclubs.ea.com` from a home connection: a browser and Node.js `fetch` get the
+JSON, while curl gets an HTTP/2 stream reset, and hangs over HTTP/1.1. From
+servers, developers report
+[intermittent 403s and timeouts](https://forums.ea.com/discussions/fc-26-general-discussion-en/ea-fc-26-pro-clubs-api-returning-403-and-timeouts/13560619).
 The default transport is [Impit](https://github.com/apify/impit) with a Chrome
 network profile, so requests look like the ones the EA website sends. You can
 [inject your own transport](./docs/guides/configuration.mdx) instead, for
