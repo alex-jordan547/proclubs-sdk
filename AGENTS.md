@@ -16,7 +16,7 @@ duplicating them here.
   required CI gate.
 - The SDK's actual runtime (and `check:compatibility`) makes outbound HTTPS requests to
   `https://proclubs.ea.com`; no credentials/cookies are needed. This egress works in the cloud VM,
-  so a real end-to-end call (e.g. `proclubs.clubs.search({ name: 'ALL STAR 237' })`) succeeds. If a
+  so a real end-to-end call (e.g. `proclubs.clubs.search({ name: 'HEMLE FC' })`) succeeds. If a
   future environment blocks outbound network, fall back to constructing `ProClubsClient` with a
   custom `transport` (see `ProClubsClientOptions.transport` in `src/client.ts`) backed by the
   fixtures to exercise the SDK end-to-end.

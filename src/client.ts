@@ -3,6 +3,7 @@ import type { ZodType } from 'zod'
 
 import {
   DEFAULT_PLATFORM,
+  DEPRECATED_PLATFORMS,
   EA_BASE_URL,
   EA_ROUTES,
   type Endpoint,
@@ -190,6 +191,7 @@ export class ProClubsClient {
   readonly #cache?: MemoryCache<unknown>
   readonly #inFlight = new Map<string, Promise<unknown>>()
   readonly #onEvent: ProClubsEventHandler | undefined
+  #deprecatedPlatformWarned = false
 
   constructor(options: ProClubsClientOptions = {}) {
     const timeoutMs = options.timeoutMs ?? 15_000
@@ -404,6 +406,7 @@ export class ProClubsClient {
         cause: options.signal.reason,
       })
     }
+    this.warnIfDeprecatedPlatform(searchParams.get('platform'))
 
     const cacheMode = options?.cache ?? 'default'
     const cacheEnabled = this.#cache !== undefined && cacheMode !== 'bypass'
@@ -771,6 +774,20 @@ export class ProClubsClient {
       )
     }
     return parsed.data
+  }
+
+  private warnIfDeprecatedPlatform(platform: string | null): void {
+    if (
+      this.#deprecatedPlatformWarned ||
+      !DEPRECATED_PLATFORMS.some((deprecated) => deprecated === platform)
+    ) {
+      return
+    }
+    this.#deprecatedPlatformWarned = true
+    process.emitWarning(
+      `proclubs-sdk: platform "${platform}" is deprecated. EA rejects it with HTTP 400 since the FC 27 switchover. Use "common-gen5" or "nx".`,
+      { type: 'DeprecationWarning', code: 'PROCLUBS_DEP001' },
+    )
   }
 
   private shouldRetry(status: number): boolean {

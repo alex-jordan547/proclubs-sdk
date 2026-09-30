@@ -121,7 +121,7 @@ export async function runCompatibilityCheck(
   options: CompatibilityRunnerOptions = {},
 ): Promise<CompatibilityCheckResult> {
   const platform = options.platform ?? DEFAULT_PLATFORM
-  const searchQuery = options.searchQuery ?? 'ALL STAR 237'
+  const searchQuery = options.searchQuery ?? 'HEMLE FC'
   const timeoutMs = options.timeoutMs ?? 15_000
   const results = createInitialResults()
   const executedEndpoints: Endpoint[] = []

@@ -14,7 +14,7 @@ so your app does not reimplement the same rules.
   throw: the raw value stays available and the helper returns `undefined`.
 </Warning>
 
-## Beginner example with ALL STAR 237
+## Beginner example with HEMLE FC
 
 ```ts
 import {
@@ -27,7 +27,7 @@ import {
 } from 'proclubs-sdk'
 
 const proclubs = new ProClubsClient()
-const [club] = await proclubs.clubs.search({ name: 'ALL STAR 237' })
+const [club] = await proclubs.clubs.search({ name: 'HEMLE FC' })
 const [match] = await proclubs.matches.list({ clubId: club?.clubId ?? '42' })
 const homeClub = match?.clubs?.[club?.clubId ?? '42']
 
@@ -38,16 +38,16 @@ console.log(resolveMatchTypeLabel(homeClub?.matchType))
 // 'League Match'
 
 console.log(club?.reputationtier)
-// '6' — raw EA value, still accessible
+// '0' — raw EA value, still accessible
 
 console.log(resolveReputationLabel(club?.reputationtier))
-// undefined — tier 6 is not in the known mapping yet
+// 'Hometown Heroes'. An unmapped tier such as '6' returns undefined.
 
 console.log(resolveDivisionLabel(club?.currentDivision))
-// 'Division 5'
+// 'Division 4'
 
 console.log(resolveClubCrestUrl(club?.clubInfo))
-// 'https://eafc24.content.easports.com/.../l99140109.png'
+// 'https://eafc24.content.easports.com/.../l73.png'
 ```
 
 The SDK does not rewrite `reputationtier`, `currentDivision`, or `customKit`.
@@ -76,7 +76,7 @@ resolveSeasonLabel('EA_NEW_SEASON_FORMAT', '9')
 | Code | Label |
 | --- | --- |
 | `common-gen5` | Crossplatform Current Gen |
-| `common-gen4` | Crossplatform Last Gen |
+| `common-gen4` | Crossplatform Last Gen (deprecated: EA rejects it since FC 27) |
 | `nx` | Switch |
 
 ### Match types

@@ -11,7 +11,7 @@ description: "Understand the SDK's runtime contract, upstream risks, and non-goa
 - direct, low-volume server-side requests
 - injectable transport for tests and custom Node.js runtimes
 
-## Not supported in 0.2.x
+## Not supported in 0.3.x
 
 - browser or CommonJS applications;
 - React Native, Deno, or edge runtimes;
@@ -26,6 +26,15 @@ EA's Pro Clubs endpoints are public but undocumented. Routes, fields, response
 statuses, and availability can change without notice. The SDK validates known
 response envelopes and preserves additional fields, but it cannot make the
 upstream service stable.
+
+EA switches these endpoints to the new game at each yearly release. After the
+FC 27 switchover (checked on 2026-09-30):
+
+- `common-gen4` is rejected with HTTP 400 on every endpoint. It is
+  [deprecated](/docs/guides/configuration#deprecated-platforms) in the SDK.
+- A club ID recorded on FC 26 resolved to a different club. Search for a club
+  by name again after a new release instead of reusing a stored `clubId`.
+- Playoff history is empty until clubs finish their first FC 27 playoffs.
 
 Region labels are reverse-engineered from the EA website. They are not an
 official EA contract. A new or renamed region keeps the raw `regionId` readable
