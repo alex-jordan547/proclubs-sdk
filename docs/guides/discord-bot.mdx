@@ -1,0 +1,86 @@
+---
+title: "Add EA FC Pro Clubs stats to a Discord bot"
+sidebarTitle: "Discord bot"
+description: "Build a Pro Clubs stats command for a Node.js Discord bot. Search clubs, read wins and goals, reuse the SDK cache, and handle EA API errors."
+---
+
+Use `proclubs-sdk` on the Node.js side of your Discord bot to prepare a
+public club summary. Your existing Discord library handles commands
+and replies; the SDK reads data from EA.
+
+## Prepare the command response
+
+Install `proclubs-sdk`, then save this as `club-summary.mjs`:
+
+```js
+import { ProClubsClient } from 'proclubs-sdk'
+
+// Reuse this instance between commands.
+const proclubs = new ProClubsClient({ cache: true })
+
+export async function clubSummary(name, platform = 'common-gen5') {
+  const clubs = await proclubs.clubs.search({ name, platform })
+  if (clubs.length === 0) return 'No club found. Check its name and platform.'
+  if (clubs.length > 1) {
+    return 'Several clubs match. Ask the player to choose a club before loading its stats.'
+  }
+
+  const club = clubs[0]
+  const record = await proclubs.clubs.overallStats({
+    clubId: club.clubId,
+    platform,
+  })
+  if (!record) return 'EA returned no statistics for this club.'
+
+  return [
+    `Club: ${club.clubName ?? club.clubInfo?.name ?? club.clubId}`,
+    `Wins: ${record.wins ?? 'unavailable'}`,
+    `Losses: ${record.losses ?? 'unavailable'}`,
+    `Goals: ${record.goals ?? 'unavailable'}`,
+  ].join('\n')
+}
+```
+
+In your command handler, acknowledge the interaction before waiting for
+EA, call `clubSummary`, then send the text. Follow your Discord library's
+current interaction API.
+
+<Note>
+  EA fields are untrusted display text. Escape Discord formatting where needed
+  and disable allowed mentions so a club name cannot ping users or roles.
+</Note>
+
+## Handle failures
+
+```js
+import { ProClubsHttpError } from 'proclubs-sdk'
+import { clubSummary } from './club-summary.mjs'
+
+try {
+  const text = await clubSummary('HEMLE FC')
+  console.log(text) // Send through your bot's reply API.
+} catch (error) {
+  if (error instanceof ProClubsHttpError) {
+    console.error('EA request failed', error.status, error.endpoint)
+  } else {
+    throw error
+  }
+}
+```
+
+Show the player a short failure message instead of raw response bodies.
+The SDK caps retries and respects `Retry-After`. Add a command cooldown
+if several users can request the same club.
+
+## Platform and cache choices
+
+- Use `common-gen5` for PS5, Xbox Series X|S, and PC.
+- Use `nx` for the Nintendo pool.
+- Keep one SDK instance so commands share the 60-second memory cache.
+- Avoid background polling of many clubs. This SDK is for modest public
+  requests, not club enumeration or a historical data warehouse.
+
+<Card title="Choose a supported runtime" icon="server" href="/docs/project/limitations">
+  The default transport requires Node.js and a native binary. Check the support
+  contract before choosing bot hosting.
+</Card>

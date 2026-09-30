@@ -1,77 +1,87 @@
 ---
-title: "proclubs-sdk"
-description: "A small, typed Node.js SDK for EA Sports FC Pro Clubs data."
+title: "EA FC Pro Clubs API for TypeScript and Node.js"
+sidebarTitle: "Overview"
+description: "Build a Pro Clubs dashboard or Discord bot with typed club stats, player rosters, rankings and recent matches. Install proclubs-sdk; no EA account required."
 ---
 
-`proclubs-sdk` is an unofficial TypeScript client for the public endpoints used
-by EA Sports FC Pro Clubs. It gives server-side applications a stable interface
-for club discovery, rankings, rosters, statistics, and recent matches.
+<img src="/assets/banner.svg" alt="proclubs-sdk: Pro Clubs data, ready for your app. TypeScript and Node.js." />
+
+Build with EA FC Pro Clubs data. `proclubs-sdk` reads the public endpoints
+behind EA's Clubs website and returns typed, validated responses to your
+Node.js application.
+
+Search a club, load its squad, and inspect recent matches. No EA account,
+cookies, API key, or hosted relay is required.
+
+```bash
+npm install proclubs-sdk
+```
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({ cache: true })
+const [club] = await proclubs.clubs.search({ name: 'HEMLE FC' })
+
+if (club) {
+  const matches = await proclubs.matches.list({ clubId: club.clubId })
+  console.log(matches)
+}
+```
+
+Requires **Node.js 22.18.0 or newer**, ESM, and a server-side runtime.
+The SDK uses a native HTTP transport; browser, React Native, and edge
+runtimes are outside its support contract.
+
+## Choose your first build
+
+<CardGroup cols={2}>
+  <Card title="Build a club dashboard" icon="chart-line" href="/docs/guides/pro-clubs-api-nodejs">
+    Search a club and load its record, squad, and recent matches with a
+    runnable Node.js example.
+  </Card>
+  <Card title="Send stats to a Discord bot" icon="discord" href="/docs/guides/discord-bot">
+    Keep one cached client and format a club summary for your bot.
+  </Card>
+  <Card title="Fix FC 27 API failures" icon="wrench" href="/docs/guides/fc27-api-changes">
+    Check platform changes, HTTP 400 and 403 responses, and stale club IDs.
+  </Card>
+  <Card title="Explore the SDK reference" icon="code" href="/docs/reference/client">
+    Read method signatures, response types, transport options, and
+    exact retry behavior.
+  </Card>
+</CardGroup>
+
+## What the SDK handles
+
+| You need | The SDK provides |
+| --- | --- |
+| Club search and statistics | Club information, aggregate records, and playoff history |
+| Squad and player data | Current and career member stats, plus derived nationality labels |
+| Match results | Recent league, friendly, or playoff matches; raw EA fields remain accessible |
+| Leaderboards | All-time and current-season rankings, with search |
+| Uncertain responses | Zod validation, typed errors, bounded retries, timeouts, and cancellation |
+| Repeated requests | An optional memory cache and local request events, without telemetry |
+
+The built-in transport uses Impit with a Chrome network profile. It helps
+match EA's own website requests; it cannot guarantee that EA will serve
+every request. See [errors and retries](/docs/guides/errors-and-retries).
+
+## FC 27 platform support
+
+| EA platform | Consoles | Status |
+| --- | --- | --- |
+| `common-gen5` | PS5, Xbox Series X\|S, PC | Default |
+| `nx` | Nintendo Switch family | Available; EA exposes no separate Switch 2 platform |
+| `common-gen4` | PS4, Xbox One | Deprecated; EA returns HTTP 400 |
+
+The EA endpoints now serve FC 27. They offer no game-version selector
+or archive of your FC 26 matches. Recheck saved club IDs after each yearly
+switchover. [Read the FC 27 guide](/docs/guides/fc27-api-changes).
 
 <Warning>
-  This project is not affiliated with or endorsed by Electronic Arts. The
-  upstream API is undocumented and can change or become unavailable without
-  notice.
+  This is an unofficial, MIT-licensed SDK. It is not affiliated with
+  Electronic Arts. EA's API is undocumented and can change or become
+  unavailable. Keep requests modest and read the
+  [support limits](/docs/project/limitations) before building on it.
 </Warning>
-
-## What you get
-
-<CardGroup cols={2}>
-  <Card title="Typed methods" icon="code">
-    Eleven focused methods with TypeScript declarations and validated inputs.
-  </Card>
-  <Card title="Validated responses" icon="shield-check">
-    Known response envelopes are checked with Zod before data reaches your app.
-  </Card>
-  <Card title="Resilient requests" icon="rotate">
-    Bounded retries, exponential backoff, `Retry-After`, timeouts, and aborts.
-  </Card>
-  <Card title="No account required" icon="key">
-    No EA credentials, cookies, proxy, hosted relay, or telemetry. An optional
-    local memory cache is available for repeated requests.
-  </Card>
-</CardGroup>
-
-## Requirements
-
-- Node.js 22.18.0 or newer
-- ESM
-- A server-side runtime
-
-<Note>
-  Browser, CommonJS, React Native, Deno, and edge runtimes are outside the
-  `0.3.1` support contract.
-</Note>
-
-## SDK surface
-
-| Namespace | Method | Purpose |
-| --- | --- | --- |
-| `clubs` | `search` | Find clubs by name |
-| `clubs` | `get` | Get one club's information |
-| `clubs` | `overallStats` | Get the club's aggregate record |
-| `clubs` | `playoffAchievements` | Get the club's playoff history |
-| `rankings` | `allTime` | Get the all-time leaderboard |
-| `rankings` | `searchAllTime` | Search the all-time leaderboard |
-| `rankings` | `currentSeason` | Get the current-season leaderboard |
-| `rankings` | `searchCurrentSeason` | Search the current-season leaderboard |
-| `members` | `stats` | Get the current member statistics |
-| `members` | `careerStats` | Get career statistics for members |
-| `matches` | `list` | List recent matches by match type |
-
-<CardGroup cols={2}>
-  <Card title="Install and query" icon="bolt" href="/docs/quickstart">
-    Make your first request in a few lines.
-  </Card>
-  <Card title="Explore the client" icon="book-open" href="/docs/reference/client">
-    Review options, defaults, and the complete public surface.
-  </Card>
-  <Card title="Follow the roadmap" icon="map" href="/docs/project/roadmap">
-    See what is released, in progress, and planned.
-  </Card>
-</CardGroup>
-
-## Responsible use
-
-Keep request volumes modest and cache data in your application when appropriate.
-The SDK reads only public endpoints, sends no credentials, and waits for
-`Retry-After` before it retries.

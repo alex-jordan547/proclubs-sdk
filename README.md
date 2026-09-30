@@ -1,15 +1,21 @@
 # proclubs-sdk
 
+![proclubs-sdk: Pro Clubs data, ready for your app](https://raw.githubusercontent.com/alex-jordan547/proclubs-sdk/main/assets/social-card.png)
+
+**Unofficial EA FC Pro Clubs API SDK for TypeScript and Node.js.**
+
+[Documentation](https://proclubs-sdk.mintlify.app/docs) · [Quickstart](https://proclubs-sdk.mintlify.app/docs/quickstart) · [FC 27 API changes](https://proclubs-sdk.mintlify.app/docs/guides/fc27-api-changes) · [npm](https://www.npmjs.com/package/proclubs-sdk)
+
 [![npm version](https://img.shields.io/npm/v/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
 [![node](https://img.shields.io/node/v/proclubs-sdk.svg)](https://www.npmjs.com/package/proclubs-sdk)
 [![CI](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/alex-jordan547/proclubs-sdk/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/proclubs-sdk.svg)](./LICENSE)
 
-A small, typed Node.js SDK for the public endpoints used by EA Sports FC Pro
-Clubs. It validates inputs and responses, retries transient failures, and exposes
-stable error classes without requiring EA credentials, cookies, or a hosted
-relay. An optional local memory cache helps repeated requests stay lightweight.
+Read public club stats, player rosters, rankings, and recent matches from EA
+Sports FC Pro Clubs in your Node.js app. Inputs and responses are validated,
+transient failures use bounded retries, and typed errors identify rejected
+requests. Reuse the optional memory cache for repeated queries.
 
 > [!WARNING]
 > This project is not affiliated with or endorsed by Electronic Arts. The
@@ -117,6 +123,15 @@ Supported match types are `friendlyMatch`, `leagueMatch` (default), and
 use `leagueMatch` or `playoffMatch` to identify a player's platform.
 
 ## Documentation
+
+[Read the online documentation](https://proclubs-sdk.mintlify.app/docs), or start
+with a practical guide:
+
+- [Build a club dashboard with Node.js](https://proclubs-sdk.mintlify.app/docs/guides/pro-clubs-api-nodejs)
+- [Add Pro Clubs stats to a Discord bot](https://proclubs-sdk.mintlify.app/docs/guides/discord-bot)
+- [Troubleshoot FC 27 platform changes and API errors](https://proclubs-sdk.mintlify.app/docs/guides/fc27-api-changes)
+
+Reference pages in this repository:
 
 - [Get started](./docs/index.mdx)
 - [Quickstart](./docs/quickstart.mdx)

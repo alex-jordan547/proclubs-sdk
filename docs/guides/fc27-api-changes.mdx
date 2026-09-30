@@ -1,0 +1,113 @@
+---
+title: "EA FC 27 Pro Clubs API changes and troubleshooting"
+sidebarTitle: "FC 27 API changes"
+description: "Diagnose EA FC Pro Clubs HTTP 400 and 403 errors, deprecated common-gen4, Nintendo platform limits, changed club IDs, and empty playoff responses."
+---
+
+EA's public Clubs endpoints now serve FC 27. They retain the
+`/api/fc/` routes, so a URL alone does not identify the yearly release.
+
+The observations below were checked against EA on **2026-09-30**.
+Nintendo namespace checks were expanded on **2026-10-01**.
+This is an undocumented API; these observations are not an EA support promise.
+
+## Start with the symptom
+
+| Symptom | Check first | Next action |
+| --- | --- | --- |
+| HTTP 400 with `common-gen4` | Last-gen platform rejection | Remove PS4 and Xbox One from live EA lookup choices |
+| HTTP 400 with `nx2` or `switch2` | No separate Nintendo platform value | Use `nx`; do not invent a Switch 2 group |
+| A saved club ID shows another club | Yearly switchover | Search the name again and confirm the result |
+| HTTP 403 or timeouts | HTTP client and EA availability | Use the default transport and bounded retries |
+| Empty playoff achievements | EA returned no records | Preserve the empty state and mark coverage unverified |
+| `ProClubsResponseError` on a match | Unexpected response fields | Report the endpoint and sanitized schema failure |
+
+## Last-gen requests fail with HTTP 400
+
+EA rejects `common-gen4`, the former PS4 and Xbox One pool.
+From `proclubs-sdk@0.3.1`, it is deprecated. It stays in the TypeScript
+union for source compatibility, but requests reach EA and fail.
+The SDK emits `PROCLUBS_DEP001` once per client.
+
+```ts
+import { DEPRECATED_PLATFORMS, PLATFORMS } from 'proclubs-sdk'
+
+const availablePlatforms = PLATFORMS.filter(
+  (platform) => !DEPRECATED_PLATFORMS.includes(platform),
+)
+// ['common-gen5', 'nx']
+```
+
+This concerns EA's public API. It does not establish whether the game
+itself supports a console.
+
+## Nintendo has one API pool
+
+Use `platform: 'nx'`. Searches using `nx2`, `nx-2`, `switch2`,
+`switch-2`, or `common-nx` returned HTTP 400.
+
+Across 28 distinct league matches, 118 player-match rows from 15 club
+rosters carried `namespace: "4"`. The checks exposed no separate platform
+or namespace to distinguish Switch from Switch 2.
+
+The Nintendo label mapping is tracked in
+[issue #76](https://github.com/alex-jordan547/proclubs-sdk/issues/76).
+Check the release notes before depending on derived Nintendo labels.
+
+<Note>
+  Keep raw namespaces and avoid guessing a hardware generation. The sampled
+  clubs returned no playoff matches; this expanded sample confirms league
+  behavior.
+</Note>
+
+## Recheck saved club IDs
+
+During the FC 27 switchover, a club ID saved from FC 26 resolved to a
+different club. Search by name again and verify the result before
+updating stored links.
+
+EA exposes no game-version selector here. Your saved FC 26 matches
+remain your own archive; the SDK cannot retrieve them through a
+historical-year parameter.
+
+## Understand HTTP 403
+
+The default transport uses Impit with a Chrome network profile.
+Default HTTP mode accepts a 403 only when its JSON validates against
+that exact endpoint's schema. `{ "error": "Forbidden" }` is never
+accepted as club data.
+
+When every 403 must stop a probe, choose strict mode:
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient({
+  httpMode: 'strict',
+  maxAttempts: 1,
+})
+```
+
+Strict mode rejects a 403 on the first attempt. Neither mode guarantees
+EA availability. See [the retry policy](/docs/guides/errors-and-retries).
+
+## Report unexpected shapes
+
+Some Nintendo match responses on 2026-10-01 contained
+`clubs.*.details: null`. The current match schema expects an object
+when `details` is present and rejects those responses with
+`ProClubsResponseError`. This is separate from the namespace mapping.
+
+Include the SDK version, platform, endpoint, HTTP status if available,
+and unexpected field path in a bug report. Remove player identities
+and unnecessary response data.
+
+For an explicit, low-volume probe from a clone of the SDK repository:
+
+```bash
+TARGET_PLATFORM=common-gen5 npm run check:compatibility
+```
+
+This command reaches EA and is separate from offline tests. An empty
+response can leave an endpoint `unverified`; a successful connection
+does not prove every response contract.
