@@ -32,7 +32,11 @@ if (clubs.length === 0) {
   process.exit(1)
 }
 
-// Search can return several clubs. A dashboard should let its user choose.
+if (clubs.length > 1) {
+  console.error('Several clubs found. Use a more specific name or select a club ID in your app.')
+  process.exit(1)
+}
+
 const club = clubs[0]
 const clubId = club.clubId
 const [info, record, squad, matches] = await Promise.all([
