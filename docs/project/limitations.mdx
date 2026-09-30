@@ -61,7 +61,8 @@ from the season key or, as a fallback, the numeric season ID.
 
 - Keep request volumes modest.
 - Use the optional local cache when appropriate, and keep request volumes modest.
-- Do not bypass authorization, access controls, or rate limits.
+- Do not use the SDK to reach authenticated or private endpoints.
+- Respect rate limits. The SDK waits for `Retry-After` before it retries.
 - Follow applicable EA terms and local laws.
 - Keep live compatibility probes explicit, sequential, and low volume.
 

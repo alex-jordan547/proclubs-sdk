@@ -96,8 +96,13 @@ const activePlatforms = PLATFORMS.filter(
 
 ## Custom transport
 
-The default transport uses Impit with a Chrome network profile. You can inject a
-compatible transport at the HTTP boundary.
+The default transport uses Impit with a Chrome network profile, so requests look
+like the ones the EA website sends. EA's edge refuses or stalls some other
+clients: on 2026-09-30, curl got an HTTP/2 stream reset, and developers report
+intermittent 403s and timeouts from servers.
+
+You can inject a compatible transport at the HTTP boundary instead, for example
+plain `fetch`.
 
 ```ts
 import {

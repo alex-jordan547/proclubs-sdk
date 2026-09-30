@@ -73,4 +73,5 @@ for club discovery, rankings, rosters, statistics, and recent matches.
 ## Responsible use
 
 Keep request volumes modest and cache data in your application when appropriate.
-The SDK does not bypass authorization, access controls, or rate limits.
+The SDK reads only public endpoints, sends no credentials, and waits for
+`Retry-After` before it retries.
