@@ -8,7 +8,7 @@ description: "See what changed in each release and what is still only planned."
     title="Current release"
     icon="tag"
   >
-    `0.3.0` is published on npm.
+    `0.3.1` is published on npm.
   </Card>
   <Card title="Public API" icon="code" href="/docs/reference/client">
     11 typed methods across clubs, rankings, members, matches, and playoffs.
@@ -38,13 +38,15 @@ description: "See what changed in each release and what is still only planned."
 | [`0.2.3`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.3) | Added typed nationality labels for member `proNationality` values. The public endpoint surface stays at 11 methods. | 11 |
 | [`0.2.4`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.4) | Added ten Pro Clubs nation ids that the ratings filter omits. | 11 |
 | [`0.2.5`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.2.5) | Added standalone export subpaths for label tables. | 11 |
-| [`0.3.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.0) (current) | Added human-readable player platforms on `matches.list`. | 11 |
+| [`0.3.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.0) | Added human-readable player platforms on `matches.list`. | 11 |
+| [`0.3.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.1) (current) | Checked against FC 27, deprecated `common-gen4`, and explained the default transport in the README. | 11 |
 
-## Unreleased
+## What shipped in 0.3.1
 
 - Checked the SDK against EA Sports FC 27 on 2026-09-30. `common-gen5` and `nx` pass the live compatibility probes on 10 of 11 endpoints. `clubs.playoffAchievements` stays unverified until clubs finish their first FC 27 playoffs.
 - Deprecated `common-gen4`. EA rejects it with HTTP 400 since the FC 27 switchover. The value stays in `PLATFORMS`; a client emits one `DeprecationWarning` (`PROCLUBS_DEP001`) when a request uses it. Added `DEPRECATED_PLATFORMS`.
 - Switched the documentation examples and the default compatibility probe to `HEMLE FC`, which exists on FC 27.
+- Added a "Why this exists" section to the README. It states that the default transport sends a Chrome network profile and that a custom transport can replace it.
 
 ## What shipped in 0.3.0
 
