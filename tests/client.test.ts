@@ -486,6 +486,26 @@ describe('ProClubsClient', () => {
     )
   })
 
+  it('keeps the common-gen4 warning for a request that is not already aborted', async () => {
+    const emitWarning = vi
+      .spyOn(process, 'emitWarning')
+      .mockImplementation(() => {})
+    const client = new ProClubsClient({
+      transport: async () => new Response('[]', { status: 200 }),
+    })
+
+    await expect(
+      client.clubs.search(
+        { name: 'HEMLE FC', platform: 'common-gen4' },
+        { signal: AbortSignal.abort() },
+      ),
+    ).rejects.toBeInstanceOf(ProClubsAbortError)
+    expect(emitWarning).not.toHaveBeenCalled()
+
+    await client.clubs.search({ name: 'HEMLE FC', platform: 'common-gen4' })
+    expect(emitWarning).toHaveBeenCalledTimes(1)
+  })
+
   it('warns when the client default platform is the deprecated common-gen4', async () => {
     const emitWarning = vi
       .spyOn(process, 'emitWarning')

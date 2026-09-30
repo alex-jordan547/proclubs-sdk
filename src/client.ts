@@ -401,12 +401,12 @@ export class ProClubsClient {
     schema: ZodType<T>,
     options?: ProClubsRequestOptions,
   ): Promise<T> {
-    this.warnIfDeprecatedPlatform(searchParams.get('platform'))
     if (options?.signal?.aborted) {
       throw new ProClubsAbortError(undefined, {
         cause: options.signal.reason,
       })
     }
+    this.warnIfDeprecatedPlatform(searchParams.get('platform'))
 
     const cacheMode = options?.cache ?? 'default'
     const cacheEnabled = this.#cache !== undefined && cacheMode !== 'bypass'
