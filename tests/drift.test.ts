@@ -265,6 +265,8 @@ describe('Contract drift detector', () => {
             '1001': { namespace: '7' },
             '1002': { namespace: 1 },
             '1003': { namespace: '0' },
+            '1004': { namespace: '4' },
+            '1005': { namespace: 4 },
           },
         },
         aggregate: {
@@ -280,7 +282,7 @@ describe('Contract drift detector', () => {
         path: '$[0].players.*.*.namespace',
         message:
           'Unknown player namespace at $[0].players.*.*.namespace; update NAMESPACE_FAMILIES after confirming the EA platform',
-        expected: 'known player namespace 0 | 1 | 2 | 3',
+        expected: 'known player namespace 0 | 1 | 2 | 3 | 4',
         actual: '7',
       },
     ])
