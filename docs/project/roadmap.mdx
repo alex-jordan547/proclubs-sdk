@@ -28,6 +28,10 @@ description: "See what changed in each release and what is still only planned."
   limitations](/docs/project/limitations) for the full operating guidance.
 </Note>
 
+## Unreleased
+
+- Added Nintendo player labels to `matches.list`: namespace `"4"` resolves to `nintendo` and, on `nx`, to `switch`. The raw namespace stays available. `switch` identifies the console family because EA does not distinguish Switch 2.
+
 ## Release diff
 
 | Release | What changed from the previous release | Typed methods |
@@ -59,7 +63,7 @@ description: "See what changed in each release and what is still only planned."
 
 ## What shipped in 0.3.0
 
-- `matches.list` players keep the raw `namespace` and gain `derivedLabels.platformFamily` (`playstation`, `xbox`, `pc`, or `nintendo`) and `derivedLabels.exactPlatform` (for example `ps5`, `xbox-series`, or `switch`), resolved from the requested platform. On `nx`, `switch` means the Switch family; EA does not distinguish Switch 2.
+- `matches.list` players keep the raw `namespace` and gain `derivedLabels.platformFamily` (`playstation`, `xbox`, or `pc`) and `derivedLabels.exactPlatform` (for example `ps5` or `xbox-series`), resolved from the requested platform.
 - `friendlyMatch` rows have `namespace: "0"` and no derived platform.
 
 ## What shipped in 0.2.5
