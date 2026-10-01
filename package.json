@@ -78,7 +78,7 @@
     "@biomejs/biome": "^2.5.8",
     "@oxlint/plugins": "1.85.0",
     "@types/node": "^22.20.1",
-    "oxlint": "1.83.0",
+    "oxlint": "1.85.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0",
     "tsx": "^4.23.12"
