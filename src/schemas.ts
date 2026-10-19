@@ -380,7 +380,7 @@ export const matchClubDetailsSchema = z.looseObject({
   ties: numberLikeSchema.optional(),
   winnerByDnf: numberLikeSchema.optional(),
   wins: numberLikeSchema.optional(),
-  details: clubInfoSchema.optional(),
+  details: clubInfoSchema.nullish(),
 })
 
 const matchPlayerStatsObjectSchema = z.looseObject({

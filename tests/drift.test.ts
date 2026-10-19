@@ -380,6 +380,15 @@ describe('Contract drift detector', () => {
     })
   })
 
+  it('accepts null club details in match lists', () => {
+    const result = detectDrift('matchesList', [
+      { matchId: 'friendly-1', clubs: { '43': { goals: '1', details: null } } },
+    ])
+    expect(result.issues).not.toContainEqual(
+      expect.objectContaining({ path: '$[0].clubs.*.details' }),
+    )
+  })
+
   it('redacts dynamic club and player ids from drift paths', () => {
     const fixture = loadFixture('matches-list')
     if (!Array.isArray(fixture)) {

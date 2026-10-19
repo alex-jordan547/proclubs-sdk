@@ -145,6 +145,34 @@ describe('ProClubsClient', () => {
     })
   })
 
+  it('lists matches when EA sends null details for a club', async () => {
+    const client = new ProClubsClient({
+      transport: async () =>
+        new Response(
+          JSON.stringify([
+            {
+              matchId: 'friendly-1',
+              clubs: {
+                '42': { goals: '2', details: { name: 'ALL STAR 237' } },
+                '43': { goals: '1', details: null },
+              },
+            },
+          ]),
+          { status: 200 },
+        ),
+    })
+
+    const [match] = await client.matches.list({
+      clubId: '42',
+      type: 'friendlyMatch',
+    })
+
+    expect(match?.clubs?.['42']?.details).toMatchObject({
+      name: 'ALL STAR 237',
+    })
+    expect(match?.clubs?.['43']).toMatchObject({ goals: '1', details: null })
+  })
+
   it('derives player platforms from namespace and the requested match platform', async () => {
     const friendlyMatch = [
       {
