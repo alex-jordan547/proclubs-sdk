@@ -93,10 +93,11 @@ EA availability. See [the retry policy](/docs/guides/errors-and-retries).
 
 ## Report unexpected shapes
 
-Some Nintendo match responses on 2026-10-01 contained
-`clubs.*.details: null`. The current match schema expects an object
-when `details` is present and rejects those responses with
-`ProClubsResponseError`. This is separate from the namespace mapping.
+Some match responses contain `clubs.*.details: null`. This was first
+seen on Nintendo responses on 2026-10-01, and on `common-gen5` on
+2026-10-19. The match schema accepts `null` there, so check for it
+before reading club details. This is separate from the namespace
+mapping.
 
 Include the SDK version, platform, endpoint, HTTP status if available,
 and unexpected field path in a bug report. Remove player identities
