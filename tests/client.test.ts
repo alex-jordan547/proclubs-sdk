@@ -271,6 +271,31 @@ describe('ProClubsClient', () => {
     ).toEqual(['nx', 'nx'])
   })
 
+  it('preserves null club details on matches.list', async () => {
+    const client = new ProClubsClient({
+      transport: async () =>
+        new Response(
+          JSON.stringify([
+            {
+              matchId: 'null-details-1',
+              clubs: {
+                '42': { goals: '2', details: { name: 'HEMLE FC' } },
+                '99': { goals: '1', details: null },
+              },
+            },
+          ]),
+          { status: 200 },
+        ),
+    })
+
+    const [match] = await client.matches.list({ clubId: '42' })
+
+    expect(match?.clubs).toEqual({
+      '42': { goals: '2', details: { name: 'HEMLE FC' } },
+      '99': { goals: '1', details: null },
+    })
+  })
+
   it('retries transient EA responses before returning validated data', async () => {
     let attempts = 0
     const client = new ProClubsClient({

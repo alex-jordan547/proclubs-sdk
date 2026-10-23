@@ -278,7 +278,7 @@ const matchClubDetailsFields = {
   winnerByDnf: { types: ['numberLike'] },
   wins: { types: ['numberLike'] },
   details: {
-    types: ['object'],
+    types: ['object', 'null'],
     fields: clubInfoFields,
   },
 } satisfies FieldContractMap

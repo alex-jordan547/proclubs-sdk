@@ -66,13 +66,13 @@ describe('NATIONALITY_LABELS and resolveNationality', () => {
     })
     expect(fixture.source.method).toContain('ratingsFilters.nationality')
     expect(fixture.duplicateIdsCollapsed).toEqual(['214'])
-    expect(fixture.entries).toHaveLength(174)
+    expect(fixture.entries).toHaveLength(212)
 
     const expected = Object.fromEntries(
       fixture.entries.map((entry) => [entry.id, expectedNationality(entry)]),
     )
     expect(NATIONALITY_LABELS).toEqual(expected)
-    expect(Object.keys(NATIONALITY_LABELS)).toHaveLength(174)
+    expect(Object.keys(NATIONALITY_LABELS)).toHaveLength(212)
     expect(Object.isFrozen(NATIONALITY_LABELS)).toBe(true)
     for (const entry of Object.values(NATIONALITY_LABELS)) {
       expect(Object.isFrozen(entry)).toBe(true)
@@ -179,6 +179,35 @@ describe('NATIONALITY_LABELS and resolveNationality', () => {
       label: 'Solomon Islands',
       isoCode: 'SB',
     })
+  })
+
+  it('resolves nation ids named by the Ultimate Team web app', () => {
+    expect(resolveNationality(184)).toEqual({
+      id: '184',
+      label: 'Singapore',
+      isoCode: 'SG',
+    })
+    expect(resolveNationality('202')).toEqual({
+      id: '202',
+      label: 'Tahiti',
+      isoCode: 'PF',
+    })
+    expect(resolveNationality(218)).toEqual({
+      id: '218',
+      label: 'South Sudan',
+      isoCode: 'SS',
+    })
+    expect(resolveNationality(69)).toEqual({
+      id: '69',
+      label: 'British Virgin Isles',
+      isoCode: 'VG',
+    })
+  })
+
+  it('leaves Ultimate Team ids that are not nations unresolved', () => {
+    for (const id of [75, 156, 209, 210, 211]) {
+      expect(resolveNationality(id), String(id)).toBeUndefined()
+    }
   })
 
   it('trims surrounding whitespace on string ids without fuzzy matching', () => {

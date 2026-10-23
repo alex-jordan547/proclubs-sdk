@@ -122,9 +122,8 @@ Switch 2. Players with `namespace: "4"` gain
 family, not a specific hardware generation. The raw `namespace` is preserved;
 unknown or friendly-match namespaces remain unresolved.
 
-The Nintendo mapping was added after `0.3.2`. See the
-[release notes](https://github.com/alex-jordan547/proclubs-sdk/releases)
-for package availability.
+The Nintendo mapping was added in `0.3.3`. See the
+[release notes](https://github.com/alex-jordan547/proclubs-sdk/releases).
 
 ### Match types
 
