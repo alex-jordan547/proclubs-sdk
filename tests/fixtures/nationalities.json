@@ -19,7 +19,8 @@
     },
     "labelAliases": {
       "Holland": "EA's label is Holland. NL is the alpha-2 code for the Netherlands.",
-      "Swaziland": "EA's label is Swaziland. SZ is the ISO 3166-1 alpha-2 code, now used for Eswatini."
+      "Swaziland": "EA's label is Swaziland. SZ is the ISO 3166-1 alpha-2 code, now used for Eswatini.",
+      "Tahiti": "EA's label is Tahiti. The Tahiti national team represents French Polynesia, so isoCode is PF."
     }
   },
   "entries": [
@@ -224,6 +225,11 @@
       "isoCode": "RU"
     },
     {
+      "id": "41",
+      "label": "San Marino",
+      "isoCode": "SM"
+    },
+    {
       "id": "42",
       "label": "Scotland",
       "isoCode": "GB-SCT"
@@ -324,9 +330,24 @@
       "isoCode": "VE"
     },
     {
+      "id": "62",
+      "label": "Anguilla",
+      "isoCode": "AI"
+    },
+    {
       "id": "63",
       "label": "Antigua and Barbuda",
       "isoCode": "AG"
+    },
+    {
+      "id": "64",
+      "label": "Aruba",
+      "isoCode": "AW"
+    },
+    {
+      "id": "65",
+      "label": "Bahamas",
+      "isoCode": "BS"
     },
     {
       "id": "66",
@@ -344,9 +365,19 @@
       "isoCode": "BM"
     },
     {
+      "id": "69",
+      "label": "British Virgin Isles",
+      "isoCode": "VG"
+    },
+    {
       "id": "70",
       "label": "Canada",
       "isoCode": "CA"
+    },
+    {
+      "id": "71",
+      "label": "Cayman Islands",
+      "isoCode": "KY"
     },
     {
       "id": "72",
@@ -357,6 +388,11 @@
       "id": "73",
       "label": "Cuba",
       "isoCode": "CU"
+    },
+    {
+      "id": "74",
+      "label": "Dominica",
+      "isoCode": "DM"
     },
     {
       "id": "76",
@@ -434,6 +470,11 @@
       "isoCode": "LC"
     },
     {
+      "id": "91",
+      "label": "St Vincent Grenadine",
+      "isoCode": "VC"
+    },
+    {
       "id": "92",
       "label": "Suriname",
       "isoCode": "SR"
@@ -444,9 +485,19 @@
       "isoCode": "TT"
     },
     {
+      "id": "94",
+      "label": "Turks & Caicos",
+      "isoCode": "TC"
+    },
+    {
       "id": "95",
       "label": "United States",
       "isoCode": "US"
+    },
+    {
+      "id": "96",
+      "label": "US Virgin Islands",
+      "isoCode": "VI"
     },
     {
       "id": "97",
@@ -462,6 +513,11 @@
       "id": "99",
       "label": "Benin",
       "isoCode": "BJ"
+    },
+    {
+      "id": "100",
+      "label": "Botswana",
+      "isoCode": "BW"
     },
     {
       "id": "101",
@@ -502,6 +558,11 @@
       "id": "108",
       "label": "Côte d'Ivoire",
       "isoCode": "CI"
+    },
+    {
+      "id": "109",
+      "label": "Djibouti",
+      "isoCode": "DJ"
     },
     {
       "id": "110",
@@ -557,6 +618,11 @@
       "id": "120",
       "label": "Kenya",
       "isoCode": "KE"
+    },
+    {
+      "id": "121",
+      "label": "Lesotho",
+      "isoCode": "LS"
     },
     {
       "id": "122",
@@ -634,6 +700,11 @@
       "isoCode": "SN"
     },
     {
+      "id": "137",
+      "label": "Seychelles",
+      "isoCode": "SC"
+    },
+    {
       "id": "138",
       "label": "Sierra Leone",
       "isoCode": "SL"
@@ -647,6 +718,11 @@
       "id": "140",
       "label": "South Africa",
       "isoCode": "ZA"
+    },
+    {
+      "id": "141",
+      "label": "Sudan",
+      "isoCode": "SD"
     },
     {
       "id": "142",
@@ -689,6 +765,11 @@
       "isoCode": "AF"
     },
     {
+      "id": "150",
+      "label": "Bahrain",
+      "isoCode": "BH"
+    },
+    {
       "id": "151",
       "label": "Bangladesh",
       "isoCode": "BD"
@@ -702,6 +783,11 @@
       "id": "153",
       "label": "Brunei Darussalam",
       "isoCode": "BN"
+    },
+    {
+      "id": "154",
+      "label": "Cambodia",
+      "isoCode": "KH"
     },
     {
       "id": "155",
@@ -764,9 +850,29 @@
       "isoCode": "KR"
     },
     {
+      "id": "168",
+      "label": "Kuwait",
+      "isoCode": "KW"
+    },
+    {
+      "id": "169",
+      "label": "Kyrgyzstan",
+      "isoCode": "KG"
+    },
+    {
+      "id": "170",
+      "label": "Laos",
+      "isoCode": "LA"
+    },
+    {
       "id": "171",
       "label": "Lebanon",
       "isoCode": "LB"
+    },
+    {
+      "id": "172",
+      "label": "Macau",
+      "isoCode": "MO"
     },
     {
       "id": "173",
@@ -774,9 +880,24 @@
       "isoCode": "MY"
     },
     {
+      "id": "174",
+      "label": "Maldives",
+      "isoCode": "MV"
+    },
+    {
       "id": "175",
       "label": "Mongolia",
       "isoCode": "MN"
+    },
+    {
+      "id": "176",
+      "label": "Myanmar",
+      "isoCode": "MM"
+    },
+    {
+      "id": "177",
+      "label": "Nepal",
+      "isoCode": "NP"
     },
     {
       "id": "178",
@@ -809,6 +930,11 @@
       "isoCode": "SA"
     },
     {
+      "id": "184",
+      "label": "Singapore",
+      "isoCode": "SG"
+    },
+    {
       "id": "185",
       "label": "Sri Lanka",
       "isoCode": "LK"
@@ -819,9 +945,19 @@
       "isoCode": "SY"
     },
     {
+      "id": "187",
+      "label": "Tajikistan",
+      "isoCode": "TJ"
+    },
+    {
       "id": "188",
       "label": "Thailand",
       "isoCode": "TH"
+    },
+    {
+      "id": "189",
+      "label": "Turkmenistan",
+      "isoCode": "TM"
     },
     {
       "id": "190",
@@ -834,9 +970,19 @@
       "isoCode": "UZ"
     },
     {
+      "id": "192",
+      "label": "Vietnam",
+      "isoCode": "VN"
+    },
+    {
       "id": "193",
       "label": "Yemen",
       "isoCode": "YE"
+    },
+    {
+      "id": "194",
+      "label": "American Samoa",
+      "isoCode": "AS"
     },
     {
       "id": "195",
@@ -844,14 +990,44 @@
       "isoCode": "AU"
     },
     {
+      "id": "196",
+      "label": "Cook Islands",
+      "isoCode": "CK"
+    },
+    {
+      "id": "197",
+      "label": "Fiji",
+      "isoCode": "FJ"
+    },
+    {
       "id": "198",
       "label": "New Zealand",
       "isoCode": "NZ"
     },
     {
+      "id": "199",
+      "label": "Papua New Guinea",
+      "isoCode": "PG"
+    },
+    {
+      "id": "200",
+      "label": "Samoa",
+      "isoCode": "WS"
+    },
+    {
       "id": "201",
       "label": "Solomon Islands",
       "isoCode": "SB"
+    },
+    {
+      "id": "202",
+      "label": "Tahiti",
+      "isoCode": "PF"
+    },
+    {
+      "id": "203",
+      "label": "Tonga",
+      "isoCode": "TO"
     },
     {
       "id": "204",
@@ -864,6 +1040,11 @@
       "isoCode": "GI"
     },
     {
+      "id": "206",
+      "label": "Greenland",
+      "isoCode": "GL"
+    },
+    {
       "id": "207",
       "label": "Dominican Republic",
       "isoCode": "DO"
@@ -872,6 +1053,11 @@
       "id": "208",
       "label": "Estonia",
       "isoCode": "EE"
+    },
+    {
+      "id": "212",
+      "label": "Timor-Leste",
+      "isoCode": "TL"
     },
     {
       "id": "213",
@@ -886,6 +1072,11 @@
       "id": "215",
       "label": "New Caledonia",
       "isoCode": "NC"
+    },
+    {
+      "id": "218",
+      "label": "South Sudan",
+      "isoCode": "SS"
     },
     {
       "id": "219",
@@ -1058,5 +1249,56 @@
     "source": "Historical EA nation id table (fut.nations). Shared ids match the 2026-09-26 ratings capture, including 14 England, 113 Eritrea, and 115 Gabon.",
     "reason": "These ids are absent from the ratings filter and are used by live Pro Clubs members.",
     "ids": ["67", "86", "114", "142", "152", "153", "157", "173", "175", "201"]
+  },
+  "ultimateTeamNations": {
+    "source": "EA SPORTS FC Ultimate Team web app strings (https://www.ea.com/ea-sports-fc/ultimate-team/web-app/loc/en-US.json, keys search.nationName.nation{id}), downloaded 2026-10-23. The file names 217 ids and agrees with the ratings capture and the historical table on the nation behind each of the 174 earlier ids; 16 differ only in spelling.",
+    "reason": "These ids are absent from the ratings filter and are used by live Pro Clubs members.",
+    "ids": [
+      "41",
+      "62",
+      "64",
+      "65",
+      "69",
+      "71",
+      "74",
+      "91",
+      "94",
+      "96",
+      "100",
+      "109",
+      "121",
+      "137",
+      "141",
+      "150",
+      "154",
+      "168",
+      "169",
+      "170",
+      "172",
+      "174",
+      "176",
+      "177",
+      "184",
+      "187",
+      "189",
+      "192",
+      "194",
+      "196",
+      "197",
+      "199",
+      "200",
+      "202",
+      "203",
+      "206",
+      "212",
+      "218"
+    ],
+    "excludedIds": {
+      "75": "International. Not a nation.",
+      "156": "Chinese Taipei. Older duplicate of 213.",
+      "209": "Created Players. Not a nation.",
+      "210": "Free Agents. Not a nation.",
+      "211": "Rest of World. Not a nation."
+    }
   }
 }

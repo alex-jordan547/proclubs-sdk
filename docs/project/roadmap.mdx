@@ -28,10 +28,6 @@ description: "See what changed in each release and what is still only planned."
   limitations](/docs/project/limitations) for the full operating guidance.
 </Note>
 
-## Unreleased
-
-- Added Nintendo player labels to `matches.list`: namespace `"4"` resolves to `nintendo` and, on `nx`, to `switch`. The raw namespace stays available. `switch` identifies the console family because EA does not distinguish Switch 2.
-
 ## Release diff
 
 | Release | What changed from the previous release | Typed methods |
@@ -46,6 +42,14 @@ description: "See what changed in each release and what is still only planned."
 | [`0.3.0`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.0) | Added human-readable player platforms on `matches.list`. | 11 |
 | [`0.3.1`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.1) | Checked against FC 27, deprecated `common-gen4`, and explained the default transport in the README. | 11 |
 | [`0.3.2`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.2) | Added practical Node.js and Discord guides, an FC 27 troubleshooting guide, and clearer documentation links on npm and GitHub. | 11 |
+| [`0.3.3`](https://github.com/alex-jordan547/proclubs-sdk/releases/tag/v0.3.3) | Added 38 nation ids, Nintendo player labels, and support for `null` club details in matches. | 11 |
+
+## What shipped in 0.3.3
+
+- Added 38 nation ids to `NATIONALITY_LABELS`, from San Marino (`41`) to South Sudan (`218`). Their labels come from the EA SPORTS FC Ultimate Team web app strings downloaded on 2026-10-23. `Tahiti` (`202`) resolves to `PF`, French Polynesia.
+- Ids `75`, `156`, `209`, `210`, and `211` in that file are not nations and stay unmapped.
+- `matches.list` accepts `clubs.*.details: null` and keeps the `null`. Up to `0.3.2`, those responses failed with `ProClubsResponseError`. `MatchClubDetails['details']` is now typed `ClubInfo | null | undefined`, and the compatibility contract accepts `null` for this field.
+- Added Nintendo player labels to `matches.list`: namespace `"4"` resolves to `nintendo` and, on `nx`, to `switch`. The raw namespace stays available. `switch` identifies the console family because EA does not distinguish Switch 2.
 
 ## 0.3.2
 

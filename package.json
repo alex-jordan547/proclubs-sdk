@@ -1,6 +1,6 @@
 {
   "name": "proclubs-sdk",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Unofficial EA FC Pro Clubs API SDK for TypeScript and Node.js: club stats, player rosters, rankings and matches.",
   "author": "Alex Jordan",
   "type": "module",

@@ -288,6 +288,17 @@ describe('Contract drift detector', () => {
     ])
   })
 
+  it('accepts null club details on matchesList', () => {
+    expect(
+      detectDrift('matchesList', [
+        {
+          matchId: 'match-1',
+          clubs: { '99': { goals: '1', details: null } },
+        },
+      ]),
+    ).toMatchObject({ status: 'passed', issues: [] })
+  })
+
   it('detects playoff fields added, removed, or changed upstream', () => {
     const valid = {
       seasonId: '7',
