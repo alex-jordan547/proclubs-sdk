@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       platform:
-        description: 'Target platform to probe'
+        description: "Target platform to probe"
         required: true
-        default: 'common-gen5'
+        default: "common-gen5"
         type: choice
         options:
           - common-gen5
           - common-gen4
           - nx
       searchQuery:
-        description: 'Club name used to populate dependent endpoint probes'
+        description: "Club name used to populate dependent endpoint probes"
         required: false
-        default: 'HEMLE FC'
+        default: "HEMLE FC"
         type: string
 
 permissions:

@@ -46,11 +46,11 @@ with FC 27.
 
 **The data is raw codes.** The SDK keeps the raw value and adds a readable one:
 
-| EA returns | The SDK adds |
-| --- | --- |
-| `proNationality: "115"` | `nationality: { id: "115", label: "Gabon", isoCode: "GA" }` |
-| `regionId: 5457237` | `regionLabel: "Southern Europe"` |
-| `namespace: "1"` on a `common-gen5` match | `derivedLabels.exactPlatform: "ps5"` |
+| EA returns                                | The SDK adds                                                |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `proNationality: "115"`                   | `nationality: { id: "115", label: "Gabon", isoCode: "GA" }` |
+| `regionId: 5457237`                       | `regionLabel: "Southern Europe"`                            |
+| `namespace: "1"` on a `common-gen5` match | `derivedLabels.exactPlatform: "ps5"`                        |
 
 The SDK sends no EA credentials or cookies, and it only reads the endpoints the
 public website reads. It is built for low request volumes, not for scraping.
@@ -88,27 +88,27 @@ The examples use `HEMLE FC` as the test club, and `mrjordan_237` /
 
 ## API
 
-| Method | Result |
-| --- | --- |
-| `clubs.search({ name, platform? })` | `Promise<ClubSummary[]>` |
-| `clubs.get({ clubId, platform? })` | `Promise<ClubInfo \| null>` |
-| `clubs.overallStats({ clubId, platform? })` | `Promise<ClubOverallStats \| null>` |
-| `clubs.playoffAchievements({ clubId, platform? })` | `Promise<PlayoffAchievement[]>` |
-| `rankings.allTime(input?)` | `Promise<RankingEntry[]>` |
-| `rankings.searchAllTime({ name, platform? })` | `Promise<RankingEntry[]>` |
-| `rankings.currentSeason(input?)` | `Promise<RankingEntry[]>` |
-| `rankings.searchCurrentSeason({ name, platform? })` | `Promise<RankingEntry[]>` |
-| `members.stats({ clubId, platform? })` | `Promise<ClubMemberStats>` |
-| `members.careerStats({ clubId, platform? })` | `Promise<ClubMemberCareerStats>` |
-| `matches.list({ clubId, platform?, type?, limit? })` | `Promise<ClubMatch[]>` |
+| Method                                               | Result                              |
+| ---------------------------------------------------- | ----------------------------------- |
+| `clubs.search({ name, platform? })`                  | `Promise<ClubSummary[]>`            |
+| `clubs.get({ clubId, platform? })`                   | `Promise<ClubInfo \| null>`         |
+| `clubs.overallStats({ clubId, platform? })`          | `Promise<ClubOverallStats \| null>` |
+| `clubs.playoffAchievements({ clubId, platform? })`   | `Promise<PlayoffAchievement[]>`     |
+| `rankings.allTime(input?)`                           | `Promise<RankingEntry[]>`           |
+| `rankings.searchAllTime({ name, platform? })`        | `Promise<RankingEntry[]>`           |
+| `rankings.currentSeason(input?)`                     | `Promise<RankingEntry[]>`           |
+| `rankings.searchCurrentSeason({ name, platform? })`  | `Promise<RankingEntry[]>`           |
+| `members.stats({ clubId, platform? })`               | `Promise<ClubMemberStats>`          |
+| `members.careerStats({ clubId, platform? })`         | `Promise<ClubMemberCareerStats>`    |
+| `matches.list({ clubId, platform?, type?, limit? })` | `Promise<ClubMatch[]>`              |
 
 ### Platforms
 
-| Platform | EA label | Status on FC 27 |
-| --- | --- | --- |
-| `common-gen5` (default) | Crossplatform Current Gen | Supported |
-| `nx` | Switch | Supported: Switch and Switch 2 share one pool |
-| `common-gen4` | Crossplatform Last Gen | Deprecated: EA rejects it with HTTP 400 |
+| Platform                | EA label                  | Status on FC 27                               |
+| ----------------------- | ------------------------- | --------------------------------------------- |
+| `common-gen5` (default) | Crossplatform Current Gen | Supported                                     |
+| `nx`                    | Switch                    | Supported: Switch and Switch 2 share one pool |
+| `common-gen4`           | Crossplatform Last Gen    | Deprecated: EA rejects it with HTTP 400       |
 
 Platform status was last checked against the live EA endpoints on 2026-09-30.
 The SDK still accepts `common-gen4` so existing code keeps compiling, and emits
