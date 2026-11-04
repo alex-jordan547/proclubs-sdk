@@ -80,7 +80,7 @@
   "license": "MIT",
   "dependencies": {
     "impit": "0.14.5",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
