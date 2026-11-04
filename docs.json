@@ -35,6 +35,7 @@
         "group": "SDK reference",
         "pages": [
           "docs/reference/client",
+          "docs/reference/ea-endpoints",
           "docs/reference/clubs",
           "docs/reference/rankings",
           "docs/reference/members",

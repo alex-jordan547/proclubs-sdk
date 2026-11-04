@@ -1,0 +1,107 @@
+---
+title: "EA FC Pro Clubs API endpoints"
+sidebarTitle: "EA endpoints"
+description: "Unofficial reference for the EA FC Pro Clubs API on proclubs.ea.com: every endpoint, its query parameters, platform values, and the SDK method that calls it."
+---
+
+EA does not document the Pro Clubs API. These are the public JSON endpoints
+that the EA Clubs website reads, and the ones `proclubs-sdk` calls.
+
+Every endpoint below returned HTTP 200 with FC 27 data on **2026-11-04**.
+EA can change them without notice; the [FC 27 guide](/docs/guides/fc27-api-changes)
+lists what changed at the last yearly switchover.
+
+## Base URL
+
+```text
+https://proclubs.ea.com/api/fc/
+```
+
+All endpoints are `GET` requests with a query string. They need no API key,
+EA account, or cookie.
+
+## Endpoints
+
+| Endpoint | Query parameters | Response | SDK method |
+| --- | --- | --- | --- |
+| `allTimeLeaderboard/search` | `platform`, `clubName` | Array of matching clubs | `clubs.search`, `rankings.searchAllTime` |
+| `clubs/info` | `platform`, `clubIds` | Object keyed by club ID | `clubs.get` |
+| `clubs/overallStats` | `platform`, `clubIds` | Array with one record per club | `clubs.overallStats` |
+| `club/playoffAchievements` | `platform`, `clubId` | Array; empty without playoff history | `clubs.playoffAchievements` |
+| `members/stats` | `platform`, `clubId` | `{ members, positionCount }` | `members.stats` |
+| `members/career/stats` | `platform`, `clubId` | `{ members, positionCount }` | `members.careerStats` |
+| `clubs/matches` | `platform`, `clubIds`, `matchType`, `maxResultCount` | Array of matches | `matches.list` |
+| `allTimeLeaderboard` | `platform` | Array of the top 100 clubs | `rankings.allTime` |
+| `currentSeasonLeaderboard` | `platform` | Array of the top 100 clubs this season | `rankings.currentSeason` |
+| `currentSeasonLeaderboard/search` | `platform`, `clubName` | Array of matching clubs | `rankings.searchCurrentSeason` |
+
+Two naming traps catch most hand-written clients:
+
+- The playoff endpoint is `club/playoffAchievements`, singular, while the
+  others start with `clubs/`.
+- `clubs/info`, `clubs/overallStats`, and `clubs/matches` take `clubIds`.
+  The playoff and member endpoints take `clubId`. Despite the plural, `clubIds`
+  accepts one ID: two IDs separated by a comma return
+  `Invalid query parameter: clubIds`.
+
+## Example
+
+This request returns the five most recent league matches of HEMLE FC:
+
+```text
+https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds=152750&matchType=leagueMatch&maxResultCount=5
+```
+
+The same call with the SDK:
+
+```ts
+import { ProClubsClient } from 'proclubs-sdk'
+
+const proclubs = new ProClubsClient()
+const matches = await proclubs.matches.list({
+  clubId: 152750,
+  type: 'leagueMatch',
+  limit: 5,
+})
+```
+
+Club IDs change at each yearly release, so search the club by name before
+you store its ID.
+
+## Parameter values
+
+| Parameter | Values |
+| --- | --- |
+| `platform` | `common-gen5` for PS5, Xbox Series X\|S, and PC; `nx` for the Nintendo Switch family. `common-gen4` returns HTTP 400 since FC 27. |
+| `matchType` | `leagueMatch`, `playoffMatch`, or `friendlyMatch` |
+| `maxResultCount` | EA returns at most 10 matches per type, even when you ask for more. The SDK accepts `1` through `10`. |
+| `clubName` | The club name as players see it. The SDK trims it and accepts 1 to 32 characters. |
+
+The SDK exports these values as `PLATFORMS`, `DEPRECATED_PLATFORMS`, and
+`MATCH_TYPES`; see [constants](/docs/reference/types-and-schemas#constants).
+
+## Calling the endpoints without the SDK
+
+EA's edge is picky about the HTTP client. On 2026-09-30, from a home
+connection, a browser and Node.js `fetch` received the JSON, while curl got
+an HTTP/2 stream reset. From servers, developers report intermittent 403
+responses and timeouts.
+
+The responses are raw too: nationalities, regions, and player platforms
+arrive as numeric codes, and fields change between yearly releases. The SDK
+adds:
+
+- a [Chrome network profile](/docs/guides/configuration#custom-transport)
+  for requests, or your own transport;
+- [Zod validation and drift detection](/docs/reference/types-and-schemas#drift-detection-and-compatibility)
+  on every response;
+- [typed errors and bounded retries](/docs/guides/errors-and-retries);
+- readable [nationalities](/docs/reference/nationalities),
+  [regions](/docs/reference/regions), and
+  [platform labels](/docs/reference/metadata) next to the raw codes.
+
+<Warning>
+  These endpoints belong to Electronic Arts and are not a supported public
+  API. Keep request volumes low and read the
+  [support limits](/docs/project/limitations).
+</Warning>
