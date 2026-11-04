@@ -24,9 +24,10 @@ requests. Reuse the optional memory cache for repeated queries.
 
 ## Why this exists
 
-EA publishes no Pro Clubs API. The EA Clubs website reads a set of public JSON
-endpoints, and every stats site, league tool, and Discord bot ends up calling
-them with its own request code. That code breaks in the same three places.
+EA publishes no Pro Clubs API. The EA Clubs website reads a set of
+[public JSON endpoints](https://proclubs-sdk.mintlify.app/docs/reference/ea-endpoints),
+and every stats site, league tool, and Discord bot ends up calling them with
+its own request code. That code breaks in the same three places.
 
 **EA's edge is picky about the client.** Checked on 2026-09-30 against
 `proclubs.ea.com` from a home connection: a browser and Node.js `fetch` get the
@@ -149,6 +150,7 @@ Reference pages in this repository:
 - [Errors and retries](./docs/guides/errors-and-retries.mdx)
 - [Cache and observability](./docs/guides/cache-and-observability.mdx)
 - [SDK reference](./docs/reference/client.mdx)
+- [EA FC Pro Clubs API endpoints](./docs/reference/ea-endpoints.mdx)
 - [Clubs reference](./docs/reference/clubs.mdx)
 - [Rankings reference](./docs/reference/rankings.mdx)
 - [Metadata and crest helpers](./docs/reference/metadata.mdx)
